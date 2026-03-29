@@ -89,6 +89,7 @@ main:
 	dec cx
 	jmp .loop
 .end:
+	mov dl, [drive]
 	jmp (start_addr >> 4):(start_addr & 0x0F) ;; Far jump
 
 	jmp halt
