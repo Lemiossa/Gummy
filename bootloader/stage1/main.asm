@@ -46,7 +46,7 @@ _start:
 	;;     BX -= 0x8000
 	;;     ES += 0x800
 	;; read
-	;; increment BX
+	;; BX += 512
 	;; increment DX:AX
 	;; goto loop
 
@@ -77,9 +77,9 @@ _start:
 
 .no_increment_segment:
 	call read_sector
-
-	inc bx
-
+	
+	add bx, 512
+	
 	add ax, 1
 	adc dx, 0
 	
