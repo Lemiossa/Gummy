@@ -2,6 +2,7 @@
 ;; Created by Matheus Leme Da Silva
 %ifndef _CONSOLE_ASM_
 %define _CONSOLE_ASM_
+section .text
 
 ;; Prints a string ending with zero on the screen
 ;; DS:SI: pointer to string

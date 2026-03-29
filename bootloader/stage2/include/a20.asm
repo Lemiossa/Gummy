@@ -4,10 +4,7 @@
 %define _A20_ASM_
 %include "include/console.asm"
 %include "include/panic.asm"
-
-a20_line_error_message: db "Failed to enable A20 line!", 0
-a20_line_enabling_message: db "Enabling A20 line...", 0
-a20_line_enabled_message: db " Enabled.", 0x0D, 0x0A, 0
+section .text
 
 ;; Enable A20 line
 ;; BIOS Method
@@ -53,5 +50,10 @@ a20_line_error:
 	;; This code never executes, but just as a precaution
 	cli
 	hlt
+
+section .data
+a20_line_error_message: db "Failed to enable A20 line!", 0
+a20_line_enabling_message: db "Enabling A20 line...", 0
+a20_line_enabled_message: db " Enabled.", 0x0D, 0x0A, 0
 
 %endif ;; _A20_ASM_
