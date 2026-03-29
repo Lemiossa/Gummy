@@ -26,5 +26,5 @@ bootloader:
 
 $(IMAGE): bootloader
 	mkdir -p $(dir $@)
-	dd if=/dev/zero of=$(IMAGE) bs=1 count=0 seek=1440K
+	dd if=/dev/zero of=$(IMAGE) bs=1K count=1440 
 	dd if=$(BOOTLOADER) of=$(IMAGE) conv=notrunc 
