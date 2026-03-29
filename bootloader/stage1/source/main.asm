@@ -7,6 +7,12 @@ start_addr: equ 0x7E00
 start_sector: equ 1
 sector_count: equ 62
 
+jmp short main
+nop
+
+;; Space for BPB
+times 62 - ($ - $$) db 0
+
 ;; Main function
 main:
 	cli
@@ -111,6 +117,10 @@ int13_failed_message: db "Int13 failed!", 0x0D, 0x0A, 0
 drive: db 0
 sectors_per_track: dw 0
 heads: dw 0
+
+times 440 - ($ - $$) db 0
+;; Boot signature
+dd __TIME__
 
 times 510 - ($ - $$) db 0
 dw 0xAA55

@@ -8,6 +8,9 @@ IMAGESDIR := $(BUILDDIR)/images
 IMAGE := $(IMAGESDIR)/Bitix.img
 BOOTLOADER := $(BINDIR)/bootloader.bin
 
+# For debian
+PATH := $(PATH):/sbin:/usr/sbin
+
 .PHONY: all
 all: $(IMAGE)
 
@@ -27,4 +30,7 @@ bootloader:
 $(IMAGE): bootloader
 	mkdir -p $(dir $@)
 	dd if=/dev/zero of=$(IMAGE) bs=1K count=1440 
-	dd if=$(BOOTLOADER) of=$(IMAGE) conv=notrunc 
+	mkfs.fat -F 12 -n "BITIX" -R 64 $(IMAGE)
+	dd if=$(BOOTLOADER) of=$(IMAGE) bs=1 count=3 conv=notrunc 
+	dd if=$(BOOTLOADER) of=$(IMAGE) bs=1 skip=62 seek=62 count=386 conv=notrunc 
+	dd if=$(BOOTLOADER) of=$(IMAGE) bs=1 skip=512 seek=512 conv=notrunc 
