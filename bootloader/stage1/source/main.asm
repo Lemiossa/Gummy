@@ -5,7 +5,7 @@ org 0x7C00
 
 start_addr: equ 0x7E00
 start_sector: equ 1
-sector_count: equ 1
+sector_count: equ 62
 
 ;; Main function
 _start:
@@ -32,9 +32,6 @@ _start:
 	inc dh
 	mov [sectors_per_track], cl
 	mov [heads], dh
-
-	mov si, start_message
-	call print_string
 
 	;; Setup
 	;; Set ES:BX to start_addr
@@ -77,7 +74,13 @@ _start:
 
 .no_increment_segment:
 	call read_sector
-	
+
+	push ax
+	mov ah, 0x0E
+	mov al, '.'
+	int 0x10
+	pop ax
+
 	add bx, 512
 	
 	add ax, 1
@@ -178,7 +181,6 @@ halt:
 
 halted_message: db "System is halted. Please, reboot.", 0x0D, 0x0A, 0
 int13_failed_message: db "Int13 failed!", 0x0D, 0x0A, 0
-start_message: db "Starting...", 0x0D, 0x0A, 0
 
 drive: db 0
 sectors_per_track: dw 0
@@ -186,12 +188,3 @@ heads: dw 0
 
 times 510 - ($ - $$) db 0
 dw 0xAA55
-
-;; This code is loaded by stage1 
-main:
-	mov al, 'X'
-	mov ah, 0x0E
-	int 0x10
-
-	cli
-	hlt
