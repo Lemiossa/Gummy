@@ -1,21 +1,30 @@
 # Makefile
 # Created by Matheus Leme Da Silva
 
-NASM ?= nasm
+BUILDDIR := $(CURDIR)/build
+BINDIR := $(BUILDDIR)/bin
+IMAGESDIR := $(BUILDDIR)/images
+
+IMAGE := $(IMAGESDIR)/Bitix.img
+BOOTLOADER := $(BINDIR)/bootloader.bin
 
 .PHONY: all
-all: stage1.bin
+all: $(IMAGE)
 
 .PHONY: clean
 clean:
-	rm -f stage1.bin 
+	$(MAKE) -C bootloader clean TARGET=$(BOOTLOADER)
 
 .PHONY: qemu
-qemu: stage1.bin
-	qemu-system-i386 -drive file=stage1.bin,format=raw,if=ide,media=disk \
+qemu: $(IMAGE)
+	qemu-system-i386 -drive file=$(IMAGE),format=raw,if=ide,media=disk \
 		-machine pc
 
-stage1.bin: stage1.asm
-	$(NASM) -f bin $< -o $@
+.PHONY: bootloader
+bootloader:
+	$(MAKE) -C bootloader TARGET=$(BOOTLOADER)
 
-
+$(IMAGE): bootloader
+	mkdir -p $(dir $@)
+	dd if=/dev/zero of=$(IMAGE) bs=1 count=0 seek=1440K
+	dd if=$(BOOTLOADER) of=$(IMAGE) conv=notrunc 
