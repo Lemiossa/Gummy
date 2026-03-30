@@ -2,8 +2,8 @@
 ;; Created by Matheus Leme Da Silva
 %ifndef _A20_ASM_
 %define _A20_ASM_
-%include "include/console.asm"
-%include "include/panic.asm"
+%include "console.asm"
+%include "panic.asm"
 section .text
 
 ;; Enable A20 line
@@ -11,8 +11,7 @@ section .text
 enable_a20_line:
 	push ax
 	push si
-	mov si, a20_line_enabling_message
-	call print_string
+	print "Enabling A20 line..."
 
 	;; Get status
 	mov ax, 0x2402
@@ -35,25 +34,14 @@ enable_a20_line:
 	test ah, ah
 	jnz a20_line_error
 .end:
-	mov si, a20_line_enabled_message
-	call print_string
+	print "Enabled!", 0x0D, 0x0A
 
 	pop si
 	pop ax
 	ret
 
-
 ;; Prints an a20 line error message and halts the system
 a20_line_error:
-	mov si, a20_line_error_message
-	call panic
-	;; This code never executes, but just as a precaution
-	cli
-	hlt
-
-section .data
-a20_line_error_message: db "Failed to enable A20 line!", 0
-a20_line_enabling_message: db "Enabling A20 line...", 0
-a20_line_enabled_message: db " Enabled.", 0x0D, 0x0A, 0
+	panic "Failed to enabled A20 line"
 
 %endif ;; _A20_ASM_
