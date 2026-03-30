@@ -64,4 +64,6 @@ int13_failed:
 	mov si, int13_failed_message
 	call print_string
 
+int13_failed_message: db "Int13 failed!", 0x0D, 0x0A, 0
+
 %endif ;; _DISK_ASM_

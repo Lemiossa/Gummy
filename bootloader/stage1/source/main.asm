@@ -112,7 +112,6 @@ halt:
 	hlt
 
 halted_message: db "System is halted. Please, reboot.", 0x0D, 0x0A, 0
-int13_failed_message: db "Int13 failed!", 0x0D, 0x0A, 0
 
 drive: db 0
 sectors_per_track: dw 0
