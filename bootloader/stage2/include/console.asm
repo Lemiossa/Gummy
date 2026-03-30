@@ -21,4 +21,35 @@ print_string:
 	pop ax
 	ret
 
+;; Prints a HEX 4-bit value in AL
+print_nibble:
+	push ax
+	and al, 0x0F
+	
+	cmp al, 9
+	jbe .digit
+	sub al, 10
+	add al, 'A'
+	jmp .end
+.digit:
+	add al, '0'
+.end:
+	mov ah, 0x0E
+	int 0x10
+	pop ax
+	ret
+
+;; Prints a HEX 8-bit value in AL
+;; AL: Byte
+print_hex_byte:
+	push ax
+	;; Nibble 1
+	shr al, 4
+	call print_nibble
+	pop ax
+	;; Nibble 0
+	call print_nibble
+	
+	ret
+
 %endif ;; _CONSOLE_ASM_
