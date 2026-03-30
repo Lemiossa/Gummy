@@ -21,6 +21,19 @@ print_string:
 	pop ax
 	ret
 
+%macro print 1+
+	jmp %%print
+section .data
+%%string:
+	db %1, 0
+section .text
+%%print:
+	push si
+	mov si, %%string
+	call print_string
+	pop si
+%endmacro
+
 ;; Prints a HEX 4-bit value in AL
 print_nibble:
 	push ax
