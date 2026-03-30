@@ -13,10 +13,10 @@ all: $(TARGET)
 
 .PHONY: clean
 clean:
-	rm -f $(TARGET) 
+	rm -f $(TARGET) $(DEPDIR)/main.d
 
 $(TARGET): $(CURDIR)/source/main.asm
 	mkdir -p $(dir $@) $(DEPDIR)
-	$(NASM) -f bin $< -o $@ -MD -MF $(DEPDIR)/main.d
+	$(NASM) -f bin -I $(CURDIR)/source $< -o $@ -MD -MF $(DEPDIR)/main.d
 
 -include $(DEPDIR)/main.d

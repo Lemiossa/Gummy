@@ -10,6 +10,7 @@ jmp main
 ;; Begin includes
 %include "console.asm"
 %include "a20.asm"
+%include "disk.asm"
 ;; End includes
 
 ;; Bootloader main function
@@ -23,9 +24,10 @@ main:
 	sti
 	
 	mov [drive], dl
+	newline
+	call set_drive
 	call enable_a20_line
 
-	print "Hello World"
 	cli
 	hlt
 
