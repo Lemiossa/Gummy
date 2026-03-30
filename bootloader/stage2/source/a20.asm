@@ -34,7 +34,7 @@ enable_a20_line:
 	test ah, ah
 	jnz a20_line_error
 .end:
-	print "Enabled!", 0x0D, 0x0A
+	print " Enabled!", 0x0D, 0x0A
 
 	pop si
 	pop ax
