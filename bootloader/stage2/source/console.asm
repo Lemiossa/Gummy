@@ -22,11 +22,9 @@ print_string:
 	ret
 
 %macro print 1+
-	jmp %%print_the_string
 section .data
 %%string: db %1, 0
 section .text
-%%print_the_string:
 	push si
 	mov si, %%string
 	call print_string
@@ -76,7 +74,6 @@ print_nibble:
 	call print_nibble
 
 	pop ax
-	ret
 %endmacro
 
 %endif ;; _CONSOLE_ASM_
