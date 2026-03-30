@@ -100,8 +100,8 @@ main:
 
 	jmp halt
 
-%include "include/console.asm"
-%include "include/disk.asm"
+%include "console.asm"
+%include "disk.asm"
 
 ;; Prints halt message and halt the computer
 halt:

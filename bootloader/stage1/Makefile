@@ -16,5 +16,5 @@ clean:
 
 $(TARGET): $(CURDIR)/source/main.asm
 	mkdir -p $(dir $@)
-	$(NASM) -f bin $< -o $@
+	$(NASM) -f bin -I$(CURDIR)/source $< -o $@
 
