@@ -25,7 +25,21 @@ main:
 	int 0x10
 	
 	call enable_a20_line
+
+	mov al, 0
+	mov cx, 0xFF
+print_hex:
+	call print_hex_byte
+	inc al
+
+	push ax
+	mov ah, 0x0E
+	mov al, ' '
+	int 0x10
+	pop ax
 	
+	loop print_hex
+
 	cli
 	hlt
 
