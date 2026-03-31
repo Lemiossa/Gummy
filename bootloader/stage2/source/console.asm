@@ -60,6 +60,7 @@ print_nibble:
 	ret
 
 ;; Prints a HEX 8-bit value 
+;; 1: r8
 %macro print_hex_byte 1 
 	push ax
 	mov al, %1
@@ -74,6 +75,16 @@ print_nibble:
 	call print_nibble
 
 	pop ax
+%endmacro
+
+;; Prints a HEX 16-bit value
+;; 1: r16
+%macro print_hex_word 1
+	push bx
+	mov bx, %1
+	print_hex_byte bh
+	print_hex_byte bl
+	pop bx
 %endmacro
 
 %endif ;; _CONSOLE_ASM_
