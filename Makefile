@@ -18,10 +18,19 @@ all: $(IMAGE)
 clean:
 	$(MAKE) -C bootloader clean TARGET=$(BOOTLOADER)
 
+QEMU := qemu-system-i386
+QEMUFLAGS := \
+			 -drive file=$(IMAGE),format=raw,if=ide,media=disk \
+			 -audiodev alsa,id=audio0 \
+			 -machine pc,pcspk-audiodev=audio0
+
 .PHONY: qemu
 qemu: $(IMAGE)
-	qemu-system-i386 -drive file=$(IMAGE),format=raw,if=ide,media=disk \
-		-machine pc
+	$(QEMU) $(QEMUFLAGS)
+
+.PHONY: qemu-ng
+qemu-ng: $(IMAGE)
+	$(QEMU) $(QEMUFLAGS) -nographic
 
 .PHONY: bootloader
 bootloader:
