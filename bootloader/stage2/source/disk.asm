@@ -4,6 +4,7 @@
 %define _DISK_ASM_
 section .text
 %include "console.asm"
+sector_size:      equ 0x200
 
 ;; Sets drive to disk operations
 ;; DL: Drive number
@@ -12,17 +13,21 @@ set_drive:
 	print_hex_byte dl
 	print "..."
 
+	pusha
 	mov [current_drive_number], dl
 	call get_drive_parameters
 	mov [current_sectors_per_track], cl
 	mov [current_heads], dh
+	popa
 
 	print " Ok!", 0x0D, 0x0A
 	ret
 
 ;; Return drive parameters of a disk
-;; Return sectors per track in CL and number of heads in DH
 ;; Uses current_drive
+;; Return
+;; CL: Sectors per track
+;; DH: Number of heads
 get_drive_parameters:
 	push ax
 	push di
@@ -31,6 +36,7 @@ get_drive_parameters:
 	xor ax, ax
 	mov es, ax
 
+	clc
 	mov ah, 0x08
 	mov dl, [current_drive_number]
 	xor di, di
@@ -44,6 +50,17 @@ get_drive_parameters:
 
 	pop es
 	pop di
+	pop ax
+	ret
+
+;; Resets a disk
+disk_reset:
+	push ax
+	push dx
+	mov dl, [current_drive_number]
+	mov ah, 0x00
+	int 0x13
+	pop dx
 	pop ax
 	ret
 
@@ -92,12 +109,20 @@ read_sector:
 	;; dl = drive
 	;; es:bx = ptr
 
+	mov si, 3
+.retry:
+	call disk_reset
+	clc
 	mov ax, 0x0201 ;; read function, 1 sector
 	mov dl, [current_drive_number]
 	int 0x13
+	jnc .no_err
+	test si, si
+	jz int13_failed
+	dec si
+	jmp .retry
+.no_err:
 
-	jc int13_failed
-	
 	pop dx
 	pop cx
 	pop ax
@@ -106,8 +131,9 @@ read_sector:
 ;; Prints int13 error message and halt the computer
 int13_failed:
 	print "int13 failed!"
-
+	
 	;; Get status of last operation
+	clc
 	mov ah, 0x01
 	int 0x13
 	jc .end

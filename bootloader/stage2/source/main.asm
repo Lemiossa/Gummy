@@ -11,7 +11,9 @@ jmp main
 %include "console.asm"
 %include "a20.asm"
 %include "disk.asm"
+%include "fat.asm"
 ;; End includes
+section .text
 
 ;; Bootloader main function
 main:
@@ -31,8 +33,16 @@ main:
 	mov ax, 0x1112
 	int 0x10
 	print " Ok", 0x0D, 0x0A
+	
+	;; Initially, only floppies
+	xor dx, dx
+	xor ax, ax
+	mov bl, [drive]
+	call fat_init
+	jnc is_valid_fat
+	panic "Is not valid FAT partition"
+is_valid_fat:
 
-	call set_drive
 	call enable_a20_line
 	cli
 	hlt
