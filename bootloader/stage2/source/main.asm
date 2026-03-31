@@ -22,12 +22,18 @@ main:
 	mov ss, ax
 	mov sp, 0x7C00
 	sti
-	
-	mov [drive], dl
 	newline
+
+	mov [drive], dl
+	
+	;; Set font 8x8
+	print "Setting font 8x8..."
+	mov ax, 0x1112
+	int 0x10
+	print " Ok", 0x0D, 0x0A
+
 	call set_drive
 	call enable_a20_line
-
 	cli
 	hlt
 

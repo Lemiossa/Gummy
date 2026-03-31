@@ -10,12 +10,14 @@ section .text
 set_drive:
 	print "Setting drive number to 0x"
 	print_hex_byte dl
-	newline
+	print "..."
 
 	mov [current_drive_number], dl
 	call get_drive_parameters
 	mov [current_sectors_per_track], cl
 	mov [current_heads], dh
+
+	print " Ok!", 0x0D, 0x0A
 	ret
 
 ;; Return drive parameters of a disk
