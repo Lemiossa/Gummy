@@ -69,6 +69,7 @@ cluster_to_lba:
 ;; Return:
 ;; CF: If is not valid FAT partition
 fat_init:
+	pusha
 	push dx
 	mov dl, bl
 	call set_drive
@@ -231,29 +232,34 @@ fat_init:
 	pop ax
 
 	cmp word [fat_total_clusters], 4085
+
 	jae .fat16
-	print "FAT12"
+	mov byte [fat_type], 12
 	jmp .initialized
 .fat16: 
-	print "FAT16"
+	mov byte [fat_type], 16
 .initialized:
 	mov byte [fat_initialized], 1
+	clc
+	popa
 	ret
 .error:
 	stc
+	popa
 	ret
 
-section .bss
-fat_start_sector:     resd 1
-fat_total_sectors:    resd 1
-fat_data_lba:         resd 1
-fat_data_sectors:     resd 1
-fat_lba:              resd 1
-fat_total_clusters:   resw 1
-fat_root_dir_sectors: resw 1
-fat_sector_size:      resw 1
-fat_size:             resw 1
-fat_initialized:      resb 1
+section .data
+fat_start_sector:     dd 0
+fat_total_sectors:    dd 0
+fat_data_lba:         dd 0
+fat_data_sectors:     dd 0
+fat_lba:              dd 0
+fat_total_clusters:   dw 0
+fat_root_dir_sectors: dw 0
+fat_sector_size:      dw 0
+fat_size:             dw 0
+fat_type:             db 0
+fat_initialized:      db 0
 
 %endif ;; _FAT_ASM_
 
