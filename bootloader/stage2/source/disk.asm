@@ -65,10 +65,8 @@ disk_reset:
 	ret
 
 ;; Reads a sector(DX:AX) from disk to memory(ES:BX)
-;; DX: LBA high
-;; AX: LBA low
-;; ES: Segment to load
-;; BX: Offset to load
+;; DX:AX: LBA
+;; ES:BX: Addr
 read_sector:
 	push ax
 	push cx
