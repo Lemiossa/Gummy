@@ -33,10 +33,10 @@ struc fat_entry
 	.created_time: resw 1 ;; HHHHHMMMMMMSSSSS; Multiply seconds by 2
 	.created_date: resw 1 ;; YYYYYYYMMMMDDDDD;
 	.accessed_date:resw 1 ;; YYYYYYYMMMMDDDDD;
-	.cluster_low:  resw 1 
+	.clus_low:     resw 1 
 	.modified_time:resw 1 ;; HHHHHMMMMMMSSSSS;
 	.modified_date:resw 1 ;; YYYYYYYMMMMDDDDD;
-	.cluster_high: resw 1
+	.clus_high:    resw 1
 	.file_size:    resd 1
 endstruc
 
@@ -45,7 +45,7 @@ endstruc
 ;; Return
 ;; DX:AX: LBA
 ;; CF if an error occour
-cluster_to_lba:
+fat_clus_to_lba:
 	push cx
 	push si
 	cmp byte [fat_initialized], 0
@@ -76,6 +76,35 @@ cluster_to_lba:
 	stc
 	pop si
 	pop cx
+	ret
+
+;; Verify if cluster is EOF
+;; AX: cluster
+;; Returns:
+;; CF If is EOF
+clus_is_eof:
+	cmp byte [fat_type], 12
+	je .fat12
+
+	cmp byte [fat_type], 16
+	je .fat16
+	stc
+	ret
+.fat12:
+	cmp ax, 0x0FF8
+	jae .fat12.EOF
+	clc
+	ret
+.fat12.EOF:
+	stc
+	ret
+.fat16:
+	cmp ax, 0xFFF8
+	jae .fat16.EOF
+	clc
+	ret
+.fat16.EOF:
+	stc
 	ret
 
 ;; Reads the FAT 
@@ -383,6 +412,20 @@ fat_init:
 	pop cx
 	pop ax
 
+	;; root_lba = data_lba - root_dir_sectors
+	push ax
+	push dx
+	mov ax, word [fat_data_lba]
+	mov dx, word [fat_data_lba+2]
+	sub ax, word [fat_root_dir_sectors]
+	sbb dx, 0
+	;; DX:AX = data_lba - root_dir_sectors
+
+	mov word [fat_root_lba], ax
+	mov word [fat_root_lba+2], dx
+	pop dx
+	pop ax
+
 	cmp word [fat_total_clusters], 4085
 
 	jae .fat16
@@ -400,12 +443,91 @@ fat_init:
 	popa
 	ret
 
+;; Reads a FAT directory from a cluster
+;; BX: Starting directory cluster
+;; DX:AX: Directory index
+;; ES:DI: Pointer for entry
+;; Returns:
+;; CF is set if an error occurred or end of directory is reached
+;; NOTE: If the Starting directory cluster is zero, read the root direcotry
+fat_read_dir:
+	pusha
+	cmp byte [fat_initialized], 1
+	jne .error
+
+	mov word [.current_clus], bx
+	mov word [.current_index], 0
+	mov word [.current_index+2], 0
+
+.loop:
+	mov ax, word [.current_clus]
+	call clus_is_eof
+	jc .end
+
+	;; If current cluster < 2: Use root dir
+	cmp word [.current_clus], 2
+	jb .use_root_dir_sectors
+	mov cx, word [first_sector+fat_bpb.sectors_per_clus]
+	mov ax, word [.current_clus]
+	xor dx, dx
+	clc
+	call fat_clus_to_lba
+	jc .error
+	jmp .check_clus_end
+.use_root_dir_sectors:
+	mov cx, word [fat_root_dir_sectors]
+	mov ax, word [fat_root_lba]
+	mov dx, word [fat_root_lba+2]
+.check_clus_end:
+	mov word [.sectors], cx
+	mov word [.start_lba], ax
+	mov word [.start_lba+2], dx
+	
+	xor cx, cx
+.read_loop:
+	cmp cx, word [.sectors]
+	jae .next_cluster
+	
+	mov ax, word [.start_lba]
+	mov dx, word [.start_lba]
+	add ax, cx
+	adc dx, 0
+	mov bx, sector_buffer
+	clc
+	call read_sector
+	jc .error
+
+
+	inc cx
+	jmp .read_loop
+
+.next_cluster:
+	mov ax, word [.current_cluster]
+	clc
+	call read_fat
+	jc .error
+	jmp .loop
+	
+.end:
+	clc
+	popa
+	ret
+.error:
+	stc
+	popa
+	ret
+.current_clus: dw 0
+.current_index: dd 0
+.start_lba: dd 0
+.sectors: dw 0
+
 section .data
 fat_start_sector:     dd 0
 fat_total_sectors:    dd 0
 fat_data_lba:         dd 0
 fat_data_sectors:     dd 0
 fat_lba:              dd 0
+fat_root_lba:         dd 0
 fat_total_clusters:   dw 0
 fat_root_dir_sectors: dw 0
 fat_sector_size:      dw 0
