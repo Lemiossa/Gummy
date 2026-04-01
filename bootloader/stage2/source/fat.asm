@@ -8,7 +8,7 @@ section .text
 first_sector:     equ 0x500
 sector_buffer:    equ first_sector + sector_size
 
-struc bpb
+struc fat_bpb
 	.jump:             resb 3
 	.oem_id:           resb 8
 	.bytes_per_sector: resw 1
@@ -25,6 +25,21 @@ struc bpb
 	.total_sectors32:  resd 1
 endstruc
 
+struc fat_entry
+	.name:         resb 8
+	.ext:          resb 3
+	.attr:         resb 1
+	.res0:         resb 2 ;; Windows NT Reserved and Creation time in hundredths
+	.created_time: resw 1 ;; HHHHHMMMMMMSSSSS; Multiply seconds by 2
+	.created_date: resw 1 ;; YYYYYYYMMMMDDDDD;
+	.accessed_date:resw 1 ;; YYYYYYYMMMMDDDDD;
+	.cluster_low:  resw 1 
+	.modified_time:resw 1 ;; HHHHHMMMMMMSSSSS;
+	.modified_date:resw 1 ;; YYYYYYYMMMMDDDDD;
+	.cluster_high: resw 1
+	.file_size:    resd 1
+endstruc
+
 ;; Converts cluster to LBA
 ;; DX:AX: Cluster
 ;; Return
@@ -36,20 +51,20 @@ cluster_to_lba:
 	cmp byte [fat_initialized], 0
 	je .error
 
-	;; LBA = ((clus - 2) * bpb->sectors_per_clus) + first_fat_data_lba
+	;; LBA = ((clus - 2) * fat_bpb->sectors_per_clus) + first_fat_data_lba
 	sub ax, 2
 	sbb dx, 0
 	
 	push dx
 	xor cx, cx
-	mov cl, [first_sector+bpb.sectors_per_clus]
+	mov cl, [first_sector+fat_bpb.sectors_per_clus]
 	mul cx
 
 	pop si          ;; Old DX
 	imul si, cx     ;; Old DX = Old DX * CX
 	add dx, si      ;; DX += Old DX
 
-	;; DX:AX = (clus - 2) * bpb->sectors_per_clus
+	;; DX:AX = (clus - 2) * fat_bpb->sectors_per_clus
 	add ax, word [fat_data_lba]
 	adc dx, word [fat_data_lba+2]
 
@@ -61,6 +76,143 @@ cluster_to_lba:
 	stc
 	pop si
 	pop cx
+	ret
+
+;; Reads the FAT 
+;; AX: Cluster
+;; Returns:
+;; CF on fail
+;; BX: Value
+read_fat:
+	push ax
+	push cx
+	push dx
+	cmp byte [fat_type], 12
+	je .fat12
+
+	cmp byte [fat_type], 16
+	je .fat16
+.error:
+	stc
+	pop dx
+	pop cx
+	pop ax
+	ret
+.fat12:
+	push ax
+	;; fat_offset = cluster + (cluster << 1)
+	mov bx, ax
+	shl bx, 1
+	add ax, bx
+	mov bx, ax
+	;; BX = cluster + (cluster <<  1)
+	
+	;; NOTE: In this code, I assume that fat_sector will not exceed 16 bits
+
+	;; fat_sector = fat_lba + (fat_offset / sector_size)
+	;; ent_offset = fat_offset % sector_size
+	xor dx, dx
+	mov cx, sector_size
+	div cx
+	;; AX = fat_offset / sector_size
+	;; DX = fat_offset % sector_size
+
+	add ax, word [fat_lba]
+	;; AX = fat_lba + (fat_offset / sector_size)
+
+	;; AX = fat_sector
+	;; DX = ent_offset
+
+	;; Read fat sectors
+	push ax
+	push dx
+	;; Sector +0
+	mov bx, sector_buffer
+	xor dx, dx
+	call read_sector
+
+	;; Sector +1 
+	add ax, 1
+	adc dx, 0
+	add bx, sector_size
+	call read_sector
+	pop dx
+	pop ax
+
+	;; table_val = *(uint16_t *)&fat[ent_offset]
+	mov bx, sector_buffer
+	add bx, dx
+	mov cx, [bx]
+	mov bx, cx
+	pop ax
+	;; BX = table_val
+	;; AX = cluster
+
+	;; If cluster is even, use last 12 bits, else use first 12 bits
+	test ax, 1
+	jz .is_even
+	shr bx, 4
+	jmp .fat12.end
+.is_even:
+	and bx, 0x0FFF
+.fat12.end:
+	clc
+	pop dx
+	pop cx
+	pop ax
+	ret
+.fat16:
+	push ax
+	;; fat_offset = cluster << 1
+	mov bx, ax
+	shl bx, 1
+	;; BX = cluster << 1
+	
+	;; NOTE: In this code, I assume that fat_sector will not exceed 16 bits
+
+	;; fat_sector = fat_lba + (fat_offset / sector_size)
+	;; ent_offset = fat_offset % sector_size
+	xor dx, dx
+	mov cx, sector_size
+	div cx
+	;; AX = fat_offset / sector_size
+	;; DX = fat_offset % sector_size
+
+	add ax, word [fat_lba]
+	;; AX = fat_lba + (fat_offset / sector_size)
+
+	;; AX = fat_sector
+	;; DX = ent_offset
+
+	;; Read fat sectors
+	push ax
+	push dx
+	;; Sector +0
+	mov bx, sector_buffer
+	xor dx, dx
+	call read_sector
+
+	;; Sector +1 
+	add ax, 1
+	adc dx, 0
+	add bx, sector_size
+	call read_sector
+	pop dx
+	pop ax
+
+	;; table_val = *(uint16_t *)&fat[ent_offset]
+	mov bx, sector_buffer
+	add bx, dx
+	mov cx, [bx]
+	mov bx, cx
+	pop ax
+	;; BX = table_val
+	;; AX = cluster
+	
+	clc
+	pop dx
+	pop cx
+	pop ax
 	ret
 
 ;; Initialize FAT system
@@ -80,7 +232,7 @@ fat_init:
 	jc .error
 
 	;; Only supports 512 bytes per sector
-	cmp word [first_sector+bpb.bytes_per_sector], sector_size
+	cmp word [first_sector+fat_bpb.bytes_per_sector], sector_size
 	jne .error
 
 	mov word [fat_start_sector], ax
@@ -90,7 +242,7 @@ fat_init:
 
 	;; Total Sectors
 	push ax
-	mov ax, [first_sector+bpb.total_sectors16]
+	mov ax, [first_sector+fat_bpb.total_sectors16]
 	mov word [fat_total_sectors], ax
 	mov word [fat_total_sectors+2], 0
 	cmp word [fat_total_sectors], 0
@@ -98,16 +250,16 @@ fat_init:
 	jne .use_fat_total_sectors16
 
 	push ax
-	mov ax, [first_sector+bpb.total_sectors32]
+	mov ax, [first_sector+fat_bpb.total_sectors32]
 	mov word [fat_total_sectors], ax
-	mov ax, [first_sector+bpb.total_sectors32+2]
+	mov ax, [first_sector+fat_bpb.total_sectors32+2]
 	mov word [fat_total_sectors+2], ax
 	pop ax
 .use_fat_total_sectors16:
 
 	;; Fat size
 	push ax
-	mov ax, [first_sector+bpb.sectors_per_fat]
+	mov ax, [first_sector+fat_bpb.sectors_per_fat]
 	mov word [fat_size], ax
 	pop ax
 	cmp word [fat_size], 0
@@ -117,7 +269,7 @@ fat_init:
 	push ax
 	push cx
 	push dx
-	mov ax, [first_sector+bpb.root_dir_entries]
+	mov ax, [first_sector+fat_bpb.root_dir_entries]
 	mov cx, 32
 	mul cx
 	;; DX:AX = root_dir_entries * 32
@@ -141,7 +293,7 @@ fat_init:
 	
 	mov cx, [fat_size]
 	xor ax, ax
-	mov al, [first_sector+bpb.num_fats]
+	mov al, [first_sector+fat_bpb.num_fats]
 	mul cx
 	;; DX:AX = num_fats * fat_size
 
@@ -149,7 +301,7 @@ fat_init:
 	adc dx, 0
 	;; DX:AX = (num_fats * fat_size) + fat_root_dir_sectors
 
-	add ax, [first_sector+bpb.reserved_sectors]
+	add ax, [first_sector+fat_bpb.reserved_sectors]
 	adc dx, 0
 	;; DX:AX = (num_fats * fat_size) + fat_root_dir_sectors + reserved_sectors
 
@@ -165,7 +317,7 @@ fat_init:
 	;; fat_lba = fat_start_sector + reserved_sectors
 	push ax
 	push dx
-	mov ax, [first_sector+bpb.reserved_sectors]
+	mov ax, [first_sector+fat_bpb.reserved_sectors]
 	xor dx, dx
 	;; DX:AX = reserved_sectors
 	
@@ -186,11 +338,11 @@ fat_init:
 
 	mov cx, [fat_size]
 	xor ax, ax
-	mov al, [first_sector+bpb.num_fats]
+	mov al, [first_sector+fat_bpb.num_fats]
 	mul cx
 	;; DX:AX = num_fats * fat_size
 
-	add ax, [first_sector+bpb.reserved_sectors]
+	add ax, [first_sector+fat_bpb.reserved_sectors]
 	adc dx, 0
 	;; DX:AX = (num_fats * fat_size) + reserved_sectors
 
@@ -222,7 +374,7 @@ fat_init:
 	mov ax, word [fat_data_sectors]
 	mov dx, word [fat_data_sectors+2]
 	xor cx, cx
-	mov cl, byte [first_sector+bpb.sectors_per_clus]
+	mov cl, byte [first_sector+fat_bpb.sectors_per_clus]
 	div cx
 	;; AX = fat_data_sectors / sectors_per_cluster
 
