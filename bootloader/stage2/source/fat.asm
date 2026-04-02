@@ -496,7 +496,7 @@ fat_read_dir:
 	push ax
 	push dx
 	push bx
-	mov ax, 32
+	mov ax, 16
 	xor dx, dx
 	mov bx, word [.ent_clus]
 	div bx
