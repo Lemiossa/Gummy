@@ -41,7 +41,7 @@ struc fat_entry
 endstruc
 
 ;; Converts cluster to LBA
-;; DX:AX: Cluster
+;; AX: Cluster
 ;; Return
 ;; DX:AX: LBA
 ;; CF if an error occour
@@ -53,8 +53,8 @@ fat_clus_to_lba:
 
 	;; LBA = ((clus - 2) * fat_bpb->sectors_per_clus) + first_fat_data_lba
 	sub ax, 2
-	sbb dx, 0
-	
+	xor dx, dx
+
 	push dx
 	xor cx, cx
 	mov cl, [first_sector+fat_bpb.sectors_per_clus]
@@ -308,7 +308,7 @@ fat_init:
 	;; DX:AX = (root_dir_entries * 32) + (bytes_per_sector - 1)
 
 	div word [fat_sector_size]
-	;; DX:AX = ((root_dir_entries * 32) + (bytes_per_sector - 1)) / bytes_per_sector
+	;; AX = ((root_dir_entries * 32) + (bytes_per_sector - 1)) / bytes_per_sector
 
 	mov word [fat_root_dir_sectors], ax
 	pop dx
@@ -456,58 +456,92 @@ fat_read_dir:
 	jne .error
 
 	mov word [.current_clus], bx
-	mov word [.current_index], 0
-	mov word [.current_index+2], 0
+	
+	cmp bx, 2
+	jb .read_dir
 
-.loop:
-	mov ax, word [.current_clus]
-	call clus_is_eof
-	jc .end
+	;; ents_per_clus = (sectors_per_clus * 512) / 32
+	;; ents_per_clus = Total entries in a cluster
+	;; faster: ents_per_clus = sectors_per_clus << 4
+	;; because: 512 / 32 = 16; ents_per_clus = sectors_per_clus * 16 => ents_per_clus: << 4
 
-	;; If current cluster < 2: Use root dir
-	cmp word [.current_clus], 2
-	jb .use_root_dir_sectors
-	mov cx, word [first_sector+fat_bpb.sectors_per_clus]
-	mov ax, word [.current_clus]
+	push ax
+	mov ax, [first_sector+fat_bpb.sectors_per_clus]
+	shl ax, 4
+	;; AX = sectors_per_clus << 4
+	mov word [.ents_per_clus], ax
+	pop ax
+
+	;; skip_clus = index / ents_per_clus
+	;; skip_clus = Number of clusters to skip
+
+	;; ent_clus = index % ents_per_clus
+	;; ent_clus = Entry index inside the cluster
+	push ax
+	push dx
+	div word [.ents_per_clus]
+	;; AX = index / ents_per_clus 
+	;; DX = index % ents_per_clus 
+
+	mov word [.skip_clus], ax
+	mov word [.ent_clus], dx
+	pop dx
+	pop ax
+
+	;; sector = ent_clus / 16
+	;; sector = Sector inside the cluster
+	
+	;; ent_sector = ent_clus % 16
+	;; ent_sector = Entry index inside the sector
+	push ax
+	push dx
+	push bx
+	mov ax, 32
 	xor dx, dx
-	clc
+	mov bx, word [.ent_clus]
+	div bx
+	;; AX = ent_clus / 16
+	;; DX = ent_clus % 16
+	mov word [.sector], ax
+	mov word [.ent_sector], dx
+	pop bx
+	pop dx
+	pop ax
+
+	;; Skip clusters
+	xor cx, cx
+.skip_cluster_loop:
+	cmp cx, word [.skip_clus]
+	jae .skip_cluster_loop.end
+
+	push ax
+	mov ax, word [.current_clus]
+	call read_fat
+	mov ax, bx
+	call clus_is_eof
+	pop ax
+	jc .error
+
+	mov word [.current_clus], bx
+	inc cx
+	jmp .skip_cluster_loop
+.skip_cluster_loop.end:
+	mov ax, word [.current_clus]
 	call fat_clus_to_lba
 	jc .error
-	jmp .check_clus_end
-.use_root_dir_sectors:
-	mov cx, word [fat_root_dir_sectors]
-	mov ax, word [fat_root_lba]
-	mov dx, word [fat_root_lba+2]
-.check_clus_end:
-	mov word [.sectors], cx
-	mov word [.start_lba], ax
-	mov word [.start_lba+2], dx
-	
-	xor cx, cx
-.read_loop:
-	cmp cx, word [.sectors]
-	jae .next_cluster
-	
-	mov ax, word [.start_lba]
-	mov dx, word [.start_lba]
-	add ax, cx
-	adc dx, 0
-	mov bx, sector_buffer
-	clc
+.read_dir:
+	cmp word [.current_clus], 2
+	jae .skip_root_dir_sector
+
+.skip_root_dir_sector:
+	;; Read sector
+	add ax, word [.sector]
+	adc dx, word [.sector+2]
 	call read_sector
 	jc .error
 
-
-	inc cx
-	jmp .read_loop
-
-.next_cluster:
-	mov ax, word [.current_clus]
-	clc
-	call read_fat
-	jc .error
-	jmp .loop
 	
+
 .end:
 	clc
 	popa
@@ -516,10 +550,12 @@ fat_read_dir:
 	stc
 	popa
 	ret
-.current_clus: dw 0
-.current_index: dd 0
-.start_lba: dd 0
-.sectors: dw 0
+.sector:        dd 0
+.ents_per_clus: dw 0
+.skip_clus:     dw 0
+.ent_clus:      dw 0
+.ent_sector:    dw 0
+.current_clus:  dw 0
 
 section .data
 fat_start_sector:     dd 0
