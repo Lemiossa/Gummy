@@ -495,16 +495,14 @@ fat_read_dir:
 	;; ent_sector = Entry index inside the sector
 	push ax
 	push dx
-	push bx
-	mov ax, 16
+	mov ax, word [.ent_clus]
 	xor dx, dx
-	mov bx, word [.ent_clus]
-	div bx
+	mov cx, 16
+	div cx
 	;; AX = ent_clus / 16
 	;; DX = ent_clus % 16
 	mov word [.sector], ax
 	mov word [.ent_sector], dx
-	pop bx
 	pop dx
 	pop ax
 
@@ -540,7 +538,7 @@ fat_read_dir:
 	call read_sector
 	jc .error
 
-	
+
 
 .end:
 	clc
