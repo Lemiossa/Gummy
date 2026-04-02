@@ -502,7 +502,7 @@ fat_read_dir:
 	jmp .read_loop
 
 .next_cluster:
-	mov ax, word [.current_cluster]
+	mov ax, word [.current_clus]
 	clc
 	call read_fat
 	jc .error
