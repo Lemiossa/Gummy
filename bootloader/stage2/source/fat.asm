@@ -426,6 +426,98 @@ fat_init:
 	pop dx
 	pop ax
 
+%ifdef DEBUG
+	print "=== Fat information ==="
+	newline
+	print "start_sector:      0x"
+	print_hex_dword word [fat_start_sector+2], word [fat_start_sector]
+	newline
+	print "total_sectors:     0x"
+	print_hex_dword word [fat_total_sectors+2], word [fat_total_sectors]
+	newline
+	print "data_lba:          0x"
+	print_hex_dword word [fat_data_lba+2], word [fat_data_lba]
+	newline 
+	print "data_sectors:      0x"
+	print_hex_dword word [fat_data_sectors+2], word [fat_data_sectors]
+	newline
+	print "lba:               0x"
+	print_hex_dword word [fat_lba+2], word [fat_lba]
+	newline
+	print "root_lba:          0x"
+	print_hex_dword word [fat_root_lba+2], word [fat_root_lba]
+	newline
+	print "total_clusters:    0x"
+	print_hex_word word [fat_total_clusters]
+	newline
+	print "root_dir_sectors:  0x"
+	print_hex_word word [fat_root_dir_sectors]
+	newline
+	
+	newline
+	print "=== BPB ==="
+	newline
+
+	print "OEM ID: "
+	mov si, first_sector + fat_bpb.oem_id
+	mov cx, 8
+	.print_oem:
+		lodsb
+		call print_char
+		loop .print_oem
+	newline
+
+	print "Bytes per sector:       0x"
+	print_hex_word word [first_sector+fat_bpb.bytes_per_sector]
+	newline
+
+	print "Sectors per cluster:    0x"
+	print_hex_byte byte [first_sector+fat_bpb.sectors_per_clus]
+	newline
+
+	print "Reserved sectors:       0x"
+	print_hex_word word [first_sector+fat_bpb.reserved_sectors]
+	newline
+
+	print "Number of FATs:         0x"
+	print_hex_byte byte [first_sector+fat_bpb.num_fats]
+	newline
+
+	print "Root dir entries:       0x"
+	print_hex_word word [first_sector+fat_bpb.root_dir_entries]
+	newline
+
+	print "Total sectors (16):     0x"
+	print_hex_word word [first_sector+fat_bpb.total_sectors16]
+	newline
+
+	print "Media descriptor:       0x"
+	print_hex_byte byte [first_sector+fat_bpb.media_desc_type]
+	newline
+
+	print "Sectors per FAT:        0x"
+	print_hex_word word [first_sector+fat_bpb.sectors_per_fat]
+	newline
+
+	print "Sectors per track:      0x"
+	print_hex_word word [first_sector+fat_bpb.sectors_per_track]
+	newline
+
+	print "Number of heads:        0x"
+	print_hex_word word [first_sector+fat_bpb.number_of_heads]
+	newline
+
+	print "Hidden sectors:         0x"
+	print_hex_dword word [first_sector+fat_bpb.hidden_sectors+2], \
+					 word [first_sector+fat_bpb.hidden_sectors]
+	newline
+
+	print "Total sectors (32):     0x"
+	print_hex_dword word [first_sector+fat_bpb.total_sectors32+2], \
+					 word [first_sector+fat_bpb.total_sectors32]
+	newline
+%endif ;; DEBUG
+
 	cmp word [fat_total_clusters], 4085
 
 	jae .fat16
@@ -456,7 +548,9 @@ fat_read_dir:
 	jne .error
 
 	mov word [.current_clus], bx
-	
+	mov word [.index], ax
+	mov word [.index+2], dx
+
 	cmp bx, 2
 	jb .read_dir
 
@@ -531,14 +625,54 @@ fat_read_dir:
 	cmp word [.current_clus], 2
 	jae .skip_root_dir_sector
 
+	;; This code executes if is root dir
+	cmp word [.index+2], 0
+	jne .error
+
+	mov ax, word [first_sector+fat_bpb.root_dir_entries]
+	cmp word [.index], ax
+	jae .error
+
+	;; sector = index / 16
+	;; ent_sector = index % 16
+	mov ax, word [.index]
+	mov dx, word [.index+2]
+	mov cx, 16
+	div cx
+
+	mov word [.ent_sector], dx
+
+	xor dx, dx
+
+	add ax, word [fat_root_lba]
+	adc dx, word [fat_root_lba+2]
+
+	mov word [.sector], ax
+	mov word [.sector+2], dx
+	xor ax, ax
+	xor dx, dx
 .skip_root_dir_sector:
 	;; Read sector
+	;; If is cluster: add. If is root dir: .sector is LBA
+	mov bx, sector_buffer
 	add ax, word [.sector]
 	adc dx, word [.sector+2]
 	call read_sector
 	jc .error
+	
+	mov si, word [.ent_sector] 
+	shl si, 5 ;; * 32
+	add si, sector_buffer
+	
+	cmp byte [si+fat_entry.name], 0
+	je .error ;; Reached end
 
+	;; SI = source offset
+	;; ES:DI = dest
 
+	mov cx, 32
+	cld
+	rep movsb ;; Copy 
 
 .end:
 	clc
@@ -548,6 +682,8 @@ fat_read_dir:
 	stc
 	popa
 	ret
+
+.index:         dd 0 
 .sector:        dd 0
 .ents_per_clus: dw 0
 .skip_clus:     dw 0

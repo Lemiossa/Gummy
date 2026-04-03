@@ -4,17 +4,36 @@
 %define _CONSOLE_ASM_
 section .text
 
+;; Prints a character on the screen
+print_char:
+	push ax
+	
+	;; Print on VGA
+	mov ah, 0x0E
+	int 0x10
+
+	;; DEBUG: Print on serial
+	%ifdef DEBUG
+	push dx
+	xor dx, dx
+	mov ah, 0x01
+	int 0x14
+	pop dx
+	%endif ;; DEBUG
+
+	pop ax
+	ret
+
 ;; Prints a string ending with zero on the screen
 ;; DS:SI: pointer to string
 print_string:
 	push ax
 	push si
-	mov ah, 0x0E
 .loop:
 	lodsb ;; al = ds:si++
 	test al, al
 	jz .end
-	int 0x10
+	call print_char
 	jmp .loop
 .end:
 	pop si
@@ -33,11 +52,10 @@ section .text
 
 %macro newline 0
 	push ax
-	mov ah, 0x0E
 	mov al, 0x0D
-	int 0x10
+	call print_char
 	mov al, 0x0A
-	int 0x10
+	call print_char
 	pop ax
 %endmacro
 
@@ -54,14 +72,13 @@ print_nibble:
 .digit:
 	add al, '0'
 .end:
-	mov ah, 0x0E
-	int 0x10
+	call print_char
 	pop ax
 	ret
 
-;; Prints a HEX 8-bit value 
+;; Prints a HEX 8-bit value
 ;; 1: r8
-%macro print_hex_byte 1 
+%macro print_hex_byte 1
 	push ax
 	mov al, %1
 
@@ -85,6 +102,18 @@ print_nibble:
 	print_hex_byte bh
 	print_hex_byte bl
 	pop bx
+%endmacro
+
+;; Prints a HEX 32-bit value
+;; 1: high r16
+;; 2: low r16
+%macro print_hex_dword 2
+	push cx
+	mov cx, %1
+	print_hex_word cx
+	mov cx, %2
+	print_hex_word cx
+	pop cx
 %endmacro
 
 %endif ;; _CONSOLE_ASM_
