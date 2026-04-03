@@ -42,8 +42,8 @@ bootloader:
 $(IMAGE): bootloader
 	mkdir -p $(dir $@) $(IMAGEROOT)
 	echo "Hello world" > $(IMAGEROOT)/text.txt
-	dd if=/dev/zero of=$(IMAGE) bs=1K count=1440 
-	mkfs.fat -F 12 -n "BITIX" -R 64 $(IMAGE)
+	dd if=/dev/zero of=$(IMAGE) bs=1K count=16384
+	mkfs.fat --mbr=y -F 16 -n "BITIX" -R 64 $(IMAGE)
 	mcopy -i $(IMAGE) -s $(IMAGEROOT)/* "::/"
 	dd if=$(BOOTLOADER) of=$(IMAGE) bs=1 count=3 conv=notrunc 
 	dd if=$(BOOTLOADER) of=$(IMAGE) bs=1 skip=62 seek=62 count=386 conv=notrunc 
