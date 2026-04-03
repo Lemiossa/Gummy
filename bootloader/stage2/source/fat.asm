@@ -33,10 +33,10 @@ struc fat_entry
 	.created_time: resw 1 ;; HHHHHMMMMMMSSSSS; Multiply seconds by 2
 	.created_date: resw 1 ;; YYYYYYYMMMMDDDDD;
 	.accessed_date:resw 1 ;; YYYYYYYMMMMDDDDD;
-	.clus_low:     resw 1 
+	.clus_high:    resw 1
 	.modified_time:resw 1 ;; HHHHHMMMMMMSSSSS;
 	.modified_date:resw 1 ;; YYYYYYYMMMMDDDDD;
-	.clus_high:    resw 1
+	.clus_low:     resw 1
 	.file_size:    resd 1
 endstruc
 
