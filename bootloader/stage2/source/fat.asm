@@ -220,12 +220,6 @@ read_fat:
 	mov bx, sector_buffer
 	xor dx, dx
 	call read_sector
-
-	;; Sector +1 
-	add ax, 1
-	adc dx, 0
-	add bx, sector_size
-	call read_sector
 	pop dx
 	pop ax
 
@@ -683,7 +677,7 @@ fat_read_dir:
 	popa
 	ret
 
-.index:         dd 0 
+.index:         dd 0
 .sector:        dd 0
 .ents_per_clus: dw 0
 .skip_clus:     dw 0
