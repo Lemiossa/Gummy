@@ -4,7 +4,7 @@ section .text
 org 0x7E00
 bits 16
 
-%define DEBUG
+;; %define DEBUG
 
 ;; Jmp to main before includes
 jmp main
