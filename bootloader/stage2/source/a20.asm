@@ -11,7 +11,6 @@ section .text
 enable_a20_line:
 	push ax
 	push si
-	print "Enabling A20 line..."
 
 	;; Get status
 	mov ax, 0x2402
@@ -34,7 +33,6 @@ enable_a20_line:
 	test ah, ah
 	jnz a20_line_error
 .end:
-	print " Enabled!", 0x0D, 0x0A
 
 	pop si
 	pop ax
