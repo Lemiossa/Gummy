@@ -7,18 +7,21 @@ DEPDIR := $(BUILDDIR)/dep
 
 TARGET ?= $(BINDIR)/stage2.bin
 NASM ?= nasm
+ECHO ?= echo
+RM ?= rm -f
+MKDIR ?= mkdir -p
 
 .PHONY: all
 all: $(TARGET)
 
 .PHONY: clean
 clean:
-	@echo "  RM            $(TARGET) $(DEPDIR)/main.d"
-	@rm -f $(TARGET) $(DEPDIR)/main.d
+	@$(ECHO) "  RM            $(TARGET) $(DEPDIR)/main.d"
+	@$(RM) $(TARGET) $(DEPDIR)/main.d
 
 $(TARGET): $(CURDIR)/source/main.asm
-	@mkdir -p $(dir $@) $(DEPDIR)
-	@echo "  NASM          $@"
+	@$(MKDIR) $(dir $@) $(DEPDIR)
+	@$(ECHO) "  NASM          $@"
 	@$(NASM) -f bin -I $(CURDIR)/source $< -o $@ -MD -MF $(DEPDIR)/main.d
 
 -include $(DEPDIR)/main.d
