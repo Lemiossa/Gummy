@@ -24,27 +24,32 @@ QEMU := qemu-system-i386
 QEMUFLAGS := \
 			 -drive file=$(IMAGE),format=raw,if=ide,media=disk \
 			 -audiodev alsa,id=audio0 \
-			 -machine pc,pcspk-audiodev=audio0 \
-			 -serial stdio
-
+			 -machine pc,pcspk-audiodev=audio0 
 .PHONY: qemu
 qemu: $(IMAGE)
-	$(QEMU) $(QEMUFLAGS)
+	@echo "  QEMU         $(IMAGE)"
+	@$(QEMU) $(QEMUFLAGS)
 
 .PHONY: qemu-ng
 qemu-ng: $(IMAGE)
-	$(QEMU) $(QEMUFLAGS) -nographic
+	@echo "  QEMU-NG      $(IMAGE)"
+	@$(QEMU) $(QEMUFLAGS) -nographic
 
 .PHONY: bootloader
 bootloader:
-	$(MAKE) -C bootloader TARGET=$(BOOTLOADER)
+	@echo "  BOOTLOADER"
+	@$(MAKE) -C bootloader TARGET=$(BOOTLOADER)
 
 $(IMAGE): bootloader
-	mkdir -p $(dir $@) $(IMAGEROOT)/subdir
-	echo "Hello world" > $(IMAGEROOT)/subdir/text.txt
-	dd if=/dev/zero of=$(IMAGE) bs=1K count=16384
-	mkfs.fat --mbr=y -F 16 -n "BITIX" -R 64 $(IMAGE)
-	mcopy -i $(IMAGE) -s $(IMAGEROOT)/* "::/"
-	dd if=$(BOOTLOADER) of=$(IMAGE) bs=1 count=3 conv=notrunc 
-	dd if=$(BOOTLOADER) of=$(IMAGE) bs=1 skip=62 seek=62 count=386 conv=notrunc 
-	dd if=$(BOOTLOADER) of=$(IMAGE) bs=1 skip=512 seek=512 conv=notrunc 
+	@mkdir -p $(dir $@) $(IMAGEROOT)/subdir
+	@echo "Hello world" > $(IMAGEROOT)/subdir/text.txt
+	@echo "  GENIMG        $(IMAGE)"
+	@dd if=/dev/zero of=$(IMAGE) bs=1K count=16384 status=none > /dev/null
+	@echo "  MKFS.FAT      $(IMAGE)"
+	@mkfs.fat --mbr=y -F 16 -n "BITIX" -R 64 $(IMAGE) > /dev/null
+	@echo "  MCOPY         $(IMAGE)"
+	@mcopy -i $(IMAGE) -s $(IMAGEROOT)/* "::/"
+	@echo "  INSTALL BOOTLAODER"
+	@dd if=$(BOOTLOADER) of=$(IMAGE) bs=1 count=3 conv=notrunc status=none > /dev/null
+	@dd if=$(BOOTLOADER) of=$(IMAGE) bs=1 skip=62 seek=62 count=386 conv=notrunc status=none > /dev/null
+	@dd if=$(BOOTLOADER) of=$(IMAGE) bs=1 skip=512 seek=512 conv=notrunc status=none > /dev/null
