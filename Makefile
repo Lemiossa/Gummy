@@ -40,8 +40,8 @@ bootloader:
 	$(MAKE) -C bootloader TARGET=$(BOOTLOADER)
 
 $(IMAGE): bootloader
-	mkdir -p $(dir $@) $(IMAGEROOT)
-	echo "Hello world" > $(IMAGEROOT)/text.txt
+	mkdir -p $(dir $@) $(IMAGEROOT)/subdir
+	echo "Hello world" > $(IMAGEROOT)/subdir/text.txt
 	dd if=/dev/zero of=$(IMAGE) bs=1K count=16384
 	mkfs.fat --mbr=y -F 16 -n "BITIX" -R 64 $(IMAGE)
 	mcopy -i $(IMAGE) -s $(IMAGEROOT)/* "::/"
