@@ -18,80 +18,6 @@ jmp main
 
 section .text
 
-;; List a directory tree in FAT
-;; BX: Start cluster
-;; CX: Depth
-list_dir:
-	push ax
-	push bx
-	push cx
-	push dx
-
-	xor ax, ax
-	xor dx, dx
-	mov di, .entry
-
-.list_loop:
-	call fat_read_dir
-	jc .end
-	
-	test byte [.entry+fat_entry.attr], 0x08
-	jnz .skip
-
-	cmp byte [.entry+fat_entry.name], '.'
-	je .no_print_dir
-.print_name:
-	push si
-	push ax
-	push cx
-	
-	test cx, cx
-	jz .print_spaces.end
-
-.print_spaces:
-	mov al, ' '
-	call print_char
-	loop .print_spaces
-.print_spaces.end:
-
-	mov si, .entry+fat_entry.name
-	mov cx, 11
-.print_loop:
-	lodsb
-	call print_char
-	loop .print_loop
-
-	newline
-	pop cx
-	pop ax
-	pop si
-
-	test byte [.entry+fat_entry.attr], 0x10
-	jz .no_print_dir
-	push bx
-	push cx
-	inc cx
-	mov bx, word [.entry+fat_entry.clus_low]
-	call list_dir
-	pop cx
-	pop bx
-.no_print_dir:
-
-.skip:
-	add ax, 1
-	adc dx, 0
-	jmp .list_loop
-
-.end:
-	pop dx
-	pop cx
-	pop bx
-	pop ax
-	ret
-section .bss
-.entry: resb fat_entry_size
-section .text
-
 ;; Bootloader main function
 main:
 	cli
@@ -122,7 +48,7 @@ is_valid_fat:
 	newline
 	xor bx, bx
 	mov cx, 1
-	call list_dir
+	call fat_list_tree
 
 	print "Finding '"
 	mov si, .name
