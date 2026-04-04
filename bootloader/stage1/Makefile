@@ -12,9 +12,11 @@ all: $(TARGET)
 
 .PHONY: clean
 clean:
-	rm -f $(TARGET)
+	@echo "  RM $(TARGET)"
+	@rm -f $(TARGET)
 
 $(TARGET): $(CURDIR)/source/main.asm
-	mkdir -p $(dir $@)
-	$(NASM) -f bin -I$(CURDIR)/source $< -o $@
+	@mkdir -p $(dir $@)
+	@echo "  NASM $@"
+	@$(NASM) -f bin -I$(CURDIR)/source $< -o $@
 
