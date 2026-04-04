@@ -21,7 +21,14 @@ console_init:
 	mov word [top_corner_y], 1
 	mov word [bottom_corner_x], 78
 	mov word [bottom_corner_y], 48
+	mov byte [current_attributes], 0x1F
 
+	call redraw_interface
+
+	ret
+
+;; Redraw the interface
+redraw_interface:
 	push bx
 	mov bh, byte [current_attributes]
 	call clear
@@ -89,32 +96,22 @@ console_init:
 	mov dh, 49
 	call put_char
 
-	mov al, 'B'
-	mov dl, 2
+	push bp
+	mov ah, 0x13
+	mov bh, 0
+	mov bl, byte [current_attributes]
+	mov cx, 7 ;; Replace this with string length
 	mov dh, 0
-	call put_char
-
-	mov al, 'i'
-	inc dl
-	call put_char
-
-	mov al, 't'
-	inc dl
-	call put_char
+	mov dl, 2
+	mov bp, .title
+	int 0x10
+	pop bp
 	
-	mov al, 'i'
-	inc dl
-	call put_char
-	
-	mov al, 'x'
-	inc dl
-	call put_char
-
 	pop cx
 	pop dx
 	pop ax
-
 	ret
+.title: db " Bitix "
 
 ;; Clears the screen
 ;; BH = attr
@@ -182,13 +179,34 @@ put_char:
 .row: dw 0
 .col: dw 0
 
-;; Prints a character on the screen
-print_char:
+;; Scrolls the screen
+scroll:
 	push ax
 	push bx
 	push cx
 	push dx
-	push es
+
+	mov ah, 0x06
+	mov al, 1
+	mov bh, byte [current_attributes]
+	mov ch, byte [top_corner_y]
+	mov cl, byte [top_corner_x]
+	mov dh, byte [bottom_corner_y]
+	mov dl, byte [bottom_corner_x]
+	int 0x10
+	dec word [current_cursor_y]
+	
+	pop dx
+	pop cx
+	pop bx
+	pop ax
+	ret
+
+;; Prints a character on the screen
+print_char:
+	push ax
+	push bx
+	push dx
 	
 	;; DEBUG: Print on serial
 	%ifdef DEBUG
@@ -224,16 +242,7 @@ print_char:
 	mov ax, word [bottom_corner_y]
 	cmp word [current_cursor_y], ax
 	jbe .no_scroll
-
-	mov ah, 0x06
-	mov al, 1
-	mov bh, byte [current_attributes]
-	mov ch, byte [top_corner_y]
-	mov cl, byte [top_corner_x]
-	mov dh, byte [bottom_corner_y]
-	mov dl, byte [bottom_corner_x]
-	int 0x10
-	dec word [current_cursor_y]
+	call scroll
 .no_scroll
 
 	mov ah, 0x02
@@ -242,9 +251,7 @@ print_char:
 	mov dl, byte [current_cursor_x]
 	int 0x10
 
-	pop es
 	pop dx
-	pop cx
 	pop bx
 	pop ax
 	ret
@@ -341,13 +348,13 @@ print_nibble:
 	pop cx
 %endmacro
 
-section .data
-current_attributes: db 0x1F
-current_cursor_x: dw 0
-current_cursor_y: dw 0
-top_corner_y: dw 0
-top_corner_x: dw 0
-bottom_corner_y: dw 0
-bottom_corner_x: dw 0
+section .bss
+current_cursor_x:   resw 1
+current_cursor_y:   resw 1
+top_corner_y:       resw 1
+top_corner_x:       resw 1
+bottom_corner_y:    resw 1
+bottom_corner_x:    resw 1
+current_attributes: resb 1
 
 %endif ;; _CONSOLE_ASM_
