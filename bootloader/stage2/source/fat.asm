@@ -661,12 +661,12 @@ fat_read_dir:
 	cmp byte [si+fat_entry.name], 0
 	je .error ;; Reached end
 
-	;; SI = source offset
+	;; DS:SI = source
 	;; ES:DI = dest
 
 	mov cx, 32
 	cld
-	rep movsb ;; Copy 
+	rep movsb ;; Copy
 
 .end:
 	clc
@@ -676,7 +676,6 @@ fat_read_dir:
 	stc
 	popa
 	ret
-
 .index:         dd 0
 .sector:        dd 0
 .ents_per_clus: dw 0
@@ -684,6 +683,88 @@ fat_read_dir:
 .ent_clus:      dw 0
 .ent_sector:    dw 0
 .current_clus:  dw 0
+
+;; Finds an entry in a dir
+;; BX: Start cluster
+;; DS:SI: String to 8.3 name
+;; ES:DI: Pointer to out entry
+;; Returns:
+;; CF if an error occurs
+fat_find_in_dir:
+	push ax
+	push bx
+	push cx
+	push dx
+	push di
+
+	mov word [.out.seg], es
+	mov word [.out.off], di
+
+	xor ax, ax
+	xor dx, dx
+	mov di, .entry
+
+.find_loop:
+	call fat_read_dir
+	jc .end
+	
+	test byte [.entry+fat_entry.attr], 0x08
+	jnz .skip
+	
+	;; Compares name
+	push di
+	push si
+	push ax
+	push cx
+	
+	;; DS:SI Already points to string
+	mov di, .entry+fat_entry.name
+	mov cx, 11
+.compare_loop:
+	cmpsb
+	jne .not_equal
+	loop .compare_loop
+.equal:
+	mov cx, 32
+	mov si, .entry
+	mov di, word [.out.seg]
+	mov es, di
+	mov di, word [.out.off]
+	cld
+	rep movsb
+	stc
+.not_equal:
+	pop cx
+	pop ax
+	pop si
+	pop di
+
+	jc .end
+.skip:
+	add ax, 1
+	adc dx, 0
+	jmp .find_loop
+.end:
+	clc
+	pop si
+	pop dx
+	pop cx
+	pop bx
+	pop ax
+	ret
+.error:
+	stc
+	pop si
+	pop dx
+	pop cx
+	pop bx
+	pop ax
+	ret
+.out.seg: dw 0
+.out.off: dw 0
+section .bss
+.entry:   resb fat_entry_size
+section .text
 
 section .data
 fat_start_sector:     dd 0

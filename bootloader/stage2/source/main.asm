@@ -124,8 +124,27 @@ is_valid_fat:
 	mov cx, 1
 	call list_dir
 
+	print "Finding '"
+	mov si, .name
+	call print_string
+	print "'..."
+	mov di, .entry
+	xor bx, bx
+	call fat_find_in_dir
+	jnc .found
+	panic "Failed to find!"
+.found:
+	print " Found!"
+	newline
+
+	print "clus_low=0x"
+	print_hex_word word [.entry+fat_entry.clus_low]
+
 	cli
 	hlt
+.name: db "SUBDIR     "
+section .bss
+.entry: resb fat_entry_size
 
 section .data
 drive: db 0
