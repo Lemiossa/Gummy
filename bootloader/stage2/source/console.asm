@@ -4,15 +4,23 @@
 %define _CONSOLE_ASM_
 section .text
 
+;; %define T80x50
+
 ;; Initializes console
 console_init:
 	;; Set text mode
 	mov ax, 3
 	int 0x10
 
+	mov word [console_width], 79
+	mov word [console_height], 24
+
+%ifdef T80x50
 	;; Set font 8x8
 	mov ax, 0x1112
 	int 0x10
+	mov word [console_height], 49
+%endif ;; T80x50
 	
 	mov word [current_cursor_x], 1
 	mov word [current_cursor_y], 1
@@ -20,7 +28,11 @@ console_init:
 	mov word [top_corner_x], 1
 	mov word [top_corner_y], 1
 	mov word [bottom_corner_x], 78
+%ifdef T80x50
 	mov word [bottom_corner_y], 48
+%else
+	mov word [bottom_corner_y], 23
+%endif ;; T80x50
 	mov byte [current_attributes], 0x1F
 
 	call redraw_interface
@@ -46,7 +58,8 @@ redraw_interface:
 	call put_char
 	
 	;; Draw top line
-	mov cx, 78
+	mov cx, word [console_width]
+	dec cx
 	mov al, 0xCD ;; ═
 	mov dl, 1
 	mov dh, 0
@@ -56,12 +69,13 @@ redraw_interface:
 	loop .line1_loop
 
 	mov al, 0xBB ;; ╗
-	mov dl, 79
+	mov dl, byte [console_width]
 	mov dh, 0
 	call put_char
 
-	;; Print ║ in col 0 and 79 in lines 1-48
-	mov cx, 48
+	;; Print ║ in col 0 and MAX_WIDTH in lines 1-(MAX_HEIGHT-1)
+	mov cx, word [console_height]
+	dec cx
 	mov al, 0xBA ;; ║
 	mov dh, 1
 .rows_loop:
@@ -70,7 +84,7 @@ redraw_interface:
 	call put_char
 
 	;; col 79
-	mov dl, 79
+	mov dl, byte [console_width]
 	call put_char
 
 	inc dh
@@ -78,22 +92,22 @@ redraw_interface:
 
 	mov al, 0xC8 ;; ╚
 	mov dl, 0
-	mov dh, 49
+	mov dh, byte [console_height]
 	call put_char
 	
 	;; Draw bottom line 
 	mov cx, 78
 	mov al, 0xCD ;; ═
 	mov dl, 1
-	mov dh, 49
+	mov dh, byte [console_height]
 .line2_loop:
 	call put_char
 	inc dl
 	loop .line2_loop
 
 	mov al, 0xBC ;; ╝
-	mov dl, 79
-	mov dh, 49
+	mov dl, byte [console_width]
+	mov dh, byte [console_height]
 	call put_char
 
 	push bp
@@ -355,6 +369,8 @@ top_corner_y:       resw 1
 top_corner_x:       resw 1
 bottom_corner_y:    resw 1
 bottom_corner_x:    resw 1
+console_width:      resw 1
+console_height:     resw 1
 current_attributes: resb 1
 
 %endif ;; _CONSOLE_ASM_
