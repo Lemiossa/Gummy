@@ -1,6 +1,6 @@
 # Makefile
 # Created by Matheus Leme Da Silva
-MAKEFLAGS += --no-print-directory
+MAKEFLAGS += -s --no-print-directory
 
 BUILDDIR := $(CURDIR)/build
 BINDIR := $(BUILDDIR)/bin
