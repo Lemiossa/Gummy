@@ -4,7 +4,7 @@
 %define _CONSOLE_ASM_
 section .text
 
-;; %define T80x50
+%define T80x50
 
 ;; Initializes console
 console_init:
