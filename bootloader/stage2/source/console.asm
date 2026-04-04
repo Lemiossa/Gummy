@@ -243,7 +243,7 @@ print_char:
 	cmp word [current_cursor_y], ax
 	jbe .no_scroll
 	call scroll
-.no_scroll
+.no_scroll:
 
 	mov ah, 0x02
 	mov bh, 0
