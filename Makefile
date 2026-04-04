@@ -1,5 +1,6 @@
 # Makefile
 # Created by Matheus Leme Da Silva
+MAKEFLAGS += --no-print-directory
 
 BUILDDIR := $(CURDIR)/build
 BINDIR := $(BUILDDIR)/bin
@@ -18,7 +19,7 @@ all: $(IMAGE)
 
 .PHONY: clean
 clean:
-	$(MAKE) -C bootloader clean TARGET=$(BOOTLOADER)
+	@$(MAKE) -C bootloader clean TARGET=$(BOOTLOADER)
 
 QEMU := qemu-system-i386
 QEMUFLAGS := \
@@ -27,12 +28,12 @@ QEMUFLAGS := \
 			 -machine pc,pcspk-audiodev=audio0 
 .PHONY: qemu
 qemu: $(IMAGE)
-	@echo "  QEMU         $(IMAGE)"
+	@echo "  QEMU          $(IMAGE)"
 	@$(QEMU) $(QEMUFLAGS)
 
 .PHONY: qemu-ng
 qemu-ng: $(IMAGE)
-	@echo "  QEMU-NG      $(IMAGE)"
+	@echo "  QEMU-NG       $(IMAGE)"
 	@$(QEMU) $(QEMUFLAGS) -nographic
 
 .PHONY: bootloader
@@ -49,7 +50,7 @@ $(IMAGE): bootloader
 	@mkfs.fat --mbr=y -F 16 -n "BITIX" -R 64 $(IMAGE) > /dev/null
 	@echo "  MCOPY         $(IMAGE)"
 	@mcopy -i $(IMAGE) -s $(IMAGEROOT)/* "::/"
-	@echo "  INSTALL BOOTLAODER"
+	@echo "  INSTALL BOOTLOADER"
 	@dd if=$(BOOTLOADER) of=$(IMAGE) bs=1 count=3 conv=notrunc status=none > /dev/null
 	@dd if=$(BOOTLOADER) of=$(IMAGE) bs=1 skip=62 seek=62 count=386 conv=notrunc status=none > /dev/null
 	@dd if=$(BOOTLOADER) of=$(IMAGE) bs=1 skip=512 seek=512 conv=notrunc status=none > /dev/null

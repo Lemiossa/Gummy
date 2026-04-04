@@ -17,7 +17,7 @@ all: stage1 stage2 $(TARGET)
 clean:
 	@$(MAKE) -C stage1 clean TARGET=$(STAGE1_BIN)
 	@$(MAKE) -C stage2 clean TARGET=$(STAGE2_BIN)
-	@echo "  RM $(TARGET)"
+	@echo "  RM            $(TARGET)"
 	@rm -f $(TARGET)
 
 .PHONY: stage1
@@ -30,6 +30,6 @@ stage2:
 
 $(TARGET): $(STAGE1_BIN) $(STAGE2_BIN)
 	@mkdir -p $(dir $@)
-	@echo "  CAT     $@"
+	@echo "  CAT           $@"
 	@cat $^ > $@
 
