@@ -1,8 +1,8 @@
 ;; main.asm
 ;; Created by Matheus Leme Da Silva 
-section .text
 org 0x7E00
 bits 16
+section .text
 
 ;; %define DEBUG
 
@@ -16,9 +16,8 @@ jmp main
 %include "fat.asm"
 ;; End includes
 
-section .text
-
 ;; Bootloader main function
+section .text
 main:
 	cli
 	xor ax, ax
@@ -29,6 +28,7 @@ main:
 	sti
 
 	mov [drive], dl
+
 	call console_init
 	print "Booting..."
 	newline
@@ -44,8 +44,29 @@ is_valid_fat:
 
 	call enable_a20_line
 	
+	mov si, .text_path
+	mov di, .entry
+	call fat_find
+	jnc .found
+	print "NOT FOUND!"
+	jmp .halt
+.found:
+	print "FOUND!"
+
+	mov si, .entry+fat_entry.name
+
+	mov cx, 11
+.print_name:
+	lodsb
+	call print_char
+	loop .print_name
+
+.halt:
 	cli
 	hlt
+.text_path: db "/subdir/text.txt/", 0
+section .bss
+.entry: resb fat_entry_size
 
 section .bss
-drive: resb 0
+drive: resb 1

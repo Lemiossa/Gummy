@@ -4,10 +4,10 @@
 %define _A20_ASM_
 %include "console.asm"
 %include "panic.asm"
-section .text
 
 ;; Enable A20 line
 ;; BIOS Method
+section .text
 enable_a20_line:
 	push ax
 	push si
