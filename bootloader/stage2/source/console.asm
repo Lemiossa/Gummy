@@ -2,11 +2,10 @@
 ;; Created by Matheus Leme Da Silva
 %ifndef _CONSOLE_ASM_
 %define _CONSOLE_ASM_
-section .text
-
 ;; %define T80x50
 
 ;; Initializes console
+section .text
 console_init:
 	;; Set text mode
 	mov ax, 3
@@ -40,6 +39,7 @@ console_init:
 	ret
 
 ;; Redraw the interface
+section .text
 redraw_interface:
 	push bx
 	mov bh, byte [current_attributes]
@@ -146,6 +146,7 @@ redraw_interface:
 
 ;; Clears the screen
 ;; BH = attr
+section .text
 clear:
 	push ax
 	push cx
@@ -167,6 +168,7 @@ clear:
 ;; AH: attributes
 ;; DH: row
 ;; DL: col
+section .text
 put_char:
 	push ax
 	push dx
@@ -207,10 +209,12 @@ put_char:
 	pop dx
 	pop ax
 	ret
+section .data
 .row: dw 0
 .col: dw 0
 
 ;; Scrolls the screen
+section .text
 scroll:
 	push ax
 	push bx
@@ -234,6 +238,7 @@ scroll:
 	ret
 
 ;; Prints a character on the screen
+section .text
 print_char:
 	push ax
 	push bx
@@ -289,6 +294,7 @@ print_char:
 
 ;; Prints a string ending with zero on the screen
 ;; DS:SI: pointer to string
+section .text
 print_string:
 	push ax
 	push si
@@ -314,6 +320,7 @@ section .text
 %endmacro
 
 %macro newline 0
+section .text
 	push ax
 	mov al, 0x0D
 	call print_char
@@ -323,6 +330,7 @@ section .text
 %endmacro
 
 ;; Prints a HEX 4-bit value in AL
+section .text
 print_nibble:
 	push ax
 	and al, 0x0F
@@ -342,6 +350,7 @@ print_nibble:
 ;; Prints a HEX 8-bit value
 ;; 1: r8
 %macro print_hex_byte 1
+section .text
 	push ax
 	mov al, %1
 
@@ -360,6 +369,7 @@ print_nibble:
 ;; Prints a HEX 16-bit value
 ;; 1: r16
 %macro print_hex_word 1
+section .text
 	push bx
 	mov bx, %1
 	print_hex_byte bh
@@ -371,6 +381,7 @@ print_nibble:
 ;; 1: high r16
 ;; 2: low r16
 %macro print_hex_dword 2
+section .text
 	push cx
 	mov cx, %1
 	print_hex_word cx

@@ -44,6 +44,7 @@ endstruc
 ;; AL: Char
 ;; Returns:
 ;; AL: Char UPPERCASE
+section .text
 to_upper:
 	cmp al, 'a'
 	jb .end
@@ -58,6 +59,7 @@ to_upper:
 ;; Converts normal filename to FAT filename
 ;; DS:SI: Filename
 ;; ES:DI: Out FAT filename
+section .text
 fat_filename_to_fatname:
 	push ax
 	push bx
@@ -79,6 +81,8 @@ fat_filename_to_fatname:
 	lodsb
 
 	test al, al
+	jz .end
+	cmp al, '/'
 	jz .end
 	cmp al, '.'
 	je .dot
@@ -118,6 +122,7 @@ fat_filename_to_fatname:
 ;; Return
 ;; DX:AX: LBA
 ;; CF if an error occour
+section .text
 fat_clus_to_lba:
 	push cx
 	push si
@@ -155,6 +160,7 @@ fat_clus_to_lba:
 ;; AX: cluster
 ;; Returns:
 ;; CF If is EOF
+section .text
 clus_is_eof:
 	cmp byte [fat_type], 12
 	je .fat12
@@ -185,6 +191,7 @@ clus_is_eof:
 ;; Returns:
 ;; CF on fail
 ;; BX: Value
+section .text
 read_fat:
 	push ax
 	push cx
@@ -316,6 +323,7 @@ read_fat:
 ;; DX:AX: Start LBA of partition
 ;; Return:
 ;; CF: If is not valid FAT partition
+section .text
 fat_init:
 	pusha
 	push dx
@@ -609,6 +617,7 @@ fat_init:
 ;; Returns:
 ;; CF is set if an error occurred or end of directory is reached
 ;; NOTE: If the Starting directory cluster is zero, read the root direcotry
+section .text
 fat_read_dir:
 	pusha
 	cmp byte [fat_initialized], 1
@@ -749,6 +758,7 @@ fat_read_dir:
 	stc
 	popa
 	ret
+section .data
 .index:         dd 0
 .sector:        dd 0
 .ents_per_clus: dw 0
@@ -763,12 +773,25 @@ fat_read_dir:
 ;; ES:DI: Pointer to out entry
 ;; Returns:
 ;; CF if an error occurs
+section .text
 fat_find_in_dir:
 	push ax
 	push bx
 	push cx
 	push dx
 	push di
+
+	print "Finding '"
+	mov cx, 11
+	push si
+.print_name_loop:
+	lodsb
+	call print_char
+	loop .print_name_loop
+	pop si
+
+	print "'"
+	newline
 
 	mov word [.out.seg], es
 	mov word [.out.off], di
@@ -779,7 +802,7 @@ fat_find_in_dir:
 
 .find_loop:
 	call fat_read_dir
-	jc .end
+	jc .error
 	
 	test byte [.entry+fat_entry.attr], 0x08
 	jnz .skip
@@ -793,6 +816,7 @@ fat_find_in_dir:
 	;; DS:SI Already points to string
 	mov di, .entry+fat_entry.name
 	mov cx, 11
+	cld
 .compare_loop:
 	cmpsb
 	jne .not_equal
@@ -833,15 +857,16 @@ fat_find_in_dir:
 	pop bx
 	pop ax
 	ret
+section .data
 .out.seg:  dw 0
 .out.off:  dw 0
 section .bss
 .entry:    resb fat_entry_size
-section .text
 
 ;; List a directory tree in FAT
 ;; BX: Start cluster
 ;; CX: Depth
+section .text
 fat_list_tree:
 	push ax
 	push bx
@@ -912,11 +937,11 @@ fat_list_tree:
 	ret
 section .bss
 .entry: resb fat_entry_size
-section .text
 
 ;; List a directory in FAT
 ;; BX: Start cluster
 ;; CX: Depth
+section .text
 fat_list_dir:
 	push ax
 	push bx
@@ -976,43 +1001,84 @@ fat_list_dir:
 	ret
 section .bss
 .entry: resb fat_entry_size
-section .text
 
 ;; Finds file using absolute PATH
 ;; DS:SI: Path
 ;; ES:DI: Out
 ;; Returns:
 ;; CF if an error occour
+section .text
 fat_find:
+	push ax
 	push bx
+	push cx
 	push si
 	push di
 
-	cmp byte [si], '/'
+	lodsb
+	cmp al, '/'
 	jne .error ;; Is not absolute PATH
-
+	
 	xor bx, bx ;; Start on root dir
 .find_loop:
-	lodsb
+	mov al, byte [si]
 
 	test al, al
 	jz .end
 
-	
+	cmp al, '/'
+	je .loop_end
 
+	;; SI already points to filename
+	push di
+	mov di, .fat_name
+	call fat_filename_to_fatname
+	pop di
+	
+	;; Find in dir
+	push si
+	mov si, .fat_name
+	call fat_find_in_dir
+	pop si
+	jc .error
+
+	test byte [es:di+fat_entry.attr], 0x10
+	jz .end ;; Is FILE
+
+	;; Is DIR, Set current clus(BX) to clus_low of the entry
+	mov bx, word [es:di+fat_entry.clus_low]
+
+;; Jump to next '/'
+.next_slash:
+	cmp byte [si], '/'
+	je .find_loop
+	inc si
+	jmp .next_slash
+
+.loop_end:
+	inc si
 	jmp .find_loop
 .end:
 	clc
 	pop di
 	pop si
+	pop cx
+	pop bx
+	pop ax
 	ret
 .error:
 	stc
 	pop di
 	pop si
+	pop cx
 	pop bx
+	pop ax
 	ret
+section .data
+.out.seg: dw 0
+.out.off: dw 0
 section .bss
+.filename: resb 12
 .fat_name: resb 12
 
 section .data

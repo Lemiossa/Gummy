@@ -2,13 +2,13 @@
 ;; Created by Matheus Leme Da Silva
 %ifndef _DISK_ASM_
 %define _DISK_ASM_
-section .text
 %include "console.asm"
 
 sector_size:      equ 0x200
 
 ;; Sets drive to disk operations
 ;; DL: Drive number
+section .text
 set_drive:
 	pusha
 	mov [current_drive_number], dl
@@ -34,6 +34,7 @@ set_drive:
 ;; CL: Sectors per track
 ;; DH: Number of heads
 ;; CF if an error occurred
+section .text
 get_drive_parameters:
 	push ax
 	push di
@@ -67,6 +68,7 @@ get_drive_parameters:
 	ret
 
 ;; Resets a disk
+section .text
 disk_reset:
 	push ax
 	push dx
@@ -80,6 +82,7 @@ disk_reset:
 ;; Reads a sector(DX:AX) from disk to memory(ES:BX)
 ;; DX:AX: LBA
 ;; ES:BX: Addr
+section .text
 read_sector:
 	push ax
 	push cx
@@ -154,9 +157,10 @@ read_sector:
 	pop ax
 	ret
 
-current_drive_number: db 0
+section .data
+current_drive_number:      db 0
 current_sectors_per_track: dw 0
-current_heads: dw 0
+current_heads:             dw 0
 
 %endif ;; _DISK_ASM_
 

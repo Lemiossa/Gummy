@@ -3,7 +3,6 @@
 %ifndef _PANIC_ASM_
 %define _PANIC_ASM_
 %include "console.asm"
-section .text
 
 ;; Prints a panic message and halts the system
 %macro panic 1+
