@@ -4,7 +4,7 @@
 %define _CONSOLE_ASM_
 section .text
 
-%define T80x50
+;; %define T80x50
 
 ;; Initializes console
 console_init:
@@ -111,14 +111,28 @@ redraw_interface:
 	call put_char
 
 	push bp
+	;; Title
 	mov ah, 0x13
 	mov bh, 0
 	mov bl, byte [current_attributes]
-	mov cx, 7 ;; Replace this with string length
+	mov cx, (.title_end - .title)
 	mov dh, 0
 	mov dl, 2
 	mov bp, .title
 	int 0x10
+	
+	;; Build
+	mov ah, 0x13
+	mov bh, 0
+	mov bl, byte [current_attributes]
+	mov cx, (.build_date_end - .build_date)
+	mov dh, 0
+	mov dl, byte [console_width]
+	sub dl, 2
+	sub dl, (.build_date_end - .build_date)
+	mov bp, .build_date
+	int 0x10
+
 	pop bp
 	
 	pop cx
@@ -126,6 +140,9 @@ redraw_interface:
 	pop ax
 	ret
 .title: db " Bitix "
+.title_end:
+.build_date: db " Build ", __DATE__, " ", __TIME__, " "
+.build_date_end:
 
 ;; Clears the screen
 ;; BH = attr
