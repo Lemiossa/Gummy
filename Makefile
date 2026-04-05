@@ -33,8 +33,7 @@ export MCOPY
 
 QEMUFLAGS := \
 			 -drive file=$(IMAGE),format=raw,if=ide,media=disk \
-			 -audiodev alsa,id=audio0 \
-			 -machine pc,pcspk-audiodev=audio0 
+			 -machine pc
 
 .PHONY: all
 all: $(IMAGE)
