@@ -46,7 +46,7 @@ clean:
 .PHONY: qemu
 qemu: $(IMAGE)
 	@$(ECHO) "  QEMU          $(IMAGE)"
-	@$(QEMU) $(QEMUFLAGS)
+	@$(QEMU) $(QEMUFLAGS) -serial stdio
 
 .PHONY: qemu-ng
 qemu-ng: $(IMAGE)
@@ -62,9 +62,9 @@ $(IMAGE): bootloader
 	@$(MKDIR)    $(dir $@) $(IMAGEROOT)/subdir
 	@$(ECHO)     "Hello world" > $(IMAGEROOT)/subdir/text.txt
 	@$(ECHO)     "  GENIMG        $(IMAGE)"
-	@$(DD)       if=/dev/zero of=$(IMAGE) bs=1K count=16384 status=none > /dev/null
+	@$(DD)       if=/dev/zero of=$(IMAGE) bs=1K count=1440 status=none > /dev/null
 	@$(ECHO)     "  MKFS.FAT      $(IMAGE)"
-	@$(MKFS_FAT) --mbr=y -F 16 -n "BITIX" -R 64 $(IMAGE) > /dev/null
+	@$(MKFS_FAT) --mbr=y -F 12 -n "BITIX" -R 64 $(IMAGE) > /dev/null
 	@$(ECHO)     "  MCOPY         $(IMAGE)"
 	@$(MCOPY)    -i $(IMAGE) -s $(IMAGEROOT)/* "::/"
 	@$(ECHO)     "  INSTALL BOOTLOADER"

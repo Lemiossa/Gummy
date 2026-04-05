@@ -5,18 +5,22 @@ BUILDDIR := $(CURDIR)/build
 BINDIR := $(BUILDDIR)/bin
 
 TARGET ?= $(BINDIR)/stage1.bin
-NASM ?= nasm
+ASM ?= nasm
+ECHO ?= echo
+RM ?= rm -f
+MKDIR ?= mkdir -p
+
+DEP := $(BUILDDIR)/dep
 
 .PHONY: all
-all: $(TARGET)
+all: $(CURDIR)/source/main.asm
+	@$(MKDIR) $(dir $(TARGET)) $(dir $(DEP))
+	@$(ECHO)  "  ASM           $(TARGET)"
+	@$(ASM)   -f bin -I$(CURDIR)/source $< -o $(TARGET) -MD -MF $(DEP)
 
 .PHONY: clean
 clean:
-	@echo "  RM            $(TARGET)"
-	@rm -f $(TARGET)
+	@$(ECHO) "  RM            $(TARGET) $(DEP)"
+	@$(RM)   $(TARGET) $(DEP)
 
-$(TARGET): $(CURDIR)/source/main.asm
-	@mkdir -p $(dir $@)
-	@echo "  NASM          $@"
-	@$(NASM) -f bin -I$(CURDIR)/source $< -o $@
-
+-include $(DEP)

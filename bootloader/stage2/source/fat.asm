@@ -904,6 +904,14 @@ fat_list_dir:
 section .bss
 .entry: resb fat_entry_size
 section .text
+
+;; Finds file using absolute PATH
+;; DS:SI: Path
+;; ES:DI: Out
+fat_find:
+
+	ret
+
 section .data
 fat_start_sector:     dd 0
 fat_total_sectors:    dd 0
