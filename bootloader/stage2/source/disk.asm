@@ -144,7 +144,6 @@ read_sector:
 	dec si
 	jmp .retry
 .no_err:
-
 	clc
 	pop dx
 	pop cx
