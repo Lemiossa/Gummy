@@ -43,7 +43,7 @@ main:
 is_valid_fat:
 
 	call enable_a20_line
-
+	
 	cli
 	hlt
 

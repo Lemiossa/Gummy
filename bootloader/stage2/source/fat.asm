@@ -40,6 +40,79 @@ struc fat_entry
 	.file_size:    resd 1
 endstruc
 
+;; Converts character in AL to UPPERCASE
+;; AL: Char
+;; Returns:
+;; AL: Char UPPERCASE
+to_upper:
+	cmp al, 'a'
+	jb .end
+	cmp al, 'z'
+	ja .end
+	;; This code executes if AL >= 'a' && AL <= 'z'
+
+	sub al, ('a' - 'A')
+.end:
+	ret
+
+;; Converts normal filename to FAT filename
+;; DS:SI: Filename
+;; ES:DI: Out FAT filename
+fat_filename_to_fatname:
+	push ax
+	push bx
+	push cx
+	push si
+	push di
+
+	push di
+	;; Fill out FAT name with 11 ' '
+	mov cx, 11
+	mov al, ' '
+	rep stosb
+	pop di
+
+	mov bx, di ;; Save out PTR on BX
+
+	mov cx, 8
+.name_loop:
+	lodsb
+
+	test al, al
+	jz .end
+	cmp al, '.'
+	je .dot
+
+	call to_upper
+
+	mov byte [es:di], al
+	inc di
+	loop .name_loop
+	jmp .end ;; Do not add extension if no encountered '.'
+.dot:
+	mov cx, 3
+	mov di, bx
+	add di, 8 ;; EXT
+.ext_loop:
+	lodsb
+
+	test al, al
+	jz .end
+
+	call to_upper
+
+	mov byte [es:di], al
+	inc di
+
+	loop .ext_loop
+.end:
+	pop di
+	pop si
+	pop cx
+	pop bx
+	pop ax
+	ret
+
 ;; Converts cluster to LBA
 ;; AX: Cluster
 ;; Return
@@ -760,10 +833,10 @@ fat_find_in_dir:
 	pop bx
 	pop ax
 	ret
-.out.seg: dw 0
-.out.off: dw 0
+.out.seg:  dw 0
+.out.off:  dw 0
 section .bss
-.entry:   resb fat_entry_size
+.entry:    resb fat_entry_size
 section .text
 
 ;; List a directory tree in FAT
@@ -908,9 +981,39 @@ section .text
 ;; Finds file using absolute PATH
 ;; DS:SI: Path
 ;; ES:DI: Out
+;; Returns:
+;; CF if an error occour
 fat_find:
+	push bx
+	push si
+	push di
 
+	cmp byte [si], '/'
+	jne .error ;; Is not absolute PATH
+
+	xor bx, bx ;; Start on root dir
+.find_loop:
+	lodsb
+
+	test al, al
+	jz .end
+
+	
+
+	jmp .find_loop
+.end:
+	clc
+	pop di
+	pop si
 	ret
+.error:
+	stc
+	pop di
+	pop si
+	pop bx
+	ret
+section .bss
+.fat_name: resb 12
 
 section .data
 fat_start_sector:     dd 0
