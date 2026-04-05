@@ -258,7 +258,8 @@ print_char:
 
 	cmp al, 0x0A
 	je .inc_y
-
+	
+	;; Draw char
 	mov dl, byte [current_cursor_x]
 	mov dh, byte [current_cursor_y]
 	mov ah, byte [current_attributes]
@@ -266,15 +267,19 @@ print_char:
 
 	inc word [current_cursor_x]
 	
+	;; Verify if need jump to next line
 	mov ax, word [bottom_corner_x]
 	cmp word [current_cursor_x], ax
 	jbe .no_inc_y
 .inc_y:
+	;; y++
 	inc word [current_cursor_y]
 .carriage_return:
+	;; x = top_corner_x
 	mov ax, word [top_corner_x]
 	mov word [current_cursor_x], ax
 .no_inc_y:
+	;; Verify if need to scroll
 	mov ax, word [bottom_corner_y]
 	cmp word [current_cursor_y], ax
 	jbe .no_scroll
@@ -322,8 +327,6 @@ section .text
 %macro newline 0
 section .text
 	push ax
-	mov al, 0x0D
-	call print_char
 	mov al, 0x0A
 	call print_char
 	pop ax
@@ -334,7 +337,7 @@ section .text
 print_nibble:
 	push ax
 	and al, 0x0F
-	
+
 	cmp al, 9
 	jbe .digit
 	sub al, 10

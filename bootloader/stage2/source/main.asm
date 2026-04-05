@@ -51,7 +51,7 @@ is_valid_fat:
 	print "NOT FOUND!"
 	jmp .halt
 .found:
-	print "FOUND!"
+	print "FOUND '"
 
 	mov si, .entry+fat_entry.name
 
@@ -60,7 +60,7 @@ is_valid_fat:
 	lodsb
 	call print_char
 	loop .print_name
-
+	print "'", 0x0A
 .halt:
 	cli
 	hlt
