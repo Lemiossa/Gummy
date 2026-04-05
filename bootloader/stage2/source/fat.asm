@@ -1015,6 +1015,9 @@ fat_find:
 	push si
 	push di
 
+	mov word [.out.seg], es
+	mov word [.out.off], di
+
 	lodsb
 	cmp al, '/'
 	jne .error ;; Is not absolute PATH
@@ -1037,8 +1040,15 @@ fat_find:
 	
 	;; Find in dir
 	push si
+	push di
+	push es
 	mov si, .fat_name
+	mov di, word [.out.seg]
+	mov es, di
+	mov di, word [.out.off]
 	call fat_find_in_dir
+	pop es
+	pop di
 	pop si
 	jc .error
 

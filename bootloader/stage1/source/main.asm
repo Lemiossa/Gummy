@@ -3,7 +3,7 @@
 bits 16
 org 0x7C00
 
-start_addr: equ 0x7E00
+start_addr:   equ 0x7E00
 start_sector: equ 1
 sector_count: equ 62
 
@@ -96,7 +96,11 @@ main:
 	jmp .loop
 .end:
 	mov dl, [drive]
-	jmp (start_addr >> 4):(start_addr & 0x0F) ;; Far jump
+
+	;; Far jump 
+	push word (start_addr >> 4)   ;; segment
+	push word (start_addr & 0x0F) ;; offset
+	retf
 
 	jmp halt
 
