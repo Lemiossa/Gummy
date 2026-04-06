@@ -781,6 +781,7 @@ fat_find_in_dir:
 	push dx
 	push di
 
+%ifdef DEBUG
 	print "Finding '"
 	mov cx, 11
 	push si
@@ -789,9 +790,9 @@ fat_find_in_dir:
 	call print_char
 	loop .print_name_loop
 	pop si
-
 	print "'"
 	newline
+%endif ;; DEBUG
 
 	mov word [.out.seg], es
 	mov word [.out.off], di
@@ -1088,7 +1089,6 @@ section .data
 .out.seg: dw 0
 .out.off: dw 0
 section .bss
-.filename: resb 12
 .fat_name: resb 12
 
 section .data
