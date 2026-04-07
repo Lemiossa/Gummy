@@ -1091,6 +1091,84 @@ section .data
 section .bss
 .fat_name: resb 12
 
+struc fat_transfer
+	.path.seg:   resw 1
+	.path.off:   resw 1
+	.dest.seg:   resw 1
+	.dest.off:   resw 1
+	.offset:     resd 1
+	.bytes:      resd 1
+endstruc
+
+;; Reads N bytes of a FAT file
+;; DS:SI: Fat transfer operation struct pointer
+;; Returns:
+;; CF if an error occours
+section .text
+fat_read:
+	push ax
+	push bx
+	push cx
+	push dx
+	push si
+	push di
+	
+	;; Find file
+	push si
+	push ds
+
+	mov ax, word [si+fat_transfer.path.seg]
+	mov ds, ax
+	mov si, word [si+fat_transfer.path.off]
+
+	mov di, .entry
+	call fat_find
+
+	pop ds
+	pop si
+	jc .error
+
+	;; skip_clus = offset / (sectors_per_clus * sector_size)
+	;; faster: skip_clus = offset / (sectors_per_clus << 9)
+	mov bx, word [first_sector+fat_bpb.sectors_per_clus]
+	shl bx, 9
+	;; BX = sectors_per_clus * sector_size
+
+	mov bx, word [first_sector+fat_bpb.sectors_per_clus]
+	shl bx, 9
+	;; BX = sectors_per_clus * sector_size
+
+	mov ax, word [si+fat_transfer.offset]
+	mov dx, word [si+fat_transfer.offset+2]
+	div bx
+	;; AX = offset / (sectors_per_clus * sector_size)
+	;; DX = offset % (sectors_per_clus * sector_size)
+	mov word [.skip_clus], ax
+	mov word [.off_in_clus], dx
+
+.end:
+	clc
+	pop di
+	pop si
+	pop dx
+	pop cx
+	pop bx
+	pop ax
+	ret
+.error:
+	stc
+	pop di
+	pop si
+	pop dx
+	pop cx
+	pop bx
+	pop ax
+	ret
+section .bss
+.entry:      resb fat_entry_size
+.skip_clus:  resw 1
+.off_in_clus:resw 1
+
 section .data
 fat_start_sector:     dd 0
 fat_total_sectors:    dd 0

@@ -44,29 +44,25 @@ is_valid_fat:
 
 	call enable_a20_line
 	
-	mov si, .text_path
-	mov di, .entry
-	call fat_find
-	jnc .found
-	print "NOT FOUND!"
+	mov si, .fat_transfer_struct
+	call fat_read
+	jnc .ok
+	print "Error!"
 	jmp .halt
-.found:
-	print "FOUND '"
+.ok: 
+	print "Readed!"
 
-	mov si, .entry+fat_entry.name
-
-	mov cx, 11
-.print_name:
-	lodsb
-	call print_char
-	loop .print_name
-	print "'", 0x0A
 .halt:
 	cli
 	hlt
-.text_path: db "/subdir/text.txt/", 0
-section .bss
-.entry: resb fat_entry_size
+section .data
+.fat_transfer_struct:
+	dw 0x0000, .path  ;; Seg is 0
+	dw 0x1000, 0x0000 ;; 0x1000:0x0000
+	dd 0 
+	dd 100
+
+.path: db "/subdir/text.txt", 0
 
 section .bss
 drive: resb 1
