@@ -132,6 +132,8 @@ read_sector:
 	mov si, 3
 	jmp .try
 .retry:
+	print "retry"
+	newline
 	call disk_reset
 .try:
 	clc
