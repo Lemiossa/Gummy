@@ -33,7 +33,7 @@ export MCOPY
 
 QEMUFLAGS := \
 			 -drive file=$(IMAGE),format=raw,if=ide,media=disk \
-			 -machine pc
+			 -machine pc -vga std -display gtk
 
 .PHONY: all
 all: $(IMAGE)
