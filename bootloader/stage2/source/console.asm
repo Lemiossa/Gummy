@@ -2,7 +2,7 @@
 ;; Created by Matheus Leme Da Silva
 %ifndef _CONSOLE_ASM_
 %define _CONSOLE_ASM_
-;; %define T80x50
+%define T80x50
 
 ;; Initializes console
 section .text
