@@ -734,20 +734,23 @@ fat_read_dir:
 	mov bx, sector_buffer
 	add ax, word [.sector]
 	adc dx, word [.sector+2]
+	print "read_dir: Reading sector..."
+	newline
 	call read_sector
 	jc .error
+	print "Readed"
+	newline
 	
 	mov si, word [.ent_sector]
 	shl si, 5 ;; * 32
 	add si, sector_buffer
 	
 	cmp byte [si+fat_entry.name], 0
-	je .error ;; Reached end
+	je .is_zero;; Reached end
 
 	;; DS:SI = source
 	;; ES:DI = dest
 
-%ifdef DEBUG
 	push si
 	print "Readed dir 0x"
 	print_hex_word word [.initial_clus]
@@ -760,7 +763,6 @@ fat_read_dir:
 	print "'"
 	newline
 	pop si
-%endif ;; DEBUG
 
 	mov cx, 32
 	cld
@@ -771,19 +773,24 @@ fat_read_dir:
 	clc
 	popa
 	ret
+.is_zero:
+	print "Is zero"
+	newline
 .error:
+	print "Read dir error"
+	newline
 	stc
 	popa
 	ret
 section .bss
-.index:         resd 0
-.sector:        resd 0
-.ents_per_clus: resw 0
-.skip_clus:     resw 0
-.ent_clus:      resw 0
-.ent_sector:    resw 0
-.current_clus:  resw 0
-.initial_clus:  resw 0
+.index:         resd 1
+.sector:        resd 1
+.ents_per_clus: resw 1
+.skip_clus:     resw 1
+.ent_clus:      resw 1
+.ent_sector:    resw 1
+.current_clus:  resw 1
+.initial_clus:  resw 1
 
 ;; Finds an entry in a dir
 ;; BX: Start cluster
@@ -849,7 +856,9 @@ fat_find_in_dir:
 	jne .not_equal
 	loop .compare_loop
 .equal:
+%ifdef DEBUG
 	print "Found!"
+%endif ;; DEBUG
 
 	mov cx, 32
 	mov si, .entry
@@ -858,14 +867,16 @@ fat_find_in_dir:
 	mov di, word [.out.off]
 	cld
 	rep movsb
-	stc
+	pop cx
+	pop ax
+	pop si
+	pop di
+	jmp .end
 .not_equal:
 	pop cx
 	pop ax
 	pop si
 	pop di
-
-	jc .end
 .skip:
 	add ax, 1
 	adc dx, 0
@@ -880,6 +891,8 @@ fat_find_in_dir:
 	ret
 .error:
 	stc
+	print "Find in dir error"
+	newline
 	pop si
 	pop dx
 	pop cx
@@ -1021,7 +1034,6 @@ fat_list_dir:
 	add ax, 1
 	adc dx, 0
 	jmp .list_loop
-
 .end:
 	pop dx
 	pop cx
