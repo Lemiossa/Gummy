@@ -11,19 +11,10 @@ sector_size:      equ 0x200
 section .text
 set_drive:
 	pusha
-	mov [current_drive_number], dl
+	mov byte [current_drive_number], dl
 	call get_drive_parameters
-	mov [current_sectors_per_track], cl
-	mov [current_heads], dh
-%ifdef DEBUG
-	print "Number of heads: 0x"
-	print_hex_word word [current_heads]
-	newline
-	
-	print "Sectors per track: 0x"
-	print_hex_word word [current_sectors_per_track]
-	newline
-%endif ;; DEBUG
+	mov byte [current_sectors_per_track], cl
+	mov byte [current_heads], dh
 	popa
 
 	ret
@@ -45,7 +36,7 @@ get_drive_parameters:
 
 	clc
 	mov ah, 0x08
-	mov dl, [current_drive_number]
+	mov dl, byte [current_drive_number]
 	xor di, di
 	int 0x13
 	jc .err
@@ -72,12 +63,62 @@ section .text
 disk_reset:
 	push ax
 	push dx
-	mov dl, [current_drive_number]
+	clc
+	mov dl, byte [current_drive_number]
 	mov ah, 0x00
 	int 0x13
 	pop dx
 	pop ax
 	ret
+
+;; Converts LBA to CHS
+;; DX:AX: LBA
+;; Returns:
+;; int13h format:
+;;    ch = cylinder low
+;;    cl = sector | cylinder high
+;;    dh = head
+lba_to_chs:
+	push bx
+	;; LBA -> CHS
+	;; C = (LBA / sectors_per_track) / heads
+	;; H = (LBA / sectors_per_track) % heads
+	;; S = (LBA % sectors_per_track) + 1
+
+	xor bx, bx
+	mov bl, byte [current_sectors_per_track]
+	div bx
+	;; AX = LBA / sectors_per_track
+	;; DX = LBA % sectors_per_track
+	xor dh, dh
+	inc dx
+	mov byte [.sector], dl
+	
+	xor dx, dx
+	mov bl, byte [current_heads]
+	div bx
+	;; AX = (LBA / sectors_per_track) / heads
+	;; DX = (LBA / sectors_per_track) % heads
+	mov word [.cylinder], ax
+	mov byte [.head], dl
+
+	;; CH = low eight bits of cylinder
+	;; CL = Bits 0-5 is sector and bits 6-7 is high two bits of cylinder
+	mov ch, byte [.cylinder]
+	mov bx, word [.cylinder]
+	shr bx, 2
+	and bx, 0xC0
+	mov cl, byte [.sector]
+	and cl, 0x3F ;; Sector uses five bits
+	or cl, bl
+	mov dh, [.head]
+
+	pop bx
+	ret
+section .bss
+.cylinder: resw 1
+.head:     resb 1
+.sector:   resb 1
 
 ;; Reads a sector(DX:AX) from disk to memory(ES:BX)
 ;; DX:AX: LBA
@@ -87,38 +128,19 @@ read_sector:
 	push ax
 	push cx
 	push dx
+	push si
 
 %ifdef DEBUG
 	print "Reading sector: 0x"
 	print_hex_dword dx, ax
+	print ", spt=0x"
+	print_hex_byte byte [current_sectors_per_track]
+	print ", heads=0x"
+	print_hex_byte byte [current_heads]
 	newline
 %endif ;; DEBUG
-
-	;; LBA -> CHS
-	;; C = (LBA / sectors_per_track) / heads
-	;; H = (LBA / sectors_per_track) % heads
-	;; S = (LBA % sectors_per_track) + 1
 	
-	div word [current_sectors_per_track]
-	;; AX = LBA / sectors_per_track
-	;; DX = LBA % sectors_per_track
-	inc dx
-	xor dh, dh
-	push dx
-	
-	xor dx, dx
-	div word [current_heads]
-	;; AX = (LBA / sectors_per_track) / heads
-	;; DX = (LBA / sectors_per_track) % heads
-	
-	mov ch, al
-	shl ah, 6
-	mov cl, ah
-	
-	pop ax
-	or cl, al
-
-	shl dx, 8
+	call lba_to_chs
 
 	;; int13h ah=2 func
 	;; Params:
@@ -132,36 +154,36 @@ read_sector:
 	mov si, 3
 	jmp .try
 .retry:
-	print "retry"
-	newline
 	call disk_reset
 .try:
 	clc
 	mov ax, 0x0201 ;; read function, 1 sector
 	mov dl, [current_drive_number]
 	int 0x13
-	jnc .no_err
+	jnc .end
 	test si, si
-	jz .err
+	jz .error
 	dec si
 	jmp .retry
-.no_err:
+.end:
 	clc
+	pop si
 	pop dx
 	pop cx
 	pop ax
 	ret
-.err:
+.error:
 	stc
+	pop si
 	pop dx
 	pop cx
 	pop ax
 	ret
 
-section .data
-current_drive_number:      db 0
-current_sectors_per_track: dw 0
-current_heads:             dw 0
+section .bss
+current_drive_number:      resb 1
+current_sectors_per_track: resb 1
+current_heads:             resb 1
 
 %endif ;; _DISK_ASM_
 
