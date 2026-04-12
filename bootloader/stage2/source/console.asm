@@ -2,7 +2,7 @@
 ;; Created by Matheus Leme Da Silva
 %ifndef _CONSOLE_ASM_
 %define _CONSOLE_ASM_
-%define T80x50
+;; %define T80x50
 
 ;; Initializes console
 section .text
@@ -21,128 +21,20 @@ console_init:
 	mov word [console_height], 49
 %endif ;; T80x50
 	
-	mov word [current_cursor_x], 1
-	mov word [current_cursor_y], 1
+	mov word [current_cursor_x], 0
+	mov word [current_cursor_y], 0
 
-	mov word [top_corner_x], 1
-	mov word [top_corner_y], 1
-	mov word [bottom_corner_x], 78
+	mov word [top_corner_x], 0
+	mov word [top_corner_y], 0
+	mov word [bottom_corner_x], 79
 %ifdef T80x50
-	mov word [bottom_corner_y], 48
+	mov word [bottom_corner_y], 49
 %else
-	mov word [bottom_corner_y], 23
+	mov word [bottom_corner_y], 24
 %endif ;; T80x50
-	mov byte [current_attributes], 0x1F
-
-	call redraw_interface
+	mov byte [current_attributes], 0x07
 
 	ret
-
-;; Redraw the interface
-section .text
-redraw_interface:
-	push bx
-	mov bh, byte [current_attributes]
-	call clear
-	pop bx
-	
-	push ax
-	push dx
-	push cx
-
-	;; Draw borders
-	mov al, 0xC9 ;; ╔
-	mov ah, byte [current_attributes]
-	mov dl, 0
-	mov dh, 0
-	call put_char
-	
-	;; Draw top line
-	mov cx, word [console_width]
-	dec cx
-	mov al, 0xCD ;; ═
-	mov dl, 1
-	mov dh, 0
-.line1_loop:
-	call put_char
-	inc dl
-	loop .line1_loop
-
-	mov al, 0xBB ;; ╗
-	mov dl, byte [console_width]
-	mov dh, 0
-	call put_char
-
-	;; Print ║ in col 0 and MAX_WIDTH in lines 1-(MAX_HEIGHT-1)
-	mov cx, word [console_height]
-	dec cx
-	mov al, 0xBA ;; ║
-	mov dh, 1
-.rows_loop:
-	;; col 0
-	mov dl, 0
-	call put_char
-
-	;; col 79
-	mov dl, byte [console_width]
-	call put_char
-
-	inc dh
-	loop .rows_loop
-
-	mov al, 0xC8 ;; ╚
-	mov dl, 0
-	mov dh, byte [console_height]
-	call put_char
-	
-	;; Draw bottom line 
-	mov cx, 78
-	mov al, 0xCD ;; ═
-	mov dl, 1
-	mov dh, byte [console_height]
-.line2_loop:
-	call put_char
-	inc dl
-	loop .line2_loop
-
-	mov al, 0xBC ;; ╝
-	mov dl, byte [console_width]
-	mov dh, byte [console_height]
-	call put_char
-
-	push bp
-	;; Title
-	mov ah, 0x13
-	mov bh, 0
-	mov bl, byte [current_attributes]
-	mov cx, (.title_end - .title)
-	mov dh, 0
-	mov dl, 2
-	mov bp, .title
-	int 0x10
-	
-	;; Build
-	mov ah, 0x13
-	mov bh, 0
-	mov bl, byte [current_attributes]
-	mov cx, (.build_date_end - .build_date)
-	mov dh, 0
-	mov dl, byte [console_width]
-	sub dl, 2
-	sub dl, (.build_date_end - .build_date)
-	mov bp, .build_date
-	int 0x10
-
-	pop bp
-	
-	pop cx
-	pop dx
-	pop ax
-	ret
-.title: db " Bitix "
-.title_end:
-.build_date: db " Build ", __DATE__, " ", __TIME__, " "
-.build_date_end:
 
 ;; Clears the screen
 ;; BH = attr
