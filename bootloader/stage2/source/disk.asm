@@ -39,7 +39,7 @@ get_drive_parameters:
 	mov dl, byte [current_drive_number]
 	xor di, di
 	int 0x13
-	jc .err
+	jc .error
 
 	;; CL[bits 0-5] = sectors per track
 	;; DH = heads - 1
@@ -47,12 +47,10 @@ get_drive_parameters:
 	inc dh
 
 	clc
-	pop es
-	pop di
-	pop ax
-	ret
-.err:
+	jmp .ret
+.error:
 	stc
+.ret:
 	pop es
 	pop di
 	pop ax
@@ -67,6 +65,12 @@ disk_reset:
 	mov dl, byte [current_drive_number]
 	mov ah, 0x00
 	int 0x13
+	jc .error
+	;; Carry is already clear
+	jmp .ret
+.error:
+	stc
+.ret:
 	pop dx
 	pop ax
 	ret
@@ -102,8 +106,9 @@ lba_to_chs:
 	mov word [.cylinder], ax
 	mov byte [.head], dl
 
-	;; CH = low eight bits of cylinder
-	;; CL = Bits 0-5 is sector and bits 6-7 is high two bits of cylinder
+	;; CH = Cylinder & 0xFF
+	;; CL = Sector | ((Cylinder >> 2) & 0xC0)
+	;; DH = Head
 	mov ch, byte [.cylinder]
 	mov bx, word [.cylinder]
 	shr bx, 2
@@ -155,6 +160,7 @@ read_sector:
 	jmp .try
 .retry:
 	call disk_reset
+	jc .error
 .try:
 	clc
 	mov ax, 0x0201 ;; read function, 1 sector
@@ -167,13 +173,10 @@ read_sector:
 	jmp .retry
 .end:
 	clc
-	pop si
-	pop dx
-	pop cx
-	pop ax
-	ret
+	jmp .ret
 .error:
 	stc
+.ret:
 	pop si
 	pop dx
 	pop cx

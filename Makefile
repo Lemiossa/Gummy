@@ -41,6 +41,8 @@ all: $(IMAGE)
 .PHONY: clean
 clean:
 	@$(MAKE) -C bootloader clean TARGET=$(BOOTLOADER)
+	@$(ECHO) "  RM            $(IMAGE)"
+	@$(RM)   $(IMAGE)
 
 .PHONY: qemu
 qemu: $(IMAGE)
