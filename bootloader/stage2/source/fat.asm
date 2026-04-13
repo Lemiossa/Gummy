@@ -99,7 +99,6 @@ fat_filename_to_fatname:
 	add di, 8 ;; EXT
 .ext_loop:
 	lodsb
-
 	test al, al
 	jz .end
 
@@ -146,12 +145,12 @@ fat_clus_to_lba:
 	add ax, word [fat_data_lba]
 	adc dx, word [fat_data_lba+2]
 
+.end:
+	jmp .ret
 	clc
-	pop si
-	pop cx
-	ret
 .error:
 	stc
+.ret:
 	pop si
 	pop cx
 	ret
@@ -214,7 +213,7 @@ read_fat:
 	shl bx, 1
 	add ax, bx
 	mov bx, ax
-	;; BX = cluster + (cluster <<  1)
+	;; BX = cluster + (cluster << 1)
 	
 	;; NOTE: In this code, I assume that fat_sector will not exceed 16 bits
 
@@ -602,11 +601,12 @@ fat_init:
 	mov byte [fat_type], 16
 .initialized:
 	mov byte [fat_initialized], 1
+.end:
 	clc
-	popa
-	ret
+	jmp .ret
 .error:
 	stc
+.ret:
 	popa
 	ret
 
@@ -734,23 +734,20 @@ fat_read_dir:
 	mov bx, sector_buffer
 	add ax, word [.sector]
 	adc dx, word [.sector+2]
-	print "read_dir: Reading sector..."
-	newline
 	call read_sector
 	jc .error
-	print "Readed"
-	newline
 	
 	mov si, word [.ent_sector]
 	shl si, 5 ;; * 32
 	add si, sector_buffer
 	
 	cmp byte [si+fat_entry.name], 0
-	je .is_zero;; Reached end
+	je .error ;; Reached end
 
 	;; DS:SI = source
 	;; ES:DI = dest
 
+%ifdef DEBUG
 	push si
 	print "Readed dir 0x"
 	print_hex_word word [.initial_clus]
@@ -763,23 +760,18 @@ fat_read_dir:
 	print "'"
 	newline
 	pop si
+%endif ;; DEBUG
 
 	mov cx, 32
 	cld
 	rep movsb ;; Copy
 
-
 .end:
 	clc
-	popa
-	ret
-.is_zero:
-	print "Is zero"
-	newline
+	jmp .ret
 .error:
-	print "Read dir error"
-	newline
 	stc
+.ret:
 	popa
 	ret
 section .bss
@@ -883,16 +875,10 @@ fat_find_in_dir:
 	jmp .find_loop
 .end:
 	clc
-	pop si
-	pop dx
-	pop cx
-	pop bx
-	pop ax
-	ret
+	jmp .ret
 .error:
 	stc
-	print "Find in dir error"
-	newline
+.ret:
 	pop si
 	pop dx
 	pop cx
@@ -1067,7 +1053,7 @@ fat_find:
 	mov al, byte [si]
 
 	test al, al
-	jz .copy_entry
+	jz .end
 
 	cmp al, '/'
 	je .loop_end
@@ -1081,15 +1067,19 @@ fat_find:
 	;; Find in dir
 	push si
 	push di
+	push es
 	mov si, .fat_name
-	mov di, .entry
+	mov di, word [.out.seg]
+	mov es, di
+	mov di, word [.out.off]
 	call fat_find_in_dir
+	pop es
 	pop di
 	pop si
 	jc .error
 
 	test byte [es:di+fat_entry.attr], 0x10
-	jz .copy_entry ;; Is FILE
+	jz .end ;; Is FILE
 
 	;; Is DIR, Set current clus(BX) to clus_low of the entry
 	mov bx, word [es:di+fat_entry.clus_low]
@@ -1097,45 +1087,29 @@ fat_find:
 ;; Jump to next '/'
 .next_slash:
 	cmp byte [si], '/'
-	je .find_loop
+	je .loop_end
 	inc si
 	jmp .next_slash
 
 .loop_end:
 	inc si
 	jmp .find_loop
-.copy_entry:
-	;; Copy entry to dest
-	push es
-	mov cx, 32
-	mov si, .entry
-	mov di, word [.out.seg]
-	mov es, di
-	mov di, word [.out.off]
-	cld
-	rep movsb
-	pop es
+
 .end:
 	clc
-	pop di
-	pop si
-	pop cx
-	pop bx
-	pop ax
-	ret
+	jmp .ret
 .error:
 	stc
+.ret:
 	pop di
 	pop si
 	pop cx
 	pop bx
 	pop ax
 	ret
-section .data
-.out.seg:  dw 0
-.out.off:  dw 0
 section .bss
-.entry:    resb fat_entry_size
+.out.seg:  resw 1
+.out.off:  resw 1
 .fat_name: resb 12
 
 struc fat_transfer
@@ -1171,6 +1145,14 @@ fat_read:
 	mov di, .entry
 	call fat_find
 
+	mov cx, 11
+	mov si, .entry
+.print_name:
+	lodsb
+	call print_char
+	loop .print_name
+
+
 	pop ds
 	pop si
 	jc .error
@@ -1195,15 +1177,10 @@ fat_read:
 
 .end:
 	clc
-	pop di
-	pop si
-	pop dx
-	pop cx
-	pop bx
-	pop ax
-	ret
+	jmp .ret
 .error:
 	stc
+.ret:
 	pop di
 	pop si
 	pop dx
