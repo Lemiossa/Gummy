@@ -5,6 +5,8 @@
 %include "disk.asm"
 section .text
 
+;; WARNING: This driver only supports FAT12 and FAT16
+
 first_sector:     equ 0x500
 sector_buffer:    equ first_sector + sector_size
 
@@ -128,18 +130,19 @@ fat_clus_to_lba:
 	cmp byte [fat_initialized], 0
 	je .error
 
+	cmp ax, 2
+	jb .error
+
 	;; LBA = ((clus - 2) * fat_bpb->sectors_per_clus) + first_fat_data_lba
 	sub ax, 2
 	xor dx, dx
 
-	push dx
+	;; Optimization: this multiplication only requires 16-bit operands.
+	;; A 16x16 multiply already produces a 32-bit result in DX:AX.
+
 	xor cx, cx
 	mov cl, [first_sector+fat_bpb.sectors_per_clus]
 	mul cx
-
-	pop si          ;; Old DX
-	imul si, cx     ;; Old DX = Old DX * CX
-	add dx, si      ;; DX += Old DX
 
 	;; DX:AX = (clus - 2) * fat_bpb->sectors_per_clus
 	add ax, word [fat_data_lba]
@@ -188,7 +191,7 @@ clus_is_eof:
 ;; Reads the FAT 
 ;; AX: Cluster
 ;; Returns:
-;; CF on fail
+;; CF if an error occours
 ;; BX: Value
 section .text
 read_fat:
@@ -315,6 +318,35 @@ read_fat:
 	pop dx
 	pop cx
 	pop ax
+	ret
+
+;; Skips n clusters 
+;; AX: Start cluster
+;; CX: Number of clusters to skip
+;; Returns:
+;; AX: The last cluster
+;; CF If an error occours
+skip_clusters:
+	push bx
+	push cx
+	
+.loop:
+	call read_fat
+	jc .error
+	mov ax, bx
+	call clus_is_eof
+	jc .error
+	loop .loop
+	mov ax, bx
+
+.end:
+	clc
+	jmp .ret
+.error:
+	stc
+.ret:
+	pop cx
+	pop bx
 	ret
 
 ;; Initialize FAT system
@@ -500,6 +532,24 @@ fat_init:
 	pop dx
 	pop ax
 
+	;; ents_per_clus = (sectors_per_clus * 512) / 32
+	;; ents_per_clus = Total entries in a cluster
+	;; faster: ents_per_clus = sectors_per_clus << 4
+	;; because: 512 / 32 = 16; ents_per_clus = sectors_per_clus * 16 => ents_per_clus: << 4
+
+	push ax
+	mov ax, [first_sector+fat_bpb.sectors_per_clus]
+	shl ax, 4
+	;; AX = sectors_per_clus << 4
+	mov word [fat_ents_per_clus], ax
+	pop ax
+
+	;; bytes per clus = sectors_per_clus * sector_size
+	push ax
+	mov ax, word [first_sector+fat_bpb.sectors_per_clus]
+	shl ax, 9
+	mov word [fat_bytes_per_clus], ax
+	pop ax
 %ifdef DEBUG
 	print "=== Fat information ==="
 	newline
@@ -612,156 +662,109 @@ fat_init:
 
 ;; Reads a FAT directory from a cluster
 ;; BX: Starting directory cluster
-;; DX:AX: Directory index
+;; AX: Directory index
 ;; ES:DI: Pointer for entry
 ;; Returns:
 ;; CF is set if an error occurred or end of directory is reached
 ;; NOTE: If the Starting directory cluster is zero, read the root direcotry
 section .text
 fat_read_dir:
-	pusha
+	push ax
+	push bx
+	push cx
+	push dx
+	push si
+	push di
 	cmp byte [fat_initialized], 1
 	jne .error
 
-	mov word [.initial_clus], bx
-	mov word [.current_clus], bx
-	mov word [.index], ax
-	mov word [.index+2], dx
-
 	cmp bx, 2
-	jb .read_dir
-
-	;; ents_per_clus = (sectors_per_clus * 512) / 32
-	;; ents_per_clus = Total entries in a cluster
-	;; faster: ents_per_clus = sectors_per_clus << 4
-	;; because: 512 / 32 = 16; ents_per_clus = sectors_per_clus * 16 => ents_per_clus: << 4
-
-	push ax
-	mov ax, [first_sector+fat_bpb.sectors_per_clus]
-	shl ax, 4
-	;; AX = sectors_per_clus << 4
-	mov word [.ents_per_clus], ax
-	pop ax
+	jb .root_dir
 
 	;; skip_clus = index / ents_per_clus
 	;; skip_clus = Number of clusters to skip
 
 	;; ent_clus = index % ents_per_clus
 	;; ent_clus = Entry index inside the cluster
-	push ax
-	push dx
-	div word [.ents_per_clus]
-	;; AX = index / ents_per_clus 
-	;; DX = index % ents_per_clus 
+	xor dx, dx
+	div word [fat_ents_per_clus]
+	;; AX = index / ents_per_clus
+	;; DX = index % ents_per_clus
 
-	mov word [.skip_clus], ax
-	mov word [.ent_clus], dx
-	pop dx
-	pop ax
+	mov cx, ax
+	mov ax, bx
+	call skip_clusters
+	jc .error
+	mov cx, ax
 
 	;; sector = ent_clus / 16
 	;; sector = Sector inside the cluster
 	
 	;; ent_sector = ent_clus % 16
 	;; ent_sector = Entry index inside the sector
-	push ax
-	push dx
-	mov ax, word [.ent_clus]
+	mov ax, dx
 	xor dx, dx
-	mov cx, 16
-	div cx
-	;; AX = ent_clus / 16
-	;; DX = ent_clus % 16
-	mov word [.sector], ax
-	mov word [.ent_sector], dx
-	pop dx
-	pop ax
+	mov bx, 16
+	div bx
+	
+	;; AX = sector
+	;; DX = ent_sector
+	mov bx, ax
+	mov si, dx
 
-	;; Skip clusters
-	xor cx, cx
-.skip_cluster_loop:
-	cmp cx, word [.skip_clus]
-	jae .skip_cluster_loop.end
-
-	push ax
-	mov ax, word [.current_clus]
-	call read_fat
-	mov ax, bx
-	call clus_is_eof
-	pop ax
-	jc .error
-
-	mov word [.current_clus], bx
-	inc cx
-	jmp .skip_cluster_loop
-.skip_cluster_loop.end:
-	mov ax, word [.current_clus]
+	mov ax, cx
 	call fat_clus_to_lba
 	jc .error
-.read_dir:
-	cmp word [.current_clus], 2
-	jae .skip_root_dir_sector
-
-	;; This code executes if is root dir
-	cmp word [.index+2], 0
-	jne .error
-
-	mov ax, word [first_sector+fat_bpb.root_dir_entries]
-	cmp word [.index], ax
-	jae .error
-
-	;; sector = index / 16
-	;; ent_sector = index % 16
-	mov ax, word [.index]
-	mov dx, word [.index+2]
-	mov cx, 16
-	div cx
-
-	mov word [.ent_sector], dx
-
-	xor dx, dx
-
-	add ax, word [fat_root_lba]
-	adc dx, word [fat_root_lba+2]
-
-	mov word [.sector], ax
-	mov word [.sector+2], dx
-	xor ax, ax
-	xor dx, dx
-.skip_root_dir_sector:
+	
 	;; Read sector
-	;; If is cluster: add. If is root dir: .sector is LBA
+	add ax, bx
+	adc dx, 0
 	mov bx, sector_buffer
-	add ax, word [.sector]
-	adc dx, word [.sector+2]
 	call read_sector
 	jc .error
 	
-	mov si, word [.ent_sector]
 	shl si, 5 ;; * 32
 	add si, sector_buffer
 	
 	cmp byte [si+fat_entry.name], 0
 	je .error ;; Reached end
+	jmp .copy
 
+.root_dir:
+	xor dx, dx
+	mov cx, 16
+	;; sector = ent_clus / 16
+	;; sector = Sector inside the cluster
+	
+	;; ent_sector = ent_clus % 16
+	;; ent_sector = Entry index inside the sector
+	div cx
+	;; AX = sector
+	;; DX = entry
+
+	cmp ax, word [fat_root_dir_sectors]
+	jae .error
+
+	mov si, dx ;; Save entry 
+	mov bx, ax ;; Save sector
+	mov ax, word [fat_root_lba]
+	mov dx, word [fat_root_lba+2]
+	add ax, bx
+	adc dx, 0
+
+	mov bx, sector_buffer
+	call read_sector
+	jc .error 
+
+	shl si, 5 ;; * 32
+	add si, sector_buffer
+
+	cmp byte [si+fat_entry.name], 0
+	je .error
+
+.copy:
 	;; DS:SI = source
 	;; ES:DI = dest
-
-%ifdef DEBUG
-	push si
-	print "Readed dir 0x"
-	print_hex_word word [.initial_clus]
-	print ", name='"
-	mov cx, 11
-.print_loop:
-	lodsb
-	call print_char
-	loop .print_loop
-	print "'"
-	newline
-	pop si
-%endif ;; DEBUG
-
 	mov cx, 32
 	cld
 	rep movsb ;; Copy
@@ -772,17 +775,13 @@ fat_read_dir:
 .error:
 	stc
 .ret:
-	popa
+	pop di
+	pop si
+	pop dx
+	pop cx
+	pop bx
+	pop ax
 	ret
-section .bss
-.index:         resd 1
-.sector:        resd 1
-.ents_per_clus: resw 1
-.skip_clus:     resw 1
-.ent_clus:      resw 1
-.ent_sector:    resw 1
-.current_clus:  resw 1
-.initial_clus:  resw 1
 
 ;; Finds an entry in a dir
 ;; BX: Start cluster
@@ -800,27 +799,6 @@ fat_find_in_dir:
 
 	mov word [.out.seg], es
 	mov word [.out.off], di
-
-%ifdef DEBUG
-	print "Finding '"
-	mov cx, 11
-	push si
-.print_name_loop:
-	lodsb
-	call print_char
-	loop .print_name_loop
-	pop si
-	print "'"
-	newline
-	print "BX=0x"
-	print_hex_word bx
-	newline
-	print "OUT=0x"
-	print_hex_word word [.out.seg]
-	print ":0x"
-	print_hex_word word [.out.off]
-	newline
-%endif ;; DEBUG
 
 	xor ax, ax
 	xor dx, dx
@@ -848,9 +826,6 @@ fat_find_in_dir:
 	jne .not_equal
 	loop .compare_loop
 .equal:
-%ifdef DEBUG
-	print "Found!"
-%endif ;; DEBUG
 
 	mov cx, 32
 	mov si, .entry
@@ -890,144 +865,6 @@ section .data
 .out.off:  dw 0
 section .bss
 .entry:    resb fat_entry_size
-
-;; List a directory tree in FAT
-;; BX: Start cluster
-;; CX: Depth
-section .text
-fat_list_tree:
-	push ax
-	push bx
-	push cx
-	push dx
-
-	xor ax, ax
-	xor dx, dx
-	mov di, .entry
-
-.list_loop:
-	call fat_read_dir
-	jc .end
-	
-	test byte [.entry+fat_entry.attr], 0x08
-	jnz .skip
-
-.print_name:
-	push si
-	push ax
-	push cx
-	
-	test cx, cx
-	jz .print_spaces.end
-
-.print_spaces:
-	mov al, ' '
-	call print_char
-	loop .print_spaces
-.print_spaces.end:
-
-	mov si, .entry+fat_entry.name
-	mov cx, 11
-.print_loop:
-	lodsb
-	call print_char
-	loop .print_loop
-
-	newline
-	pop cx
-	pop ax
-	pop si
-
-	cmp byte [.entry+fat_entry.name], '.'
-	je .no_print_dir
-
-	test byte [.entry+fat_entry.attr], 0x10
-	jz .no_print_dir
-	push bx
-	push cx
-	inc cx
-	mov bx, word [.entry+fat_entry.clus_low]
-	call fat_list_tree
-	pop cx
-	pop bx
-.no_print_dir:
-
-.skip:
-	add ax, 1
-	adc dx, 0
-	jmp .list_loop
-
-.end:
-	pop dx
-	pop cx
-	pop bx
-	pop ax
-	ret
-section .bss
-.entry: resb fat_entry_size
-
-;; List a directory in FAT
-;; BX: Start cluster
-;; CX: Depth
-section .text
-fat_list_dir:
-	push ax
-	push bx
-	push cx
-	push dx
-
-	xor ax, ax
-	xor dx, dx
-	mov di, .entry
-
-.list_loop:
-	call fat_read_dir
-	jc .end
-	
-	test byte [.entry+fat_entry.attr], 0x08
-	jnz .skip
-
-	cmp byte [.entry+fat_entry.name], '.'
-	je .no_print_dir
-.print_name:
-	push si
-	push ax
-	push cx
-	
-	test cx, cx
-	jz .print_spaces.end
-
-.print_spaces:
-	mov al, ' '
-	call print_char
-	loop .print_spaces
-.print_spaces.end:
-
-	mov si, .entry+fat_entry.name
-	mov cx, 11
-.print_loop:
-	lodsb
-	call print_char
-	loop .print_loop
-
-	newline
-	pop cx
-	pop ax
-	pop si
-.no_print_dir:
-
-.skip:
-	add ax, 1
-	adc dx, 0
-	jmp .list_loop
-.end:
-	pop dx
-	pop cx
-	pop bx
-	pop ax
-	ret
-section .bss
-.entry: resb fat_entry_size
 
 ;; Finds file using absolute PATH
 ;; DS:SI: Path
@@ -1112,7 +949,7 @@ section .bss
 .out.off:  resw 1
 .fat_name: resb 12
 
-struc fat_transfer
+struc fat_transfer_packet
 	.path.seg:   resw 1
 	.path.off:   resw 1
 	.dest.seg:   resw 1
@@ -1126,7 +963,7 @@ endstruc
 ;; Returns:
 ;; CF if an error occours
 section .text
-fat_read:
+fat_read_file:
 	push ax
 	push bx
 	push cx
@@ -1138,42 +975,46 @@ fat_read:
 	push si
 	push ds
 
-	mov ax, word [si+fat_transfer.path.seg]
+	mov ax, word [si+fat_transfer_packet.path.seg]
 	mov ds, ax
-	mov si, word [si+fat_transfer.path.off]
+	mov si, word [si+fat_transfer_packet.path.off]
 
 	mov di, .entry
 	call fat_find
 
-	mov cx, 11
-	mov si, .entry
-.print_name:
-	lodsb
-	call print_char
-	loop .print_name
-
+	test word [.entry+fat_entry.attr], 0x10
+	jnz .error ;; Is dir
 
 	pop ds
 	pop si
 	jc .error
 
-	;; skip_clus = offset / (sectors_per_clus * sector_size)
-	;; faster: skip_clus = offset / (sectors_per_clus << 9)
-	mov bx, word [first_sector+fat_bpb.sectors_per_clus]
-	shl bx, 9
-	;; BX = sectors_per_clus * sector_size
+	;; skip_clus = offset / bytes_per_clus
+	mov ax, word [si+fat_transfer_packet.offset]
+	mov dx, word [si+fat_transfer_packet.offset+2]
+	div word [fat_bytes_per_clus]
+	;; AX = offset / bytes_per_clus
+	;; DX = offset % bytes_per_clus
 
-	mov bx, word [first_sector+fat_bpb.sectors_per_clus]
-	shl bx, 9
-	;; BX = sectors_per_clus * sector_size
+	push dx
+	xor dx, dx
+	;; AX = number of clusters to skip
+	mov cx, ax
+	mov ax, word [.entry+fat_entry.clus_low]
+	call skip_clusters
+	pop dx
 
-	mov ax, word [si+fat_transfer.offset]
-	mov dx, word [si+fat_transfer.offset+2]
+	;; sector_in_clus = offset_in_clus / sector_size
+	;; offset_in_sector = offset_in_clus % sector_size
+	mov ax, dx
+	xor dx, dx
+	mov bx, sector_size
 	div bx
-	;; AX = offset / (sectors_per_clus * sector_size)
-	;; DX = offset % (sectors_per_clus * sector_size)
-	mov word [.skip_clus], ax
-	mov word [.off_in_clus], dx
+	;; AX = offset_in_clus / sector_size
+	;; DX = offset_in_clus % sector_size
+
+	mov word [.sector_in_clus], ax
+	mov word [.offset_in_sector], dx
 
 .end:
 	clc
@@ -1189,9 +1030,10 @@ fat_read:
 	pop ax
 	ret
 section .bss
-.entry:      resb fat_entry_size
-.skip_clus:  resw 1
-.off_in_clus:resw 1
+.entry:           resb fat_entry_size
+.skip_clus:       resw 1
+.sector_in_clus:  resw 1
+.offset_in_sector:resw 1
 
 section .data
 fat_start_sector:     dd 0
@@ -1204,6 +1046,8 @@ fat_total_clusters:   dw 0
 fat_root_dir_sectors: dw 0
 fat_sector_size:      dw 0
 fat_size:             dw 0
+fat_bytes_per_clus:   dw 0
+fat_ents_per_clus:    dw 0
 fat_type:             db 0
 fat_initialized:      db 0
 
