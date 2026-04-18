@@ -46,27 +46,11 @@ main:
 is_valid_fat:
 
 	call enable_a20_line
-	
-	mov si, .packet
-	call fat_read_dir
-	jnc .ok
-	print "Error"
-	newline
-	jmp .halt
-.ok:
-	print "Ok"
-	newline
 
-.halt:
+halt:
+	print "System is halted! Please, reboot.", 0x0D, 0x0A
 	cli
 	hlt
-section .data
-.packet:
-	dw 0x0000, .path
-	dw 0x1000, 0x0000
-	dd 0
-	dd 512
-.path: db "/subdir/text.txt", 0
 
 section .bss
 drive: resb 1

@@ -8,9 +8,7 @@
 %macro panic 1+
 	mov byte [current_attributes], 0x4F
 	print "Panic: ", %1, 0x0D, 0x0A, 0x0
-	print "System is halted! Please, reboot.", 0x0D, 0x0A
-	cli
-	hlt
+	jmp halt
 %endmacro
 
 %endif ;; _PANIC_ASM_

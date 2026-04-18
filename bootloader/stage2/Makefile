@@ -1,26 +1,27 @@
 # Makefile
 # Created by Matheus Leme Da Silva
+MAKEFLAGS += -s --no-print-directory
 
-BUILDDIR := $(CURDIR)/build
-BINDIR := $(BUILDDIR)/bin
+BUILDDIR := ../../build
+BINDIR  := $(BUILDDIR)/bin
 
 TARGET ?= $(BINDIR)/stage2.bin
-ASM ?= nasm
-ECHO ?= echo
-RM ?= rm -f
-MKDIR ?= mkdir -p
+ASM    ?= nasm
+ECHO   ?= echo
+RM     ?= rm -f
+MKDIR  ?= mkdir -p
 
-DEP := $(BUILDDIR)/dep
+DEP := $(BUILDDIR)/dep/stage2.d
 
 .PHONY: all
-all: $(CURDIR)/source/main.asm
-	@$(MKDIR) $(dir $(TARGET)) $(dir $(DEP))
-	@$(ECHO)  "  ASM           $(TARGET)"
-	@$(ASM)   -f bin -I $(CURDIR)/source $< -o $(TARGET) -MD -MF $(DEP)
+all: source/main.asm
+	$(MKDIR) $(dir $(TARGET)) $(dir $(DEP))
+	$(ECHO) "  ASM         $(TARGET)"
+	$(ASM) -f bin -Isource source/main.asm -o $(TARGET) -MD $(DEP)
 
 .PHONY: clean
 clean:
-	@$(ECHO) "  RM            $(TARGET) $(DEP)"
-	@$(RM) $(TARGET)  $(DEP)
+	$(ECHO) "  RM          $(TARGET) $(DEP)"
+	$(RM)   $(TARGET) $(DEP)
 
 -include $(DEP)
