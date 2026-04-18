@@ -1,14 +1,37 @@
 # Bitix
 
-## About
-Bitix is a simple hobby operating for x86 arch system for educational porpuses.
+A simple hobby operating system for x86 architecture.
 
-## Compiling
-To build the system, use:
+## Building
+
 ```bash
 make
-make qemu # Optional: run in qemu
 ```
 
+## Running
+
+```bash
+make qemu
+```
+
+For QEMU without GUI:
+
+```bash
+make qemu-ng
+```
+
+## Cleaning
+
+```bash
+make clean
+```
+
+## Requirements
+
+- NASM
+- QEMU
+- dosfstools
+
 ## License
-Bitix uses the [MIT](LICENSE.txt) license
+
+MIT
