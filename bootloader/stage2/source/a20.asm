@@ -40,6 +40,6 @@ enable_a20_line:
 
 ;; Prints an a20 line error message and halts the system
 a20_line_error:
-	panic "Failed to enabled A20 line"
+	panic "Failed to enabled A20 line", 0x0A
 
 %endif ;; _A20_ASM_

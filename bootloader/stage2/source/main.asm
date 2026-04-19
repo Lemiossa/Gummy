@@ -4,7 +4,7 @@ org 0x7E00
 bits 16
 section .text
 
-%define DEBUG
+;; %define DEBUG
 
 ;; Jmp to main before includes
 jmp main
@@ -30,25 +30,37 @@ main:
 	mov [drive], dl
 
 	call console_init
-	print "Booting..."
+	print_title "Bitix"
+	newline
+	print "================"
+	newline
 	newline
 
-	print "Bitix bootloader - build ", __DATE__, " ", __TIME__
+	print "Initializing..."
 	newline
 
-	;; Initially, only floppies
+;; Initialize FAT filesystem
 	xor dx, dx
 	xor ax, ax
 	mov bl, [drive]
 	call fat_init
-	jnc is_valid_fat
-	panic "Is not valid FAT partition"
-is_valid_fat:
+	jnc .fat_ok
+	print_error "Invalid FAT partition!"
+	jmp halt
+.fat_ok:
+	print_success "FAT OK"
+	newline
 
+;; Enable A20 line
 	call enable_a20_line
+	jnc .a20_ok
+	jmp halt
+.a20_ok:
+	print_success "A20 OK"
+	newline
 
 halt:
-	print "System is halted! Please, reboot.", 0x0D, 0x0A
+	print "System halted! Press any key to reboot.", 0x0D, 0x0A
 	cli
 	hlt
 

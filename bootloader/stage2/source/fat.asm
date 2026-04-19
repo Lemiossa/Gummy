@@ -949,6 +949,32 @@ section .bss
 .out.off:  resw 1
 .fat_name: resb 12
 
+;; Reads FAT data
+;; CX: Cluster
+;; BX: Bytes to read
+;; DX:AX: Offset
+section .text
+fat_read:
+	push ax
+	push bx
+	push cx
+	push dx
+
+	cmp byte [fat_initialized], 0
+	je .error
+
+.end:
+	clc
+	jmp .ret
+.error:
+	stc
+.ret:
+	pop dx
+	pop cx
+	pop bx
+	pop ax
+	ret
+
 section .data
 fat_start_sector:     dd 0
 fat_total_sectors:    dd 0
