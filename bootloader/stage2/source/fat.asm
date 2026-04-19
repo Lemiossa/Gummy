@@ -137,9 +137,6 @@ fat_clus_to_lba:
 	sub ax, 2
 	xor dx, dx
 
-	;; Optimization: this multiplication only requires 16-bit operands.
-	;; A 16x16 multiply already produces a 32-bit result in DX:AX.
-
 	xor cx, cx
 	mov cl, [first_sector+fat_bpb.sectors_per_clus]
 	mul cx
@@ -169,23 +166,19 @@ clus_is_eof:
 
 	cmp byte [fat_type], 16
 	je .fat16
-	stc
-	ret
+	jmp .error
 .fat12:
 	cmp ax, 0x0FF8
-	jae .fat12.EOF
-	clc
-	ret
-.fat12.EOF:
-	stc
-	ret
+	jae .error
 .fat16:
 	cmp ax, 0xFFF8
-	jae .fat16.EOF
+	jae .error
+.end:
 	clc
-	ret
-.fat16.EOF:
+	jmp .ret
+.error:
 	stc
+.ret:
 	ret
 
 ;; Reads the FAT 
@@ -953,6 +946,8 @@ section .bss
 ;; CX: Cluster
 ;; BX: Bytes to read
 ;; DX:AX: Offset
+;; Returns:
+;; CF if an error occours
 section .text
 fat_read:
 	push ax
@@ -962,6 +957,21 @@ fat_read:
 
 	cmp byte [fat_initialized], 0
 	je .error
+
+	;; skip_clus = offset / bytes_per_clus
+	;; clus_offset = offset % bytes_per_clus
+	div word [fat_bytes_per_clus]
+	;; AX = skip_clus
+	;; DX = clus_offset
+	push cx
+	xchg ax, cx
+	call skip_clusters
+	pop cx
+	
+
+	
+.root_dir:
+	
 
 .end:
 	clc
