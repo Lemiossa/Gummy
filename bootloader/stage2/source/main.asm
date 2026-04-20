@@ -30,7 +30,7 @@ main:
 	mov [drive], dl
 
 	call console_init
-	print_title "Bitix"
+	print "Bitix"
 	newline
 	print "================"
 	newline
@@ -45,10 +45,10 @@ main:
 	mov bl, [drive]
 	call fat_init
 	jnc .fat_ok
-	print_error "Invalid FAT partition!"
+	print "Invalid FAT partition!"
 	jmp halt
 .fat_ok:
-	print_success "FAT OK"
+	print "FAT OK"
 	newline
 
 ;; Enable A20 line
@@ -56,13 +56,15 @@ main:
 	jnc .a20_ok
 	jmp halt
 .a20_ok:
-	print_success "A20 OK"
+	print "A20 OK"
 	newline
 
 halt:
 	print "System halted! Press any key to reboot.", 0x0D, 0x0A
-	cli
-	hlt
+	mov ah, 0x00
+	int 0x16
+	jmp 0xFFFF:0x0000
+
 
 section .bss
 drive: resb 1
