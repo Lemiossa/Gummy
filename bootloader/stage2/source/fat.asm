@@ -322,7 +322,8 @@ read_fat:
 skip_clusters:
 	push bx
 	push cx
-	
+	test cx, cx
+	jz .end
 .loop:
 	call read_fat
 	jc .error
@@ -331,7 +332,6 @@ skip_clusters:
 	jc .error
 	loop .loop
 	mov ax, bx
-
 .end:
 	clc
 	jmp .ret
@@ -384,7 +384,6 @@ fat_init:
 	mov word [fat_total_sectors+2], ax
 	pop ax
 .use_fat_total_sectors16:
-
 	;; Fat size
 	push ax
 	mov ax, [first_sector+fat_bpb.sectors_per_fat]
@@ -967,6 +966,8 @@ fat_read:
 	xchg ax, cx
 	call skip_clusters
 	pop cx
+	;; AX = start_clus
+
 	
 
 	
