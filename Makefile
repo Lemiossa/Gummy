@@ -1,66 +1,70 @@
 # Makefile
 # Created by Matheus Leme Da Silva
+
 MAKEFLAGS += -s --no-print-directory
 
-BUILDDIR := build
-BINDIR  := $(BUILDDIR)/bin
-IMGDIR := $(BUILDDIR)/images
+PROJ     := $(CURDIR)
+BUILDDIR := $(PROJ)/build
+BINDIR   := $(BUILDDIR)/bin
+IMGDIR   := $(BUILDDIR)/images
+IMGROOT  := $(BUILDDIR)/imgroot
 
 IMAGE      := $(IMGDIR)/Bitix.img
 BOOTLOADER := $(BINDIR)/bootloader.bin
-IMGROOT    := $(BUILDDIR)/imgroot
+PATH       := /sbin:/usr/sbin:$(PATH)
 
-PATH := $(PATH):/sbin:/usr/sbin
+define check_tool
+	@command -v $(1) >/dev/null 2>&1 || { echo "ERROR: $(1) not found. Install it and try again."; exit 1; }
+endef
 
-ECHO     ?= echo
-RM       ?= rm -rf
-MKDIR    ?= mkdir -p
-CAT      ?= cat
-DD       ?= dd
-MKFS_FAT ?= mkfs.fat
-MCOPY    ?= mcopy
-QEMU     ?= qemu-system-i386
+rel = $(subst $(PROJ)/,,$(1))
 
 QEMUFLAGS := \
 	-drive file=$(IMAGE),format=raw,if=ide,media=disk \
 	-machine pc -vga std -display gtk
 
-export ECHO RM MKDIR CAT DD MKFS_FAT MCOPY
+export PROJ
 
-.PHONY: all
+.PHONY: all bootloader clean qemu qemu-ng
+
 all: $(IMAGE)
 
-.PHONY: clean
+$(BOOTLOADER): FORCE
+	@$(MAKE) -C bootloader
+
+FORCE:
+
+bootloader: $(BOOTLOADER)
+
+$(IMAGE): $(BOOTLOADER)
+	@$(call check_tool,mkfs.fat)
+	@$(call check_tool,mcopy)
+	@$(call check_tool,dd)
+	@mkdir -p $(dir $@)
+	@mkdir -p $(IMGROOT)/subdir
+	@echo "Hello world" > $(IMGROOT)/subdir/text.txt
+	@echo "  GENIMG    $(call rel,$(IMAGE))"
+	@dd if=/dev/zero of=$(IMAGE) bs=1K count=1440 status=none
+	@echo "  MKFS.FAT  $(call rel,$(IMAGE))"
+	@mkfs.fat --mbr=y -F 12 -n BITIX -R 64 $(IMAGE)
+	@echo "  MCOPY     $(call rel,$(IMAGE))"
+	@mcopy -i $(IMAGE) -s $(IMGROOT)/* ::
+	@echo "  INSTALL   bootloader"
+	@dd if=$(BOOTLOADER) of=$(IMAGE) bs=1 count=3 conv=notrunc status=none
+	@dd if=$(BOOTLOADER) of=$(IMAGE) bs=1 skip=62 seek=62 count=386 conv=notrunc status=none
+	@dd if=$(BOOTLOADER) of=$(IMAGE) bs=1 skip=512 seek=512 conv=notrunc status=none
+
 clean:
-	$(MAKE) -C bootloader clean
-	$(ECHO) "  RM         $(IMAGE)"
-	$(RM)   $(IMAGE)
+	@$(MAKE) -C bootloader clean
+	@echo "  CLEAN     $(call rel,$(BUILDDIR))"
+	@rm -rf $(BUILDDIR)
 
-.PHONY: qemu
 qemu: $(IMAGE)
-	$(ECHO) "  QEMU       $(IMAGE)"
-	$(QEMU) $(QEMUFLAGS) -serial stdio
+	@$(call check_tool,qemu-system-i386)
+	@echo "  QEMU      $(call rel,$(IMAGE))"
+	@qemu-system-i386 $(QEMUFLAGS) -serial stdio
 
-.PHONY: qemu-ng
 qemu-ng: $(IMAGE)
-	$(ECHO) "  QEMU-NG    $(IMAGE)"
-	$(QEMU) $(QEMUFLAGS) -nographic
-
-.PHONY: bootloader
-bootloader:
-	$(ECHO) "  BOOTLOADER"
-	$(MAKE) -C bootloader
-
-$(IMAGE): bootloader
-	$(MKDIR) $(IMGDIR) $(IMGROOT)/subdir
-	$(ECHO) "Hello world" > $(IMGROOT)/subdir/text.txt
-	$(ECHO) "  GENIMG     $(IMAGE)"
-	$(DD)   if=/dev/zero of=$(IMAGE) bs=1K count=1440 status=none
-	$(ECHO) "  MKFS.FAT   $(IMAGE)"
-	$(MKFS_FAT) --mbr=y -F 12 -n BITIX -R 64 $(IMAGE)
-	$(ECHO) "  MCOPY      $(IMAGE)"
-	$(MCOPY) -i $(IMAGE) -s $(IMGROOT)/* ::
-	$(ECHO) "  INSTALL    BOOTLOADER"
-	$(DD)   if=$(BOOTLOADER) of=$(IMAGE) bs=1 count=3 conv=notrunc status=none
-	$(DD)   if=$(BOOTLOADER) of=$(IMAGE) bs=1 skip=62 seek=62 count=386 conv=notrunc status=none
-	$(DD)   if=$(BOOTLOADER) of=$(IMAGE) bs=1 skip=512 seek=512 conv=notrunc status=none
+	@$(call check_tool,qemu-system-i386)
+	@echo "  QEMU      $(call rel,$(IMAGE))"
+	@qemu-system-i386 $(QEMUFLAGS) -nographic

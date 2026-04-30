@@ -1,41 +1,40 @@
-# Makefile
-# Created by Matheus Leme Da Silva
 MAKEFLAGS += -s --no-print-directory
 
-BUILDDIR := $(CURDIR)/../build
-BINDIR  := $(BUILDDIR)/bin
+PROJ     ?= $(CURDIR)/..
+BUILDDIR := $(PROJ)/build
+BINDIR   := $(BUILDDIR)/bin
 
 STAGE1_BIN := $(BINDIR)/stage1.bin
 STAGE2_BIN := $(BINDIR)/stage2.bin
+TARGET     := $(BINDIR)/bootloader.bin
 
-TARGET  ?= $(BINDIR)/bootloader.bin
-STAGE1  ?= stage1
-STAGE2  ?= stage2
+rel = $(subst $(PROJ)/,,$(1))
 
-ECHO  ?= echo
-RM    ?= rm -f
-MKDIR ?= mkdir -p
-CAT  ?= cat
+export PROJ
 
-.PHONY: all
-all: stage1 stage2 $(TARGET)
+.PHONY: all clean stage1 stage2
 
-.PHONY: clean
-clean:
-	$(MAKE) -C stage1 clean
-	$(MAKE) -C stage2 clean
-	$(ECHO) "  RM         $(TARGET)"
-	$(RM)   $(TARGET)
-
-.PHONY: stage1
-stage1:
-	$(MAKE) -C stage1 TARGET=$(STAGE1_BIN)
-
-.PHONY: stage2
-stage2:
-	$(MAKE) -C stage2 TARGET=$(STAGE2_BIN)
+all: $(TARGET)
 
 $(TARGET): $(STAGE1_BIN) $(STAGE2_BIN)
-	$(MKDIR) $(dir $@)
-	$(ECHO)  "  CAT        $@"
-	$(CAT)   $^ > $@
+	@mkdir -p $(dir $@)
+	@echo "  CAT       $(call rel,$(TARGET))"
+	@cat $(STAGE1_BIN) $(STAGE2_BIN) > $@
+
+$(STAGE1_BIN): FORCE
+	@$(MAKE) -C stage1 TARGET=$@
+
+FORCE:
+
+$(STAGE2_BIN): FORCE
+	@$(MAKE) -C stage2 TARGET=$@
+
+clean:
+	@$(MAKE) -C stage1 clean
+	@$(MAKE) -C stage2 clean
+	@echo "  RM        $(call rel,$(TARGET))"
+	@rm -f $(TARGET)
+
+stage1: $(STAGE1_BIN)
+
+stage2: $(STAGE2_BIN)
