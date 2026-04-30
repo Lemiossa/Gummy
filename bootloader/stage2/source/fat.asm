@@ -957,19 +957,28 @@ fat_read:
 	cmp byte [fat_initialized], 0
 	je .error
 
-	;; skip_clus = offset / bytes_per_clus
-	;; clus_offset = offset % bytes_per_clus
+	;; skip clusters = offset / bytes_per_clus
+	;; cluster offset = offset % bytes_per_clus
 	div word [fat_bytes_per_clus]
-	;; AX = skip_clus
-	;; DX = clus_offset
+	;; AX = skip clusters
+	;; DX = cluster offset
 	push cx
 	xchg ax, cx
 	call skip_clusters
 	pop cx
 	;; AX = start_clus
-
-	
-
+	push ax
+	;; sector in cluster = offset / sector_size
+	;; offset in sector = offset % sector_size
+	mov ax, dx
+	xor dx, dx
+	div word [sector_size]
+	;; AX = sector in cluster
+	;; DX = offset in sector
+	push bx
+	mov bx, dx
+	xor dx, dx
+	pop ax
 	
 .root_dir:
 	
