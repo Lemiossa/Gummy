@@ -30,9 +30,9 @@ main:
 	mov [drive], dl
 
 	call console_init
-	print "Bitix"
+	print "Bitix Bootloader"
 	newline
-	print "================"
+	print "Build: ", __DATE__, " ", __TIME__
 	newline
 	newline
 
