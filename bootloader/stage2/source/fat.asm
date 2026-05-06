@@ -941,60 +941,6 @@ section .bss
 .out.off:  resw 1
 .fat_name: resb 12
 
-;; Reads FAT data
-;; CX: Cluster
-;; BX: Bytes to read
-;; DX:AX: Offset
-;; Returns:
-;; CF if an error occours
-section .text
-fat_read:
-	push ax
-	push bx
-	push cx
-	push dx
-
-	cmp byte [fat_initialized], 0
-	je .error
-
-	;; skip clusters = offset / bytes_per_clus
-	;; cluster offset = offset % bytes_per_clus
-	div word [fat_bytes_per_clus]
-	;; AX = skip clusters
-	;; DX = cluster offset
-	push cx
-	xchg ax, cx
-	call skip_clusters
-	pop cx
-	;; AX = start_clus
-	push ax
-	;; sector in cluster = offset / sector_size
-	;; offset in sector = offset % sector_size
-	mov ax, dx
-	xor dx, dx
-	div word [sector_size]
-	;; AX = sector in cluster
-	;; DX = offset in sector
-	push bx
-	mov bx, dx
-	xor dx, dx
-	pop ax
-	
-.root_dir:
-	
-
-.end:
-	clc
-	jmp .ret
-.error:
-	stc
-.ret:
-	pop dx
-	pop cx
-	pop bx
-	pop ax
-	ret
-
 section .data
 fat_start_sector:     dd 0
 fat_total_sectors:    dd 0
