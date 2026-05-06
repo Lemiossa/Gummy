@@ -39,25 +39,42 @@ main:
 	print "Initializing..."
 	newline
 
-;; Initialize FAT filesystem
+	;; Initialize FAT filesystem
 	xor dx, dx
 	xor ax, ax
 	mov bl, [drive]
 	call fat_init
 	jnc .fat_ok
 	print "Invalid FAT partition!"
+	newline
 	jmp halt
 .fat_ok:
-	print "FAT OK"
-	newline
 
-;; Enable A20 line
+	;; Enable A20 line
 	call enable_a20_line
 	jnc .a20_ok
+	print "Failed to enable A20 line!"
+	newline
 	jmp halt
 .a20_ok:
-	print "A20 OK"
+	mov si, .path
+	mov di, .entry
+	call fat_find
+	jnc .normal
+	print "Error!"
+.normal:
+	mov si, .entry+fat_entry.name
+	mov cx, 11
+.print:
+	lodsb 
+	mov ah, 0x0E
+	call print_char
+	loop .print
 	newline
+
+	jmp halt
+.path: db '/subdir', 0
+.entry: times fat_entry_size db 0
 
 halt:
 	print "System halted! Press any key to reboot.", 0x0D, 0x0A

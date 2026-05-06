@@ -3,7 +3,7 @@
 %ifndef _CONSOLE_ASM_
 %define _CONSOLE_ASM_
 
-%define T80x50                          ;; Uncomment for 80x50 mode
+;; %define T80x50                          ;; Uncomment for 80x50 mode
 
 ;; Initializes console
 section .text
