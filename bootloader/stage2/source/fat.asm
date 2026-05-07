@@ -908,22 +908,27 @@ fat_find:
 	jc .error
 
 	test byte [es:di+fat_entry.attr], 0x10
-	jz .end ;; Is FILE
+	jz .end ;; Is file
 
 	;; Is DIR, Set current clus(BX) to clus_low of the entry
 	mov bx, word [es:di+fat_entry.clus_low]
 
-;; Jump to next '/'
-.next_slash:
-	cmp byte [si], '/'
-	je .loop_end
-	inc si
-	jmp .next_slash
+	;; Skip to next component
+	;; Ex: si points to subdir/text.txt
+	;; After next, si points to text.txt
+.next:
+	mov al, byte [si]
+	test al, al
+	jz .end
 
+	inc si
+	cmp byte [si-1], '/'
+	jne .next
+
+	jmp .find_loop
 .loop_end:
 	inc si
 	jmp .find_loop
-
 .end:
 	clc
 	jmp .ret
