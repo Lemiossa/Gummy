@@ -16,6 +16,32 @@ jmp main
 %include "fat.asm"
 ;; End includes
 
+section .text
+;; Finds a FAT entry
+;; DS:SI: path
+;; ES:DI: Out
+;; Return nothing
+;; Automatically handles error 
+find:
+	print "Finding "
+	call print_string
+	print "..."
+	newline
+	call fat_find
+	jnc .normal
+	print "Error!"
+	jmp halt
+.normal:
+	mov si, di+fat_entry.name
+	mov cx, 11
+.print:
+	lodsb 
+	mov ah, 0x0E
+	call print_char
+	loop .print
+	newline
+	ret
+
 ;; Bootloader main function
 section .text
 main:
@@ -57,23 +83,16 @@ main:
 	newline
 	jmp halt
 .a20_ok:
-	mov si, .path
+	mov si, .path0
 	mov di, .entry
-	call fat_find
-	jnc .normal
-	print "Error!"
-.normal:
-	mov si, .entry+fat_entry.name
-	mov cx, 11
-.print:
-	lodsb 
-	mov ah, 0x0E
-	call print_char
-	loop .print
-	newline
+	call find
+
+	mov si, .path1
+	call find
 
 	jmp halt
-.path: db '/subdir', 0
+.path0: db '/subdir', 0
+.path1: db '/subdir/text.txt', 0
 .entry: times fat_entry_size db 0
 
 halt:
