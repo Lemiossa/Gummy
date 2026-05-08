@@ -946,6 +946,63 @@ section .bss
 .out.off:  resw 1
 .fat_name: resb 12
 
+;; Reads file
+;; DS:SI: Entry
+;; ES:BX: Out
+;; DX:AX: Offset
+;; CX: Bytes to read
+section .text
+fat_read_file:
+	push ax
+	push bx
+	push cx
+	push dx
+	push di
+	push si
+	push bp
+	
+	test cx, cx
+	jz .end ;; Bytes to read == 0
+
+	test byte [si+fat_entry.attr], 0x10
+	jnz .error ;; Is dir
+	
+	cmp byte [si+fat_entry.clus_low], 2
+	jb .error
+
+	;; Skip clusters = offset / cluster size
+	;; Sector in cluster = offset % cluster size
+	div word [fat_bytes_per_clus]
+	;; AX = Skip clusters
+	;; DX = Sector in cluster
+
+	push ax
+	push cx
+	push dx
+	mov cx, ax
+	mov ax, word [si+fat_entry.clus_low]
+	call skip_clusters
+	mov bp, ax
+	pop dx
+	pop cx
+	pop ax
+	
+
+.end:
+	clc
+	jmp .ret
+.error:
+	stc
+.ret:
+	pop bp
+	pop si
+	pop di
+	pop dx
+	pop cx
+	pop bx
+	pop ax
+	ret
+
 section .data
 fat_start_sector:     dd 0
 fat_total_sectors:    dd 0
