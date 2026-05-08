@@ -90,6 +90,17 @@ main:
 	mov si, .path1
 	call find
 
+	print "Reading..."
+	newline
+	mov si, .entry
+	mov di, 0x1000
+	mov es, di
+	xor di, di
+	xor ax, ax
+	xor dx, dx
+	mov cx, 32
+	call fat_read_file
+
 	jmp halt
 .path0: db '/subdir', 0
 .path1: db '/subdir/text.txt', 0
