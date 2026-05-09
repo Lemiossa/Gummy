@@ -1,5 +1,5 @@
 ;; main.asm
-;; Created by Matheus Leme Da Silva 
+;; Criado por Matheus Leme Da Silva
 bits 16
 org 0x7C00
 
@@ -10,10 +10,10 @@ sector_count: equ 62
 jmp short main
 nop
 
-;; Space for BPB
+;; Espaço para BPB
 times 62 - ($ - $$) db 0
 
-;; Main function
+;; Função principal
 main:
 	cli
 	xor ax, ax
@@ -25,40 +25,40 @@ main:
 
 	mov [drive], dl
 
-	;; Get sectors per track and heads of disk
+	;; Obtém setores por trilha e cabeças do disco
 	mov ah, 0x08
 	xor di, di
 	int 0x13
 	jc int13_failed
 
 	;; AH = status
-	;; CL[bits 0-5] = sectors per track
-	;; DH = heads - 1
+	;; CL[bits 0-5] = setores por trilha
+	;; DH = cabeças - 1
 	and cl, 0x3F
 	inc dh
 	mov [sectors_per_track], cl
 	mov [heads], dh
 
-	;; Setup
-	;; Set ES:BX to start_addr
-	;; Set DX:AX to start_sector
-	;; Set CX to count
+	;; Configuração
+	;; Define ES:BX para start_addr
+	;; Define DX:AX para start_sector
+	;; Define CX para contagem
 	;; loop:
-	;; If CX == 0: far jump
-	;; If BX >= 0x8000:
+	;; Se CX == 0: salto distante
+	;; Se BX >= 0x8000:
 	;;     BX -= 0x8000
 	;;     ES += 0x800
-	;; read
+	;; ler
 	;; BX += 512
-	;; increment DX:AX
-	;; goto loop
+	;; incrementar DX:AX
+	;; voltar ao loop
 
-	;; Address
+	;; Endereço
 	mov bx, (start_addr >> 4)
 	mov es, bx
 	mov bx, (start_addr & 0x0F)
 
-	;; Sector
+	;; Setor
 	mov ax, (start_sector & 0xFFFF)
 	mov dx, ((start_sector >> 8) & 0xFFFF)
 	
@@ -97,9 +97,9 @@ main:
 .end:
 	mov dl, [drive]
 
-	;; Far jump 
-	push word (start_addr >> 4)   ;; segment
-	push word (start_addr & 0x0F) ;; offset
+	;; Salto distante
+	push word (start_addr >> 4)   ;; segmento
+	push word (start_addr & 0x0F) ;; deslocamento
 	retf
 
 	jmp halt
@@ -107,7 +107,7 @@ main:
 %include "console.asm"
 %include "disk.asm"
 
-;; Prints halt message and halt the computer
+;; Exibe mensagem de parada e interrompe o computador
 halt:
 	mov si, halted_message
 	call print_string
@@ -115,14 +115,14 @@ halt:
 	cli
 	hlt
 
-halted_message: db "System is halted. Please, reboot.", 0x0D, 0x0A, 0
+halted_message: db "Sistema interrompido. Por favor, reinicie.", 0x0D, 0x0A, 0
 
 drive: db 0
 sectors_per_track: dw 0
 heads: dw 0
 
 times 440 - ($ - $$) db 0
-;; Boot signature
+;; Assinatura de boot
 dd __TIME__
 
 times 510 - ($ - $$) db 0
