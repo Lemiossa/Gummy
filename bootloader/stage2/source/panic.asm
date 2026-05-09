@@ -1,13 +1,13 @@
 ;; panic.asm
-;; Created by Matheus Leme Da Silva
+;; Criado por Matheus Leme Da Silva
 %ifndef _PANIC_ASM_
 %define _PANIC_ASM_
 %include "console.asm"
 
-;; Prints a panic message in red and halts the system
-;; Usage: panic "Error message"
+;; Exibe uma mensagem de pânico em vermelho e interrompe o sistema
+;; Uso: panic "Mensagem de erro"
 %macro panic 1+
-	print "[ERROR] ", %1, 0x0D, 0x0A, 0x0
+	print "[ERRO] ", %1, 0x0D, 0x0A, 0x0
 
 	jmp halt
 %endmacro

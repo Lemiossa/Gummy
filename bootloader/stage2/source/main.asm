@@ -1,35 +1,35 @@
 ;; main.asm
-;; Created by Matheus Leme Da Silva 
+;; Criado por Matheus Leme Da Silva
 org 0x7E00
 bits 16
 section .text
 
 ;; %define DEBUG
 
-;; Jmp to main before includes
+;; Jmp para main antes dos includes
 jmp main
 
-;; Begin includes
+;; Início dos includes
 %include "console.asm"
 %include "a20.asm"
 %include "disk.asm"
 %include "fat.asm"
-;; End includes
+;; Fim dos includes
 
 section .text
-;; Finds a FAT entry
-;; DS:SI: path
-;; ES:DI: Out
-;; Return nothing
-;; Automatically handles error 
+;; Encontra uma entrada FAT
+;; DS:SI: caminho
+;; ES:DI: Saída
+;; Não retorna nada
+;; Lida com erro automaticamente
 find:
-	print "Finding "
+	print "Procurando "
 	call print_string
 	print "..."
 	newline
 	call fat_find
 	jnc .normal
-	print "Error!"
+	print "Erro!"
 	jmp halt
 .normal:
 	mov si, di+fat_entry.name
@@ -42,7 +42,7 @@ find:
 	newline
 	ret
 
-;; Bootloader main function
+;; Função principal do bootloader
 section .text
 main:
 	cli
@@ -62,24 +62,24 @@ main:
 	newline
 	newline
 
-	print "Initializing..."
+	print "Inicializando..."
 	newline
 
-	;; Initialize FAT filesystem
+	;; Inicializa sistema de arquivos FAT
 	xor dx, dx
 	xor ax, ax
 	mov bl, [drive]
 	call fat_init
 	jnc .fat_ok
-	print "Invalid FAT partition!"
+	print "Particao FAT invalida!"
 	newline
 	jmp halt
 .fat_ok:
 
-	;; Enable A20 line
+	;; Habilita linha A20
 	call enable_a20_line
 	jnc .a20_ok
-	print "Failed to enable A20 line!"
+	print "Falha ao habilitar linha A20!"
 	newline
 	jmp halt
 .a20_ok:
@@ -90,7 +90,7 @@ main:
 	mov si, .path1
 	call find
 
-	print "Reading..."
+	print "Lendo..."
 	newline
 	mov si, .entry
 	mov di, 0x1000
@@ -107,7 +107,7 @@ main:
 .entry: times fat_entry_size db 0
 
 halt:
-	print "System halted! Press any key to reboot.", 0x0D, 0x0A
+	print "Sistema interrompido! Pressione qualquer tecla para reiniciar.", 0x0D, 0x0A
 	mov ah, 0x00
 	int 0x16
 	jmp 0xFFFF:0x0000
