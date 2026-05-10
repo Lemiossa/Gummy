@@ -1,5 +1,5 @@
 ;; main.asm
-;; Criado por Matheus Leme Da Silva
+;; Created by Matheus Leme Da Silva
 bits 16
 org 0x7C00
 
@@ -10,10 +10,10 @@ sector_count: equ 62
 jmp short main
 nop
 
-;; Espaço para BPB
+;; Space for BPB
 times 62 - ($ - $$) db 0
 
-;; Função principal
+;; Main function
 main:
 	cli
 	xor ax, ax
@@ -25,40 +25,40 @@ main:
 
 	mov [drive], dl
 
-	;; Obtém setores por trilha e cabeças do disco
+	;; Get sectors per track and heads from disk
 	mov ah, 0x08
 	xor di, di
 	int 0x13
 	jc int13_failed
 
 	;; AH = status
-	;; CL[bits 0-5] = setores por trilha
-	;; DH = cabeças - 1
+	;; CL[bits 0-5] = sectors per track
+	;; DH = heads - 1
 	and cl, 0x3F
 	inc dh
 	mov [sectors_per_track], cl
 	mov [heads], dh
 
-	;; Configuração
-	;; Define ES:BX para start_addr
-	;; Define DX:AX para start_sector
-	;; Define CX para contagem
+	;; Setup
+	;; Set ES:BX to start_addr
+	;; Set DX:AX to start_sector
+	;; Set CX to count
 	;; loop:
-	;; Se CX == 0: salto distante
-	;; Se BX >= 0x8000:
+	;; If CX == 0: far jump
+	;; If BX >= 0x8000:
 	;;     BX -= 0x8000
 	;;     ES += 0x800
-	;; ler
+	;; read
 	;; BX += 512
-	;; incrementar DX:AX
-	;; voltar ao loop
+	;; increment DX:AX
+	;; back to loop
 
-	;; Endereço
+	;; Address
 	mov bx, (start_addr >> 4)
 	mov es, bx
 	mov bx, (start_addr & 0x0F)
 
-	;; Setor
+	;; Sector
 	mov ax, (start_sector & 0xFFFF)
 	mov dx, ((start_sector >> 8) & 0xFFFF)
 	
@@ -97,9 +97,9 @@ main:
 .end:
 	mov dl, [drive]
 
-	;; Salto distante
-	push word (start_addr >> 4)   ;; segmento
-	push word (start_addr & 0x0F) ;; deslocamento
+	;; Far jump
+	push word (start_addr >> 4)   ;; segment
+	push word (start_addr & 0x0F) ;; offset
 	retf
 
 	jmp halt
@@ -107,7 +107,7 @@ main:
 %include "console.asm"
 %include "disk.asm"
 
-;; Exibe mensagem de parada e interrompe o computador
+;; Display halt message and halt the computer
 halt:
 	mov si, halted_message
 	call print_string
@@ -115,14 +115,14 @@ halt:
 	cli
 	hlt
 
-halted_message: db "Sistema interrompido. Por favor, reinicie.", 0x0D, 0x0A, 0
+halted_message: db "System halted. Please restart.", 0x0D, 0x0A, 0
 
 drive: db 0
 sectors_per_track: dw 0
 heads: dw 0
 
 times 440 - ($ - $$) db 0
-;; Assinatura de boot
+;; Boot signature
 dd __TIME__
 
 times 510 - ($ - $$) db 0

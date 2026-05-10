@@ -1,13 +1,13 @@
 ;; disk.asm
-;; Criado por Matheus Leme Da Silva
+;; Created by Matheus Leme Da Silva
 %ifndef _DISK_ASM_
 %define _DISK_ASM_
 %include "console.asm"
 
 sector_size:      equ 0x200
 
-;; Define a unidade para operações de disco
-;; DL: Número da unidade
+;; Set drive for disk operations
+;; DL: Drive number
 section .text
 set_drive:
 	pusha
@@ -19,12 +19,12 @@ set_drive:
 
 	ret
 
-;; Retorna parâmetros da unidade de disco
-;; Usa current_drive
-;; Retorna:
-;; CL: Setores por trilha
-;; DH: Número de cabeças
-;; CF se ocorreu um erro
+;; Return disk drive parameters
+;; Uses current_drive
+;; Returns:
+;; CL: Sectors per track
+;; DH: Number of heads
+;; CF if an error occurred
 section .text
 get_drive_parameters:
 	push ax
@@ -41,8 +41,8 @@ get_drive_parameters:
 	int 0x13
 	jc .error
 
-	;; CL[bits 0-5] = setores por trilha
-	;; DH = cabeças - 1
+	;; CL[bits 0-5] = sectors per track
+	;; DH = heads - 1
 	and cl, 0x3F
 	inc dh
 
@@ -56,7 +56,7 @@ get_drive_parameters:
 	pop ax
 	ret
 
-;; Reinicia um disco
+;; Reset a disk
 section .text
 disk_reset:
 	push ax
@@ -66,7 +66,7 @@ disk_reset:
 	mov ah, 0x00
 	int 0x13
 	jc .error
-	;; Carry já está limpo
+	;; Carry is already clear
 	jmp .ret
 .error:
 	stc
@@ -75,25 +75,25 @@ disk_reset:
 	pop ax
 	ret
 
-;; Converte LBA para CHS
+;; Convert LBA to CHS
 ;; DX:AX: LBA
-;; Retorna:
-;; formato int13h:
-;;    ch = cilindro baixo
-;;    cl = setor | cilindro alto
-;;    dh = cabeça
+;; Returns:
+;; int13h format:
+;;    ch = low cylinder
+;;    cl = sector | high cylinder
+;;    dh = head
 lba_to_chs:
 	push bx
 	;; LBA -> CHS
-	;; C = (LBA / setores_por_trilha) / cabeças
-	;; H = (LBA / setores_por_trilha) % cabeças
-	;; S = (LBA % setores_por_trilha) + 1
+	;; C = (LBA / sectors_per_track) / heads
+	;; H = (LBA / sectors_per_track) % heads
+	;; S = (LBA % sectors_per_track) + 1
 
 	xor bx, bx
 	mov bl, byte [current_sectors_per_track]
 	div bx
-	;; AX = LBA / setores_por_trilha
-	;; DX = LBA % setores_por_trilha
+	;; AX = LBA / sectors_per_track
+	;; DX = LBA % sectors_per_track
 	xor dh, dh
 	inc dx
 	mov byte [.sector], dl
@@ -101,20 +101,20 @@ lba_to_chs:
 	xor dx, dx
 	mov bl, byte [current_heads]
 	div bx
-	;; AX = (LBA / setores_por_trilha) / cabeças
-	;; DX = (LBA / setores_por_trilha) % cabeças
+	;; AX = (LBA / sectors_per_track) / heads
+	;; DX = (LBA / sectors_per_track) % heads
 	mov word [.cylinder], ax
 	mov byte [.head], dl
 
-	;; CH = Cilindro & 0xFF
-	;; CL = Setor | ((Cilindro >> 2) & 0xC0)
-	;; DH = Cabeça
+	;; CH = Cylinder & 0xFF
+	;; CL = Sector | ((Cylinder >> 2) & 0xC0)
+	;; DH = Head
 	mov ch, byte [.cylinder]
 	mov bx, word [.cylinder]
 	shr bx, 2
 	and bx, 0xC0
 	mov cl, byte [.sector]
-	and cl, 0x3F ;; Setor usa cinco bits
+	and cl, 0x3F ;; Sector uses five bits
 	or cl, bl
 	mov dh, [.head]
 
@@ -125,9 +125,9 @@ section .bss
 .head:     resb 1
 .sector:   resb 1
 
-;; Lê um setor (DX:AX) do disco para a memória (ES:BX)
+;; Read a sector (DX:AX) from disk to memory (ES:BX)
 ;; DX:AX: LBA
-;; ES:BX: Endereço
+;; ES:BX: Address
 section .text
 read_sector:
 	push ax
@@ -136,11 +136,11 @@ read_sector:
 	push si
 
 %ifdef DEBUG
-	print "Lendo setor: 0x"
+	print "Reading sector: 0x"
 	print_hex_dword dx, ax
 	print ", spt=0x"
 	print_hex_byte byte [current_sectors_per_track]
-	print ", cabecas=0x"
+	print ", heads=0x"
 	print_hex_byte byte [current_heads]
 	newline
 %endif ;; DEBUG
@@ -148,13 +148,13 @@ read_sector:
 	call lba_to_chs
 
 	;; int13h ah=2 func
-	;; Parâmetros:
-	;; al = contagem de setores
-	;; ch = cilindro & 0xFF
-	;; cl = (setor & 0x3F) | ((cilindro & 0xC000) >> 13)
-	;; dh = cabeça
-	;; dl = unidade
-	;; es:bx = ponteiro
+	;; Parameters:
+	;; al = sector count
+	;; ch = cylinder & 0xFF
+	;; cl = (sector & 0x3F) | ((cylinder & 0xC000) >> 13)
+	;; dh = head
+	;; dl = drive
+	;; es:bx = pointer
 
 	mov si, 3
 	jmp .try
@@ -163,7 +163,7 @@ read_sector:
 	jc .error
 .try:
 	clc
-	mov ax, 0x0201 ;; função leitura, 1 setor
+	mov ax, 0x0201 ;; read function, 1 sector
 	mov dl, [current_drive_number]
 	int 0x13
 	jnc .end

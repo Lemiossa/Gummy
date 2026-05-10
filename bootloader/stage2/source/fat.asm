@@ -1,11 +1,11 @@
 ;; fat.asm
-;; Criado por Matheus Leme Da Silva
+;; Created by Matheus Leme Da Silva
 %ifndef _FAT_ASM_
 %define _FAT_ASM_
 %include "disk.asm"
 section .text
 
-;; ATENÇÃO: Este driver só suporta FAT12 e FAT16
+;; WARNING: This driver only supports FAT12 and FAT16
 
 first_sector:     equ 0x500
 sector_buffer:    equ first_sector + sector_size
@@ -31,8 +31,8 @@ struc fat_entry
 	.name:         resb 8
 	.ext:          resb 3
 	.attr:         resb 1
-	.res0:         resb 2 ;; Reservado Windows NT e tempo de criação em centésimos
-	.created_time: resw 1 ;; HHHHHMMMMMMSSSSS; Multiplicar segundos por 2
+	.res0:         resb 2 ;; Reserved for Windows NT and creation time in hundredths
+	.created_time: resw 1 ;; HHHHHMMMMMMSSSSS; Multiply seconds by 2
 	.created_date: resw 1 ;; YYYYYYYMMMMDDDDD;
 	.accessed_date:resw 1 ;; YYYYYYYMMMMDDDDD;
 	.clus_high:    resw 1
@@ -42,25 +42,25 @@ struc fat_entry
 	.file_size:    resd 1
 endstruc
 
-;; Converte caractere em AL para MAIÚSCULO
-;; AL: Caractere
-;; Retorna:
-;; AL: Caractere MAIÚSCULO
+;; Convert character in AL to UPPERCASE
+;; AL: Character
+;; Returns:
+;; AL: UPPERCASE character
 section .text
 to_upper:
 	cmp al, 'a'
 	jb .end
 	cmp al, 'z'
 	ja .end
-	;; Este código executa se AL >= 'a' && AL <= 'z'
+	;; This code executes if AL >= 'a' && AL <= 'z'
 
 	sub al, ('a' - 'A')
 .end:
 	ret
 
-;; Converte nome de arquivo normal para nome de arquivo FAT
-;; DS:SI: Nome do arquivo
-;; ES:DI: Saída com nome FAT
+;; Convert normal filename to FAT filename
+;; DS:SI: Filename
+;; ES:DI: Output with FAT name
 section .text
 fat_filename_to_fatname:
 	push ax
@@ -70,13 +70,13 @@ fat_filename_to_fatname:
 	push di
 
 	push di
-	;; Preenche nome FAT com 11 espaços
+	;; Fill FAT name with 11 spaces
 	mov cx, 11
 	mov al, ' '
 	rep stosb
 	pop di
 
-	mov bx, di ;; Salva ponteiro de saída em BX
+	mov bx, di ;; Save output pointer in BX
 
 	mov cx, 8
 .name_loop:
@@ -94,7 +94,7 @@ fat_filename_to_fatname:
 	mov byte [es:di], al
 	inc di
 	loop .name_loop
-	jmp .end ;; Não adiciona extensão se não encontrar '.'
+	jmp .end ;; Does not add extension if '.' is not found
 .dot:
 	mov cx, 3
 	mov di, bx
@@ -118,11 +118,11 @@ fat_filename_to_fatname:
 	pop ax
 	ret
 
-;; Converte cluster para LBA
+;; Convert cluster to LBA
 ;; AX: Cluster
-;; Retorna
+;; Returns
 ;; DX:AX: LBA
-;; CF se ocorrer um erro
+;; CF if an error occurs
 section .text
 fat_clus_to_lba:
 	push cx
@@ -155,10 +155,10 @@ fat_clus_to_lba:
 	pop cx
 	ret
 
-;; Verifica se cluster é EOF
+;; Check if cluster is EOF
 ;; AX: cluster
-;; Retorna:
-;; CF Se for EOF
+;; Returns:
+;; CF If it is EOF
 section .text
 fat_clus_is_eof:
 	cmp ax, 2
@@ -184,11 +184,11 @@ fat_clus_is_eof:
 .ret:
 	ret
 
-;; Lê a FAT
+;; Read the FAT
 ;; AX: Cluster
-;; Retorna:
-;; CF se ocorrer um erro
-;; BX: Valor
+;; Returns:
+;; CF if an error occurs
+;; BX: Value
 section .text
 read_fat:
 	push ax
@@ -214,7 +214,7 @@ read_fat:
 	mov bx, ax
 	;; BX = cluster + (cluster << 1)
 	
-	;; NOTA: Neste código, assumo que fat_sector não excederá 16 bits
+	;; NOTE: In this code, I assume fat_sector will not exceed 16 bits
 
 	;; fat_sector = fat_lba + (fat_offset / sector_size)
 	;; ent_offset = fat_offset % sector_size
@@ -230,15 +230,15 @@ read_fat:
 	;; AX = fat_sector
 	;; DX = ent_offset
 
-	;; Lê setores da FAT
+	;; Read FAT sectors
 	push ax
 	push dx
-	;; Setor +0
+	;; Sector +0
 	mov bx, sector_buffer
 	xor dx, dx
 	call read_sector
 
-	;; Setor +1 
+	;; Sector +1 
 	add ax, 1
 	adc dx, 0
 	add bx, sector_size
@@ -255,7 +255,7 @@ read_fat:
 	;; BX = table_val
 	;; AX = cluster
 
-	;; Se cluster for par, usa últimos 12 bits, senão usa primeiros 12 bits
+	;; If cluster is even, use last 12 bits, otherwise use first 12 bits
 	test ax, 1
 	jz .is_even
 	shr bx, 4
@@ -275,8 +275,8 @@ read_fat:
 	shl bx, 1
 	;; BX = cluster << 1
 	
-	;; NOTA: Neste código, assumo que fat_sector não excederá 16 bits
-
+	;; NOTE: In this code, I assume fat_sector will not exceed 16 bits
+	
 	;; fat_sector = fat_lba + (fat_offset / sector_size)
 	;; ent_offset = fat_offset % sector_size
 	xor dx, dx
@@ -291,10 +291,10 @@ read_fat:
 	;; AX = fat_sector
 	;; DX = ent_offset
 
-	;; Lê setores da FAT
+	;; Read FAT sectors
 	push ax
 	push dx
-	;; Setor +0
+	;; Sector +0
 	mov bx, sector_buffer
 	xor dx, dx
 	call read_sector
@@ -316,12 +316,12 @@ read_fat:
 	pop ax
 	ret
 
-;; Pula n clusters
-;; AX: Cluster inicial
-;; CX: Número de clusters para pular
-;; Retorna:
-;; AX: O último cluster
-;; CF Se ocorrer um erro
+;; Skip n clusters
+;; AX: Initial cluster
+;; CX: Number of clusters to skip
+;; Returns:
+;; AX: The last cluster
+;; CF If an error occurs
 fat_skip_clusters:
 	push bx
 	push cx
@@ -345,11 +345,11 @@ fat_skip_clusters:
 	pop bx
 	ret
 
-;; Inicializa o sistema FAT
-;; BL: Disco para ler
-;; DX:AX: LBA inicial da partição
-;; Retorna:
-;; CF: Se não for uma partição FAT válida
+;; Initialize FAT system
+;; BL: Disk to read
+;; DX:AX: Initial partition LBA
+;; Returns:
+;; CF: If it is not a valid FAT partition
 section .text
 fat_init:
 	pusha
@@ -362,7 +362,7 @@ fat_init:
 	call read_sector
 	jc .error
 
-	;; Suporta apenas 512 bytes por setor
+	;; Only supports 512 bytes per sector
 	cmp word [first_sector+fat_bpb.bytes_per_sector], sector_size
 	jne .error
 
@@ -371,7 +371,7 @@ fat_init:
 
 	mov word [fat_sector_size], sector_size
 
-	;; Total de setores
+	;; Total sectors
 	push ax
 	mov ax, [first_sector+fat_bpb.total_sectors16]
 	mov word [fat_total_sectors], ax
@@ -387,7 +387,7 @@ fat_init:
 	mov word [fat_total_sectors+2], ax
 	pop ax
 .use_fat_total_sectors16:
-	;; Tamanho da FAT
+	;; FAT size
 	push ax
 	mov ax, [first_sector+fat_bpb.sectors_per_fat]
 	mov word [fat_size], ax
@@ -528,9 +528,9 @@ fat_init:
 	pop ax
 
 	;; ents_per_clus = (sectors_per_clus * 512) / 32
-	;; ents_per_clus = Total de entradas em um cluster
-	;; mais rápido: ents_per_clus = sectors_per_clus << 4
-	;; porque: 512 / 32 = 16; ents_per_clus = sectors_per_clus * 16 => ents_per_clus: << 4
+	;; ents_per_clus = Total entries in a cluster
+	;; faster: ents_per_clus = sectors_per_clus << 4
+	;; because: 512 / 32 = 16; ents_per_clus = sectors_per_clus * 16 => ents_per_clus: << 4
 
 	push ax
 	mov ax, [first_sector+fat_bpb.sectors_per_clus]
@@ -539,25 +539,25 @@ fat_init:
 	mov word [fat_ents_per_clus], ax
 	pop ax
 
-	;; bytes por cluster = sectors_per_clus * sector_size
+	;; bytes per cluster = sectors_per_clus * sector_size
 	push ax
 	mov ax, word [first_sector+fat_bpb.sectors_per_clus]
 	shl ax, 9
 	mov word [fat_bytes_per_clus], ax
 	pop ax
 %ifdef DEBUG
-	print "=== Informacoes FAT ==="
+	print "=== FAT Info ==="
 	newline
-	print "setor_inicial:      0x"
+	print "start_sector:      0x"
 	print_hex_dword word [fat_start_sector+2], word [fat_start_sector]
 	newline
-	print "total_setores:     0x"
+	print "total_sectors:     0x"
 	print_hex_dword word [fat_total_sectors+2], word [fat_total_sectors]
 	newline
 	print "data_lba:          0x"
 	print_hex_dword word [fat_data_lba+2], word [fat_data_lba]
 	newline 
-	print "data_setores:      0x"
+	print "data_sectors:      0x"
 	print_hex_dword word [fat_data_sectors+2], word [fat_data_sectors]
 	newline
 	print "lba:               0x"
@@ -569,7 +569,7 @@ fat_init:
 	print "total_clusters:    0x"
 	print_hex_word word [fat_total_clusters]
 	newline
-	print "root_dir_setores:  0x"
+	print "root_dir_sectors:  0x"
 	print_hex_word word [fat_root_dir_sectors]
 	newline
 	
@@ -586,52 +586,52 @@ fat_init:
 		loop .print_oem
 	newline
 
-	print "Bytes por setor:        0x"
+	print "Bytes per sector:       0x"
 	print_hex_word word [first_sector+fat_bpb.bytes_per_sector]
 	newline
 
-	print "Setores por cluster:    0x"
+	print "Sectors per cluster:    0x"
 	print_hex_byte byte [first_sector+fat_bpb.sectors_per_clus]
 	newline
 
-	print "Setores reservados:     0x"
+	print "Reserved sectors:       0x"
 	print_hex_word word [first_sector+fat_bpb.reserved_sectors]
 	newline
 
-	print "Numero de FATs:         0x"
+	print "Number of FATs:         0x"
 	print_hex_byte byte [first_sector+fat_bpb.num_fats]
 	newline
 
-	print "Entradas dir raiz:      0x"
+	print "Root dir entries:       0x"
 	print_hex_word word [first_sector+fat_bpb.root_dir_entries]
 	newline
 
-	print "Total setores (16):     0x"
+	print "Total sectors (16):     0x"
 	print_hex_word word [first_sector+fat_bpb.total_sectors16]
 	newline
 
-	print "Descritor de midia:     0x"
+	print "Media descriptor:       0x"
 	print_hex_byte byte [first_sector+fat_bpb.media_desc_type]
 	newline
 
-	print "Setores por FAT:        0x"
+	print "Sectors per FAT:        0x"
 	print_hex_word word [first_sector+fat_bpb.sectors_per_fat]
 	newline
 
-	print "Setores por trilha:     0x"
+	print "Sectors per track:      0x"
 	print_hex_word word [first_sector+fat_bpb.sectors_per_track]
 	newline
 
-	print "Numero de cabecas:      0x"
+	print "Number of heads:        0x"
 	print_hex_word word [first_sector+fat_bpb.number_of_heads]
 	newline
 
-	print "Setores ocultos:        0x"
+	print "Hidden sectors:         0x"
 	print_hex_dword word [first_sector+fat_bpb.hidden_sectors+2], \
 					 word [first_sector+fat_bpb.hidden_sectors]
 	newline
 
-	print "Total setores (32):     0x"
+	print "Total sectors (32):     0x"
 	print_hex_dword word [first_sector+fat_bpb.total_sectors32+2], \
 					 word [first_sector+fat_bpb.total_sectors32]
 	newline
@@ -655,13 +655,13 @@ fat_init:
 	popa
 	ret
 
-;; Lê um diretório FAT a partir de um cluster
-;; BX: Cluster inicial do diretório
-;; AX: Índice do diretório
-;; ES:DI: Ponteiro para a entrada
-;; Retorna:
-;; CF é definido se ocorrer um erro ou fim do diretório for atingido
-;; NOTA: Se o cluster inicial for zero, lê o diretório raiz
+;; Read a FAT directory from a cluster
+;; BX: Initial directory cluster
+;; AX: Directory index
+;; ES:DI: Pointer to the entry
+;; Returns:
+;; CF is set if an error or end of directory is reached
+;; NOTE: If the initial cluster is zero, read the root directory
 section .text
 fat_read_dir:
 	push ax
@@ -676,15 +676,14 @@ fat_read_dir:
 	cmp bx, 2
 	jb .root_dir
 
-	;; skip_clus = indice / ents_per_clus
-	;; skip_clus = Número de clusters para pular
+	;; skip_clus = index / ents_per_clus
+	;; skip_clus = Number of clusters to skip
 
-	;; ent_clus = indice % ents_per_clus
-	;; ent_clus = Índice da entrada dentro do cluster
+	;; ent_clus = Entry index within the cluster
 	xor dx, dx
 	div word [fat_ents_per_clus]
-	;; AX = indice / ents_per_clus
-	;; DX = indice % ents_per_clus
+	;; AX = index / ents_per_clus
+	;; DX = index % ents_per_clus
 
 	mov cx, ax
 	mov ax, bx
@@ -693,10 +692,10 @@ fat_read_dir:
 	mov cx, ax
 
 	;; sector = ent_clus / 16
-	;; sector = Setor dentro do cluster
+	;; sector = Sector within the cluster
 	
 	;; ent_sector = ent_clus % 16
-	;; ent_sector = Índice da entrada dentro do setor
+	;; ent_sector = Entry index within the sector
 	mov ax, dx
 	xor dx, dx
 	mov bx, 16
@@ -711,7 +710,7 @@ fat_read_dir:
 	call fat_clus_to_lba
 	jc .error
 	
-	;; Lê setor
+	;; Read sector
 	add ax, bx
 	adc dx, 0
 	mov bx, sector_buffer
@@ -722,26 +721,26 @@ fat_read_dir:
 	add si, sector_buffer
 	
 	cmp byte [si+fat_entry.name], 0
-	je .error ;; Fim do diretório
+	je .error ;; End of directory
 	jmp .copy
 
 .root_dir:
 	xor dx, dx
 	mov cx, 16
 	;; sector = ent_clus / 16
-	;; sector = Setor dentro do cluster
+	;; sector = Sector within the cluster
 	
 	;; ent_sector = ent_clus % 16
-	;; ent_sector = Índice da entrada dentro do setor
+	;; ent_sector = Entry index within the sector
 	div cx
-	;; AX = setor
-	;; DX = entrada
+	;; AX = sector
+	;; DX = entry
 
 	cmp ax, word [fat_root_dir_sectors]
 	jae .error
 
-	mov si, dx ;; Salva entrada
-	mov bx, ax ;; Salva setor
+	mov si, dx ;; Save entry
+	mov bx, ax ;; Save sector
 	mov ax, word [fat_root_lba]
 	mov dx, word [fat_root_lba+2]
 	add ax, bx
@@ -758,11 +757,11 @@ fat_read_dir:
 	je .error
 
 .copy:
-	;; DS:SI = origem
-	;; ES:DI = destino
+	;; DS:SI = source
+	;; ES:DI = dest
 	mov cx, 32
 	cld
-	rep movsb ;; Copia
+	rep movsb ;; Copy
 
 .end:
 	clc
@@ -778,12 +777,12 @@ fat_read_dir:
 	pop ax
 	ret
 
-;; Encontra uma entrada em um diretório
-;; BX: Cluster inicial
-;; DS:SI: String para nome 8.3
-;; ES:DI: Ponteiro para entrada de saída
-;; Retorna:
-;; CF se ocorrer um erro
+;; Find an entry in a directory
+;; BX: Initial cluster
+;; DS:SI: String for 8.3 name
+;; ES:DI: Pointer to output entry
+;; Returns:
+;; CF if an error occurs
 section .text
 fat_find_in_dir:
 	push ax
@@ -806,13 +805,13 @@ fat_find_in_dir:
 	test byte [.entry+fat_entry.attr], 0x08
 	jnz .skip
 	
-	;; Compara nome
+	;; Compare name
 	push di
 	push si
 	push ax
 	push cx
 	
-	;; DS:SI já aponta para a string
+	;; DS:SI already points to the string
 	mov di, .entry+fat_entry.name
 	mov cx, 11
 	cld
@@ -861,11 +860,11 @@ section .data
 section .bss
 .entry:    resb fat_entry_size
 
-;; Encontra arquivo usando CAMINHO absoluto
-;; DS:SI: Caminho
-;; ES:DI: Saída
-;; Retorna:
-;; CF se ocorrer um erro
+;; Find file using absolute PATH
+;; DS:SI: Path
+;; ES:DI: Output
+;; Returns:
+;; CF if an error occurs
 section .text
 fat_find:
 	push ax
@@ -878,9 +877,9 @@ fat_find:
 	mov word [.out.off], di
 
 	cmp byte [si], '/'
-	jne .error ;; Não é caminho absoluto
+	jne .error ;; Not an absolute path
 	
-	xor bx, bx ;; Começa no diretório raiz
+	xor bx, bx ;; Start at root directory
 .find_loop:
 	mov al, byte [si]
 
@@ -890,13 +889,13 @@ fat_find:
 	cmp al, '/'
 	je .loop_end
 
-	;; SI já aponta para o nome do arquivo
+	;; SI already points to the filename
 	push di
 	mov di, .fat_name
 	call fat_filename_to_fatname
 	pop di
 	
-	;; Procura no diretório
+	;; Search in directory
 	push si
 	push di
 	push es
@@ -911,14 +910,14 @@ fat_find:
 	jc .error
 
 	test byte [es:di+fat_entry.attr], 0x10
-	jz .end ;; É arquivo
+	jz .end ;; Is file
 
-	;; É DIR, Define clus atual(BX) para clus_low da entrada
+	;; Is DIR, Set current clus(BX) to entry's clus_low
 	mov bx, word [es:di+fat_entry.clus_low]
 
-	;; Pula para o próximo componente
-	;; Ex: si aponta para subdir/text.txt
-	;; Depois, si aponta para text.txt
+	;; Skip to next component
+	;; Ex: si points to subdir/text.txt
+	;; Afterwards, si points to text.txt
 .next:
 	mov al, byte [si]
 	test al, al
@@ -949,11 +948,11 @@ section .bss
 .out.off:  resw 1
 .fat_name: resb 12
 
-;; Lê arquivo
-;; DS:SI: Entrada(fat_entry)
-;; ES:BX: Saída
-;; Retorna:
-;; CF Se ocorrer um erro
+;; Read file
+;; DS:SI: Entry (fat_entry)
+;; ES:BX: Output
+;; Returns:
+;; CF If an error occurs
 section .text
 fat_read_file:
 	push ax
@@ -965,7 +964,7 @@ fat_read_file:
 	push bp
 
 	test byte [si+fat_entry.attr], 0x10
-	jnz .error ;; É diretório
+	jnz .error ;; Is directory
 	
 	mov ax, word [si+fat_entry.clus_low]
 	cmp ax, 2
@@ -976,7 +975,7 @@ fat_read_file:
 	jc .end
 
 	mov bp, ax
-	;; Converter cluster para LBA
+	;; Convert cluster to LBA
 	call fat_clus_to_lba
 	;; DX:AX = Lba
 

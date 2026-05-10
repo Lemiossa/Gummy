@@ -1,6 +1,6 @@
 /*
  * kmain.cpp
- * Criado por Matheus Leme Da Silva
+ * Created by Matheus Leme Da Silva
  */ 
 
 
