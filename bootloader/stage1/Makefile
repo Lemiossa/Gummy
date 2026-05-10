@@ -1,5 +1,5 @@
 # Makefile
-# Criado por Matheus Leme Da Silva
+# Created by Matheus Leme Da Silva
 
 MAKEFLAGS += -s --no-print-directory
 

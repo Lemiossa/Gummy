@@ -1,22 +1,22 @@
 ;; a20.asm
-;; Criado por Matheus Leme Da Silva
+;; Created by Matheus Leme Da Silva
 %ifndef _A20_ASM_
 %define _A20_ASM_
 %include "console.asm"
 %include "panic.asm"
 
-;; Habilita a linha A20
-;; Método BIOS
+;; Enable A20 line
+;; BIOS method
 section .text
 enable_a20_line:
 	push ax
 	push si
 
-	;; Obtém status
+	;; Get status
 	mov ax, 0x2402
 	int 0x15
-	;; Esta função define AH != 0 ou CF se ocorrer um erro
-	;; Se AH == 0, AL é o estado da linha A20; 0 = desabilitada, 1 = habilitada
+	;; This function sets AH != 0 or CF if an error occurs
+	;; If AH == 0, AL is the A20 line status; 0 = disabled, 1 = enabled
 
 	jc a20_line_error
 	test ah, ah
@@ -24,10 +24,10 @@ enable_a20_line:
 	test al, al
 	jnz .end
 
-	;; Habilita
+	;; Enable
 	mov ax, 0x2401
 	int 0x15
-	;; Esta função define AH != 0 ou CF se ocorrer um erro
+	;; This function sets AH != 0 or CF if an error occurs
 
 	jc a20_line_error
 	test ah, ah
@@ -38,8 +38,8 @@ enable_a20_line:
 	pop ax
 	ret
 
-;; Exibe mensagem de erro da linha A20 e interrompe o sistema
+;; Display A20 line error message and halt the system
 a20_line_error:
-	panic "Falha ao habilitar linha A20", 0x0A
+	panic "Failed to enable A20 line", 0x0A
 
 %endif ;; _A20_ASM_

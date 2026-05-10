@@ -1,31 +1,31 @@
 ;; console.asm
-;; Criado por Matheus Leme Da Silva
+;; Created by Matheus Leme Da Silva
 %ifndef _CONSOLE_ASM_
 %define _CONSOLE_ASM_
 
-;; %define T80x50                          ;; Descomente para modo 80x50
+;; %define T80x50                          ;; Uncomment for 80x50 mode
 
-;; Inicializa o console
+;; Initialize console
 section .text
 console_init:
-	;; Define modo texto 80x25 (3) ou 80x50 (83)
+	;; Set text mode 80x25 (3) or 80x50 (83)
 	mov ax, 3
 	int 0x10
 
-	;; Define modo 80x50 se configurado
+	;; Set 80x50 mode if configured
 	%ifdef T80x50
 	mov ax, 0x1112
 	int 0x10
 	%endif ;; T80x50
 	ret
 
-;; Exibe um caractere na tela com os atributos atuais e posição do cursor
-;; AL: caractere
+;; Display a character on screen with current attributes and cursor position
+;; AL: character
 section .text
 print_char:
 	push ax
 
-	;; DEBUG: Exibe na serial se DEBUG estiver definido
+	;; DEBUG: Display on serial if DEBUG is defined
 %ifdef DEBUG
 	push dx
 	xor dx, dx
@@ -40,8 +40,8 @@ print_char:
 	pop ax
 	ret
 
-;; Exibe uma string terminada em zero na tela
-;; DS:SI: ponteiro para a string
+;; Display a null-terminated string on screen
+;; DS:SI: pointer to the string
 section .text
 print_string:
 	push ax
@@ -57,7 +57,7 @@ print_string:
 	pop ax
 	ret
 
-;; Macro para exibir strings inline
+;; Macro for inline string display
 %macro print 1+
 section .data
 %%string: db %1, 0
@@ -68,7 +68,7 @@ section .text
 	pop si
 %endmacro
 
-;; Macro para nova linha
+;; Macro for new line
 %macro newline 0
 section .text
 	push ax
@@ -79,9 +79,9 @@ section .text
 	pop ax
 %endmacro
 
-;; Converte um nibble para caractere hexadecimal
+;; Convert a nibble to hex character
 ;; AL: nibble (0x0-0xF)
-;; Retorna: AL: caractere hexadecimal
+;; Returns: AL: hex character
 section .text
 nibble_to_hex:
 	push cx
@@ -99,7 +99,7 @@ nibble_to_hex:
 	pop cx
 	ret
 
-;; Exibe um valor de 4 bits em hexadecimal
+;; Display a 4-bit value in hex
 ;; AL: nibble
 section .text
 print_nibble:
@@ -117,7 +117,7 @@ print_nibble:
 	pop ax
 	ret
 
-;; Exibe um valor de 8 bits em hexadecimal
+;; Display an 8-bit value in hex
 ;; 1: r8
 %macro print_hex_byte 1
 section .text
@@ -132,7 +132,7 @@ section .text
 	pop ax
 %endmacro
 
-;; Exibe um valor de 16 bits em hexadecimal
+;; Display a 16-bit value in hex
 ;; 1: r16
 %macro print_hex_word 1
 section .text
@@ -143,7 +143,7 @@ section .text
 	pop bx
 %endmacro
 
-;; Exibe um valor de 32 bits em hexadecimal
+;; Display a 32-bit value in hex
 ;; 1: r16 alto
 ;; 2: r16 baixo
 %macro print_hex_dword 2

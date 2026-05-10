@@ -1,12 +1,12 @@
 ;; main.asm
-;; Criado por Matheus Leme Da Silva
+;; Created by Matheus Leme Da Silva
 org 0x7E00
 bits 16
 section .text
 
 ;; %define DEBUG
 
-;; Jmp para main antes dos includes
+;; Jmp to main before includes
 jmp main
 
 %include "console.asm"
@@ -16,12 +16,12 @@ jmp main
 
 section .text
 halt16:
-	print "Sistema interrompido! Pressione qualquer tecla para reiniciar.", 0x0D, 0x0A
+	print "System halted! Press any key to restart.", 0x0D, 0x0A
 	mov ah, 0x00
 	int 0x16
 	jmp 0xFFFF:0x0000
 
-;; Função principal do bootloader
+;; Main bootloader function
 section .text
 main:
 	cli
@@ -41,16 +41,16 @@ main:
 	newline
 	newline
 
-	print "Inicializando..."
+	print "Initializing..."
 	newline
 
-	;; Inicializa sistema de arquivos FAT
+	;; Initialize FAT filesystem
 	xor dx, dx
 	xor ax, ax
 	mov bl, [drive]
 	call fat_init
 	jnc .fat_ok
-	print "Particao FAT invalida!"
+	print "Invalid FAT partition!"
 	newline
 	jmp halt16
 .fat_ok:
@@ -58,7 +58,7 @@ main:
 	mov di, .entry
 	call fat_find
 	jnc .found
-	print "Falha ao procurar: "
+	print "Failed to find: "
 	mov si, kernel_path
 	call print_string
 	newline
@@ -70,14 +70,14 @@ main:
 	xor bx, bx
 	call fat_read_file
 	jnc .readed
-	print "Erro na leitura!"
+	print "Read error!"
 	newline
 	jmp halt16
 .readed:
-	;; Habilita linha A20
+	;; Enable A20 line
 	call enable_a20_line
 	jnc .a20_ok
-	print "Falha ao habilitar linha A20!"
+	print "Failed to enable A20 line!"
 	newline
 	jmp halt16
 .a20_ok:
@@ -89,7 +89,7 @@ main:
 	jmp 0x08:.protected
 bits 32
 .protected:
-	;; Pular para o kernel
+	;; Jump to kernel
 	jmp 0x10000
 
 	jmp halt32
