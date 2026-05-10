@@ -9,7 +9,7 @@
 %macro panic 1+
 	print "[ERRO] ", %1, 0x0D, 0x0A, 0x0
 
-	jmp halt
+	jmp halt16
 %endmacro
 
 %endif ;; _PANIC_ASM_

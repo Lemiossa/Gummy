@@ -1,5 +1,5 @@
 # Makefile
-# Created by Matheus Leme Da Silva
+# Criado por Matheus Leme Da Silva
 
 MAKEFLAGS += -s --no-print-directory
 
@@ -11,6 +11,7 @@ IMGROOT  := $(BUILDDIR)/imgroot
 
 IMAGE      := $(IMGDIR)/Bitix.img
 BOOTLOADER := $(BINDIR)/bootloader.bin
+KERNEL     := $(BINDIR)/kernel.bin
 PATH       := /sbin:/usr/sbin:$(PATH)
 
 define check_tool
@@ -36,13 +37,18 @@ FORCE:
 
 bootloader: $(BOOTLOADER)
 
-$(IMAGE): $(BOOTLOADER)
+$(KERNEL): FORCE
+	@$(MAKE) -C kernel
+
+kernel: $(KERNEL)
+
+$(IMAGE): $(BOOTLOADER) $(KERNEL)
 	@$(call check_tool,mkfs.fat)
 	@$(call check_tool,mcopy)
 	@$(call check_tool,dd)
 	@mkdir -p $(dir $@)
-	@mkdir -p $(IMGROOT)/subdir
-	@echo "Hello world" > $(IMGROOT)/subdir/text.txt
+	@mkdir -p $(IMGROOT)/system
+	@cp $(KERNEL) $(IMGROOT)/system/kernel.sys
 	@echo "  GENIMG    $(call rel,$(IMAGE))"
 	@dd if=/dev/zero of=$(IMAGE) bs=1K count=1440 status=none
 	@echo "  MKFS.FAT  $(call rel,$(IMAGE))"

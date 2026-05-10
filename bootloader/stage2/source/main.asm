@@ -9,38 +9,17 @@ section .text
 ;; Jmp para main antes dos includes
 jmp main
 
-;; Início dos includes
 %include "console.asm"
 %include "a20.asm"
 %include "disk.asm"
 %include "fat.asm"
-;; Fim dos includes
 
 section .text
-;; Encontra uma entrada FAT
-;; DS:SI: caminho
-;; ES:DI: Saída
-;; Não retorna nada
-;; Lida com erro automaticamente
-find:
-	print "Procurando "
-	call print_string
-	print "..."
-	newline
-	call fat_find
-	jnc .normal
-	print "Erro!"
-	jmp halt
-.normal:
-	mov si, di+fat_entry.name
-	mov cx, 11
-.print:
-	lodsb 
-	mov ah, 0x0E
-	call print_char
-	loop .print
-	newline
-	ret
+halt16:
+	print "Sistema interrompido! Pressione qualquer tecla para reiniciar.", 0x0D, 0x0A
+	mov ah, 0x00
+	int 0x16
+	jmp 0xFFFF:0x0000
 
 ;; Função principal do bootloader
 section .text
@@ -73,45 +52,77 @@ main:
 	jnc .fat_ok
 	print "Particao FAT invalida!"
 	newline
-	jmp halt
+	jmp halt16
 .fat_ok:
-
+	mov si, kernel_path
+	mov di, .entry
+	call fat_find
+	jnc .found
+	print "Falha ao procurar: "
+	mov si, kernel_path
+	call print_string
+	newline
+	jmp halt16
+.found:
+	mov si, .entry
+	mov bx, 0x1000
+	mov es, bx
+	xor bx, bx
+	call fat_read_file
+	jnc .readed
+	print "Erro na leitura!"
+	newline
+	jmp halt16
+.readed:
 	;; Habilita linha A20
 	call enable_a20_line
 	jnc .a20_ok
 	print "Falha ao habilitar linha A20!"
 	newline
-	jmp halt
+	jmp halt16
 .a20_ok:
-	mov si, .path0
-	mov di, .entry
-	call find
+	cli
+	lgdt [gdtr]
+	mov eax, cr0
+	or al, 1
+	mov cr0, eax
+	jmp 0x08:.protected
+bits 32
+.protected:
+	;; Pular para o kernel
+	jmp 0x10000
 
-	mov si, .path1
-	call find
-
-	print "Lendo..."
-	newline
-	mov si, .entry
-	mov di, 0x1000
-	mov es, di
-	xor di, di
-	xor ax, ax
-	xor dx, dx
-	mov cx, 32
-	call fat_read_file
-
-	jmp halt
-.path0: db '/subdir', 0
-.path1: db '/subdir/text.txt', 0
+	jmp halt32
 .entry: times fat_entry_size db 0
 
-halt:
-	print "Sistema interrompido! Pressione qualquer tecla para reiniciar.", 0x0D, 0x0A
-	mov ah, 0x00
-	int 0x16
-	jmp 0xFFFF:0x0000
+halt32:
+	cli
+	hlt
+	jmp halt32
 
+section .data
+kernel_path: db '/system/kernel.sys'
+
+%macro gdt_entry 4
+	;; 1 = Limit, 2 = base, 3 = access, 4 = flags
+	dw (%1 & 0xFFFF)
+	dw (%2 & 0xFFFF)
+	db ((%2 >> 16) & 0xFF)
+	db (%3 & 0xFF)
+	db (((%1 >> 16) & 0xF) | ((%4 & 0xF) << 4))
+	db ((%2 >> 24) & 0xFF)
+%endmacro
+
+gdt:
+	gdt_entry 0, 0, 0, 0
+	gdt_entry 0xFFFFF, 0x0, 0x9A, 0xC
+	gdt_entry 0xFFFFF, 0x0, 0x92, 0xC
+gdt_end:
+
+gdtr:
+	dw gdt_end-gdt-1
+	dd gdt
 
 section .bss
 drive: resb 1
+
