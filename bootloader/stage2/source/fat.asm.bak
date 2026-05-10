@@ -146,8 +146,8 @@ fat_clus_to_lba:
 	adc dx, word [fat_data_lba+2]
 
 .end:
-	clc
 	jmp .ret
+	clc
 .error:
 	stc
 .ret:
@@ -161,8 +161,6 @@ fat_clus_to_lba:
 ;; CF Se for EOF
 section .text
 fat_clus_is_eof:
-	cmp ax, 2
-	jb .error
 	cmp byte [fat_type], 12
 	je .fat12
 
@@ -172,7 +170,6 @@ fat_clus_is_eof:
 .fat12:
 	cmp ax, 0x0FF8
 	jae .error
-	jmp .end
 .fat16:
 	cmp ax, 0xFFF8
 	jae .error
@@ -972,6 +969,9 @@ fat_read_file:
 	jb .error
 
 .load_loop:
+	print "Cluster: 0x"
+	print_hex_word ax
+	newline
 	call fat_clus_is_eof
 	jc .end
 
