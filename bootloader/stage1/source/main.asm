@@ -1,49 +1,49 @@
 ;; main.asm
 ;; Created by Matheus Leme Da Silva
-bits 16
-org 0x7C00
+BITS 16
+ORG 0x7C00
 
-start_addr:   equ 0x7E00
-start_sector: equ 1
-sector_count: equ 62
+start_addr:   EQU 0x7E00
+start_sector: EQU 1
+sector_count: EQU 62
 
-jmp short main
-nop
+JMP short main
+NOP
 
 ;; Space for BPB
-times 62 - ($ - $$) db 0
+TIMES 62 - ($ - $$) DB 0
 
 ;; Main function
 main:
-	cli
-	xor ax, ax
-	mov ds, ax
-	mov es, ax
-	mov ss, ax
-	mov sp, 0x7C00
-	sti
+	CLI
+	XOR AX, AX
+	MOV DS, AX
+	MOV ES, AX
+	MOV SS, AX
+	MOV SP, 0x7C00
+	STI
 
-	mov [drive], dl
+	MOV [drive], DL
 
-	;; Get sectors per track and heads from disk
-	mov ah, 0x08
-	xor di, di
-	int 0x13
-	jc int13_failed
+	;; Get sectors per track AND heads from disk
+	MOV AH, 0x08
+	XOR DI, DI
+	INT 0x13
+	JC int13_failed
 
 	;; AH = status
-	;; CL[bits 0-5] = sectors per track
+	;; CL[BITS 0-5] = sectors per track
 	;; DH = heads - 1
-	and cl, 0x3F
-	inc dh
-	mov [sectors_per_track], cl
-	mov [heads], dh
+	AND CL, 0x3F
+	INC DH
+	MOV [sectors_per_track], CL
+	MOV [heads], DH
 
 	;; Setup
 	;; Set ES:BX to start_addr
 	;; Set DX:AX to start_sector
 	;; Set CX to count
-	;; loop:
+	;; LOOP:
 	;; If CX == 0: far jump
 	;; If BX >= 0x8000:
 	;;     BX -= 0x8000
@@ -51,79 +51,79 @@ main:
 	;; read
 	;; BX += 512
 	;; increment DX:AX
-	;; back to loop
+	;; back to LOOP
 
 	;; Address
-	mov bx, (start_addr >> 4)
-	mov es, bx
-	mov bx, (start_addr & 0x0F)
+	MOV BX, (start_addr >> 4)
+	MOV ES, BX
+	MOV BX, (start_addr & 0x0F)
 
 	;; Sector
-	mov ax, (start_sector & 0xFFFF)
-	mov dx, ((start_sector >> 8) & 0xFFFF)
+	MOV AX, (start_sector & 0xFFFF)
+	MOV DX, ((start_sector >> 8) & 0xFFFF)
 	
-	mov cx, sector_count
+	MOV CX, sector_count
 .loop:
-	test cx, cx
-	jz .end
+	TEST CX, CX
+	JZ .end
 	
-	cmp bx, 0x8000
-	jb .no_increment_segment
+	CMP BX, 0x8000
+	JB .no_increment_segment
 
-	sub bx, 0x8000
+	SUB BX, 0x8000
 
-	push ax
-	mov ax, es
-	add ax, 0x800
-	mov es, ax
-	pop ax
+	PUSH AX
+	MOV AX, ES
+	ADD AX, 0x800
+	MOV ES, AX
+	POP AX
 
 .no_increment_segment:
-	call read_sector
+	CALL read_sector
 
-	push ax
-	mov ah, 0x0E
-	mov al, '.'
-	int 0x10
-	pop ax
+	PUSH AX
+	MOV AH, 0x0E
+	MOV AL, '.'
+	INT 0x10
+	POP AX
 
-	add bx, 512
+	ADD BX, 512
 	
-	add ax, 1
-	adc dx, 0
+	ADD AX, 1
+	ADC DX, 0
 	
-	dec cx
-	jmp .loop
+	DEC CX
+	JMP .loop
 .end:
-	mov dl, [drive]
+	MOV DL, [drive]
 
 	;; Far jump
-	push word (start_addr >> 4)   ;; segment
-	push word (start_addr & 0x0F) ;; offset
-	retf
+	PUSH word (start_addr >> 4)   ;; SEGMENT
+	PUSH word (start_addr & 0x0F) ;; offset
+	RETF
 
-	jmp halt
+	JMP halt
 
-%include "console.asm"
-%include "disk.asm"
+%INCLUDE "console.asm"
+%INCLUDE "disk.asm"
 
-;; Display halt message and halt the computer
+;; Display halt message AND halt the computer
 halt:
-	mov si, halted_message
-	call print_string
+	MOV SI, halted_message
+	CALL print_string
 
-	cli
-	hlt
+	CLI
+	HLT
 
-halted_message: db "System halted. Please restart.", 0x0D, 0x0A, 0
+halted_message: DB "System halted. Please restart.", 0x0D, 0x0A, 0
 
-drive: db 0
-sectors_per_track: dw 0
-heads: dw 0
+drive: DB 0
+sectors_per_track: DW 0
+heads: DW 0
 
-times 440 - ($ - $$) db 0
+TIMES 440 - ($ - $$) DB 0
 ;; Boot signature
-dd __TIME__
+DD __TIME__
 
-times 510 - ($ - $$) db 0
-dw 0xAA55
+TIMES 510 - ($ - $$) DB 0
+DW 0xAA55

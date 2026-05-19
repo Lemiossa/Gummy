@@ -3,8 +3,6 @@
  * Created by Matheus Leme Da Silva
  */ 
 
-
-
 extern "C" void kmain()
 {
     unsigned char *p = (unsigned char *)0xb8000;
