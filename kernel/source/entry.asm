@@ -1,30 +1,30 @@
 ;; entry.asm
 ;; 32-bit protected mode entry point for Bitix kernel
-bits 32
+BITS 32
 
-section .text
-global _start
-extern kmain
+SECTION .text
+GLOBAL _start
+EXTERN kmain
 
 _start:
-    mov ax, 0x10
-    mov ds, ax
-    mov es, ax
-    mov fs, ax
-    mov gs, ax
-    mov ss, ax
+    MOV AX, 0x10
+    MOV DS, AX
+    MOV ES, AX
+    MOV FS, AX
+    MOV GS, AX
+    MOV SS, AX
 
-    mov esp, stack_top
+    MOV ESP, stack_top
 
-    call kmain
+    CALL kmain
 
 .hang:
-    cli
-    hlt
-    jmp .hang
+    CLI
+    HLT
+    JMP .hang
 
-section .bss
-align 16
+SECTION .bss
+ALIGN 16
 stack_bottom:
-    resb 16384
+    RESB 16384
 stack_top:

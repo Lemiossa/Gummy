@@ -9,16 +9,16 @@ BINDIR   := $(BUILDDIR)/bin
 OBJDIR   := $(BUILDDIR)/obj
 DEPDIR   := $(BUILDDIR)/dep
 
-CXX      := i686-elf-g++
-CXXFLAGS := -std=c++11 -O2 -Wall -Wextra -ffreestanding -fno-rtti -fno-exceptions -fno-stack-protector -fno-builtin -nostdlib
+CXX      := g++
+CXXFLAGS := -m32 -std=c++11 -O2 -Wall -Wextra -ffreestanding -fno-rtti -fno-exceptions -fno-stack-protector -fno-builtin -nostdlib
 
 ASM      := nasm
 ASMFLAGS := -f elf32
 
-LD       := i686-elf-ld
+LD       := ld
 LDFLAGS  := -T kernel.ld -nostdlib
 
-OBJCOPY  := i686-elf-objcopy
+OBJCOPY  := objcopy
 
 SOURCES  := entry.asm kmain.cpp
 

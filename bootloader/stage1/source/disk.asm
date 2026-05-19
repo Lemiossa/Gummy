@@ -1,70 +1,70 @@
 ;; disk.asm
 ;; Created by Matheus Leme Da Silva
-%ifndef _DISK_ASM_
-%define _DISK_ASM_
+%IFNDEF _DISK_ASM_
+%DEFINE _DISK_ASM_
 
 ;; Read a sector (DX:AX) from disk to memory (ES:BX)
 ;; DX: High LBA
 ;; AX: Low LBA
-;; ES: Segment to load
+;; ES: SEGMENT to load
 ;; BX: Offset to load
 read_sector:
-	push ax
-	push cx
-	push dx
+	PUSH AX
+	PUSH CX
+	PUSH DX
 
 	;; LBA -> CHS
 	;; C = (LBA / sectors_per_track) / heads
 	;; H = (LBA / sectors_per_track) % heads
 	;; S = (LBA % sectors_per_track) + 1
 	
-	div word [sectors_per_track]
+	DIV word [sectors_per_track]
 	;; AX = LBA / sectors_per_track
 	;; DX = LBA % sectors_per_track
-	inc dx
-	mov dh, dl
-	push dx
+	INC DX
+	MOV DH, DL
+	PUSH DX
 	
-	xor dx, dx
-	div word [heads]
+	XOR DX, DX
+	DIV word [heads]
 	;; AX = (LBA / sectors_per_track) / heads
 	;; DX = (LBA % sectors_per_track) % heads
 	
-	mov ch, al
-	shl ah, 6
-	mov cl, ah
+	MOV CH, AL
+	SHL AH, 6
+	MOV CL, AH
 	
-	pop ax
-	or cl, al
+	POP AX
+	OR CL, AL
 
-	shl dx, 8
+	SHL DX, 8
 
-	;; int13h ah=2 func
+	;; int13h AH=2 func
 	;; Parameters:
-	;; al = sector count
-	;; ch = cylinder & 0xFF 
-	;; cl = (sector & 0x3F) | ((cylinder & 0xC000) >> 13)
-	;; dh = head
-	;; dl = drive
-	;; es:bx = pointer
+	;; AL = sector count
+	;; CH = cylinder & 0xFF 
+	;; CL = (sector & 0x3F) | ((cylinder & 0xC000) >> 13)
+	;; DH = head
+	;; DL = drive
+	;; ES:BX = pointer
 
-	mov ax, 0x0201 ;; read function, 1 sector
-	mov dl, [drive]
-	int 0x13
+	MOV AX, 0x0201 ;; read function, 1 sector
+	MOV DL, [drive]
+	INT 0x13
 
-	jc int13_failed
+	JC int13_failed
 	
-	pop dx
-	pop cx
-	pop ax
-	ret
+	POP DX
+	POP CX
+	POP AX
+	RET
 
-;; Display int13 error message and halt the computer
+;; Display int13 error message AND halt the computer
 int13_failed:
-	mov si, int13_failed_message
-	call print_string
-	jmp halt
+	MOV SI, int13_failed_message
+	CALL print_string
+	JMP halt
 
-int13_failed_message: db "Int13 failed!", 0x0D, 0x0A, 0
+int13_failed_message: DB "Int13 failed!", 0x0D, 0x0A, 0
 
-%endif ;; _DISK_ASM_
+%ENDIF ;; _DISK_ASM_
