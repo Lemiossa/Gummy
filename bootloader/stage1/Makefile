@@ -1,8 +1,6 @@
 # Makefile
 # Created by Matheus Leme Da Silva
 
-MAKEFLAGS += -s --no-print-directory
-
 PROJ     ?= $(CURDIR)/../..
 BUILDDIR := $(PROJ)/build
 BINDIR   := $(BUILDDIR)/bin
@@ -19,17 +17,15 @@ rel = $(subst $(PROJ)/,,$(1))
 all: check $(TARGET)
 
 check:
-	@command -v nasm >/dev/null 2>&1 || { echo "ERROR: nasm not found. Install with: sudo apt install nasm"; exit 1; }
+	command -v nasm >/dev/null 2>&1 || { echo "ERROR: nasm not found. Install nasm and try again."; exit 1; }
 
 $(TARGET): $(INCLUDES) | dirs
-	@echo "  ASM       $(call rel,$(TARGET))"
-	@nasm -f bin -Isource $(SOURCE) -o $(TARGET) -MD $(DEP)
+	nasm -f bin -Isource $(SOURCE) -o $(TARGET) -MD $(DEP)
 
 dirs:
-	@mkdir -p $(dir $(TARGET)) $(dir $(DEP))
+	mkdir -p $(dir $(TARGET)) $(dir $(DEP))
 
 clean:
-	@echo "  RM        $(call rel,$(TARGET))"
-	@rm -f $(TARGET) $(DEP)
+	rm -f $(TARGET) $(DEP)
 
 -include $(DEP)

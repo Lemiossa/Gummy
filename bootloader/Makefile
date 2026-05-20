@@ -1,7 +1,5 @@
 # Makefile
 # Created by Matheus Leme Da Silva
-MAKEFLAGS += -s --no-print-directory
-
 PROJ     ?= $(CURDIR)/..
 BUILDDIR := $(PROJ)/build
 BINDIR   := $(BUILDDIR)/bin
@@ -19,23 +17,21 @@ export PROJ
 all: $(TARGET)
 
 $(TARGET): $(STAGE1_BIN) $(STAGE2_BIN)
-	@mkdir -p $(dir $@)
-	@echo "  CAT       $(call rel,$(TARGET))"
-	@cat $(STAGE1_BIN) $(STAGE2_BIN) > $@
+	mkdir -p $(dir $@)
+	cat $(STAGE1_BIN) $(STAGE2_BIN) > $@
 
 $(STAGE1_BIN): FORCE
-	@$(MAKE) -C stage1 TARGET=$@
+	$(MAKE) -C stage1 TARGET=$@
 
 FORCE:
 
 $(STAGE2_BIN): FORCE
-	@$(MAKE) -C stage2 TARGET=$@
+	$(MAKE) -C stage2 TARGET=$@
 
 clean:
-	@$(MAKE) -C stage1 clean
-	@$(MAKE) -C stage2 clean
-	@echo "  RM        $(call rel,$(TARGET))"
-	@rm -f $(TARGET)
+	$(MAKE) -C stage1 clean
+	$(MAKE) -C stage2 clean
+	rm -f $(TARGET)
 
 stage1: $(STAGE1_BIN)
 
