@@ -7,16 +7,14 @@ BINDIR   := $(BUILDDIR)/bin
 OBJDIR   := $(BUILDDIR)/obj
 DEPDIR   := $(BUILDDIR)/dep
 
-CC      := gcc
-CCFLAGS := -m32 -std=c99 -O2 -Wall -Wextra -ffreestanding -fno-stack-protector -fno-builtin -nostdlib
-
 ASM      := nasm
+CC       := i686-elf-gcc
+LD       := i686-elf-ld
+OBJCOPY  := i686-elf-objcopy
+
+CCFLAGS := -m32 -std=c99 -O2 -Wall -Wextra -ffreestanding -fno-stack-protector -fno-builtin -nostdlib
 ASMFLAGS := -f elf32
-
-LD       := ld
 LDFLAGS  := -T kernel.ld -nostdlib
-
-OBJCOPY  := objcopy
 
 SOURCES  := entry.asm kmain.c
 
