@@ -9,25 +9,42 @@ main:
     MOV DS, AX
     MOV ES, AX
     MOV SS, AX
-    MOV SP, 0x7E00
+    MOV SP, 0x7C00
     STI
 
     CALL disk_init
 
     MOV SI, start_message
-    CALL print_string
+    CALL console_print_string
 
+    XOR DX, DX
+    MOV AX, DX
+    MOV BX, 0x500
+    CALL disk_read_sector
+    JNC .ok
+    MOV SI, disk_error_message
+    CALL console_print_string
+    JMP halt
+.ok:
+
+    MOV CX, 512
+    MOV SI, 0x500
+.loop:
+    LODSB
+    CALL console_print_byte
+    LOOP .loop
 
 ;; Halts the system
 halt:
     MOV SI, halted_message
-    CALL print_string
+    CALL console_print_string
     CLI
     HLT
 
 %INCLUDE "console.asm"
 %INCLUDE "disk.asm"
 
-start_message:  DB `\r\nBitix Bootloader\r\n`, 0
-halted_message: DB `System is halted! Please, reboot.\r\n`, 0
+start_message:      DB `\r\nBitix Bootloader\r\n`, 0
+disk_error_message: DB `Disk error!\r\n`, 0
+halted_message:     DB `System is halted! Please, reboot.\r\n`, 0
 
