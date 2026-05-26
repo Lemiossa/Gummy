@@ -16,10 +16,8 @@ disk_init:
     JC .error
     MOV BYTE [sectors_per_track], CL
     MOV BYTE [heads], DH
-
     MOV BYTE [sectors_per_track+1], 0
     MOV BYTE [heads+1], 0
-
 .end:
     CLC
     JMP .ret
@@ -38,12 +36,10 @@ disk_init:
 ;; CF=1 if an error occours
 disk_get_parameters:
     PUSH AX
-    PUSH DX
     MOV AH, 0x08
     INT 0x13
     INC DH
     AND CL, 0x3F
-    POP DX
     POP AX
     RET
 
@@ -73,8 +69,8 @@ disk_lba_to_chs:
     DIV WORD [heads]
     ;; AX = Cylinder
     ;; DX = Head
-    XOR DH, DH
-    XCHG DH, DL
+    MOV DH, DL
+    XOR DL, DL
 
     MOV CX, BP
     MOV CH, AL
@@ -84,6 +80,35 @@ disk_lba_to_chs:
 
     POP AX
     POP BP
+    RET
+
+;; Reads disk sector
+;; DX:AX: Sector
+;; ES:BX: Buffer
+;; Returns:
+;; CF=1 if an error occours
+disk_read_sector:
+    PUSH AX
+    PUSH BX
+    PUSH CX
+    PUSH DX
+    PUSH ES
+    CALL disk_lba_to_chs
+    MOV AX, 0x0201
+    MOV DL, [drive]
+    INT 0x13
+    JC .error
+.end:
+    CLC
+    JMP .ret
+.error:
+    STC
+.ret:
+    POP ES
+    POP DX
+    POP CX
+    POP BX
+    POP AX
     RET
 
 drive:             DB 0
