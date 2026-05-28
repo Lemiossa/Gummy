@@ -17,23 +17,6 @@ main:
     MOV SI, start_message
     CALL console_print_string
 
-    XOR DX, DX
-    MOV AX, DX
-    MOV BX, 0x500
-    CALL disk_read_sector
-    JNC .ok
-    MOV SI, disk_error_message
-    CALL console_print_string
-    JMP halt
-.ok:
-
-    MOV CX, 512
-    MOV SI, 0x500
-.loop:
-    LODSB
-    CALL console_print_byte
-    LOOP .loop
-
 ;; Halts the system
 halt:
     MOV SI, halted_message
