@@ -97,30 +97,19 @@ fat_init:
     ;; AX = fat_bpb.total_sectors - (fat_bpb.reserved_secotrs + ((fat_bpb.num_fat_tables * fat_bpb.sectors_per_fat) + root_dir_sectors))
     ;; AX = data_sectors
     MOV WORD[fat_data_sectors], AX
-
     ;; total_clusters = data_sectors / fat_bpb.sectors_per_cluster
     XOR DX, DX
     MOV BX, WORD[ES:0x500+fat_bpb.sectors_per_cluster]
     DIV BX
     ;; AX = total_clusters
-
     ;; If total_clusters < 4085: FAT12
     ;; If total_clusters < 65525: FAT16
     CMP AX, 4085
     JB .fat12
-    MOV AH, 0x0E
-    MOV AL, '1'
-    INT 0x10
-    MOV AL, '6'
-    INT 0x10
+    MOV BYTE[fat_type], 16
     JMP .end
 .fat12:
-    MOV AH, 0x0E
-    MOV AL, '1'
-    INT 0x10
-    MOV AL, '2'
-    INT 0x10
-
+    MOV BYTE[fat_type], 12
 .end:
     CLC
     JMP .ret
