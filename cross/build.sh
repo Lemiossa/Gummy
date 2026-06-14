@@ -64,7 +64,7 @@ if [ ! -x $SCRIPT_DIR/install/bin/i686-elf-ld ]; then
 fi
 
 if [ ! -x $SCRIPT_DIR/install/bin/i686-elf-gcc ]; then
-        cd "$SCRIPT_DIR/gcc"
+        cd "$SCRIPT_DIR/build/gcc"
         "$GCC_DIR/configure" --target="$TARGET" --prefix="$PREFIX" --disable-nls --enable-languages=c --without-headers
         make all-gcc -j$(nproc)
         make all-target-libgcc -j$(nproc)
