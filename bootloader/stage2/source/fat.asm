@@ -23,9 +23,63 @@ STRUC fat_bpb
 ENDSTRUC
 
 ;; Get next cluster in FAT12
-fat_next_cluster:
+;; AX: Cluster
+;; Return:
+;; AX: Cluster
+;; CF=1 if an error occours
+fat12_next_cluster:
+    PUSH BX
+    PUSH CX
+    PUSH DX
+    PUSH DI
+    ;; fat_offset = cluster + (cluster / 2)
+    ;; fat_sector = fat_first_fat_sector + (fat_offset / 512)
+    ;; ent_offset = fat_offset % 512
+    XOR DX, DX
+    MOV BX, AX
+    MOV DI, AX
+    MOV CX, 2
+    DIV CX
+    ;; AX = cluster / 2
+    ADD AX, BX
+    ;; AX = fat_offset
+    XOR DX, DX
+    MOV BX, 512
+    DIV BX
+    ;; AX = fat_offset / 512
+    ;; DX = ent_offset
+    ADD AX, WORD[fat_first_fat_sector]
+    ;; AX = fat_sector
+    ;; DX = ent_offset
+    MOV CX, DX
+    XOR DX, DX
+    MOV BX, temp_sector_buffer
+    CALL disk_read_sector
+    ADD AX, 1
+    ADC DX, 0
+    ADD BX, 512
+    CALL disk_read_sector
+    SUB BX, 512
+    JC .error
+    ADD BX, CX
+    MOV AX, WORD[ES:BX]
+    TEST DI, 1
+    JZ .zero
+    SHR AX, 4
+    JMP .end
+.zero:
+    AND AX, 0xFFF
+.end:
+    CLC
+    JMP .ret
+.error:
+    STC
+.ret:
+    POP DI
+    POP DX
+    POP CX
+    POP BX
     RET
-
 
 ;; Initializes FAT system
 ;; AX: First sector of part
@@ -37,26 +91,21 @@ fat_init:
     PUSH CX
     PUSH DX
     PUSH ES
-
     MOV WORD[fat_first_sector], AX
     XOR DX, DX
-
     XOR BX, BX
     MOV ES, BX
     MOV BX, 0x500
     CALL disk_read_sector
     CMP WORD[ES:0x500+510], 0xAA55
     JNE .error
-
     ;; Verify if is FAT32
     CMP WORD[ES:0x500+fat_bpb.sectors_per_fat], 0
     JE .error
-
     ;; Verify if bytes per sector is 512
     MOV AX, WORD[ES:0x500+fat_bpb.bytes_per_sector]
     CMP AX, 512
     JNE .error
-
     ;; All informations in: https://wiki.osdev.org/FAT#Programming_Guide
     ;; root_dir_sectors = ((fat_bpb.root_dir_entries * 32) + 511) / 512;
     MOV AX, WORD[ES:0x500+fat_bpb.root_dir_entries]
@@ -81,6 +130,9 @@ fat_init:
     ADD AX, CX
     ;; DX:AX = first_part_sector + fat_bpb.reserved_sectors + root_dir_sectors + (fat_bpb.num_fat_tables * fat_bpb.sectors_per_fat)
     MOV WORD[fat_first_data_sector], AX
+    ;; fisrt_fat_sector = fat_bpb.reserved_sectors
+    MOV AX, WORD[fat_first_sector]
+    ADD AX, WORD[ES:0x500+fat_bpb.reserved_sectors]
     ;; data_sectors = fat_bpb.total_sectors - (fat_bpb.reserved_sectors + (fat_bpb.num_fat_tables * fat_bpb.sectors_per_fat) + root_dir_sectors)
     XOR AH, AH
     MOV AL, BYTE[ES:0x500+fat_bpb.num_fat_tables]
@@ -130,5 +182,7 @@ fat_first_data_sector:    DW 0
 fat_first_fat_sector:     DW 0
 fat_first_root_dir_sector:DW 0
 fat_first_sector:         DW 0
+
+temp_sector_buffer: TIMES 512 * 2 DB 0
 
 %ENDIF ;; FAT_ASM
