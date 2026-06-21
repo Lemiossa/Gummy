@@ -1,4 +1,4 @@
-# Bitix
+# Gummy
 
 A simple hobby operating system for x86 architecture.
 

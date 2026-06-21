@@ -7,7 +7,7 @@ BINDIR   := $(BUILDDIR)/bin
 IMGDIR   := $(BUILDDIR)/images
 IMGROOT  := $(BUILDDIR)/imgroot
 
-IMAGE      := $(IMGDIR)/Bitix.img
+IMAGE      := $(IMGDIR)/Gummy.img
 BOOTLOADER := $(BINDIR)/bootloader.bin
 KERNEL     := $(BINDIR)/kernel.bin
 PATH       := $(CURDIR)/cross/install/bin:/sbin:/usr/sbin:$(PATH)
@@ -51,7 +51,7 @@ $(IMAGE): $(BOOTLOADER) $(KERNEL)
 	mkdir -p $(IMGROOT)/system
 	cp $(KERNEL) $(IMGROOT)/system/kernel.sys
 	dd if=/dev/zero of=$(IMAGE) bs=1K count=1440 status=none
-	mkfs.fat --mbr=y -F 12 -n BITIX -R 64 $(IMAGE)
+	mkfs.fat --mbr=y -F 12 -n GUMMY -R 64 $(IMAGE)
 	mcopy -i $(IMAGE) -s $(IMGROOT)/* ::
 	dd if=$(BOOTLOADER) of=$(IMAGE) bs=1 count=3 conv=notrunc status=none
 	dd if=$(BOOTLOADER) of=$(IMAGE) bs=1 skip=62 seek=62 count=386 conv=notrunc status=none
