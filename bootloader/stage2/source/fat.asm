@@ -35,11 +35,9 @@ fat12_next_cluster:
     ;; fat_offset = cluster + (cluster / 2)
     ;; fat_sector = fat_first_fat_sector + (fat_offset / 512)
     ;; ent_offset = fat_offset % 512
-    XOR DX, DX
     MOV BX, AX
     MOV DI, AX
-    MOV CX, 2
-    DIV CX
+    SHR AX, 1 ;; Divide by 2
     ;; AX = cluster / 2
     ADD AX, BX
     ;; AX = fat_offset
