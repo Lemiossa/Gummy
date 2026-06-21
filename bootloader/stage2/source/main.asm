@@ -42,7 +42,7 @@ halt:
 %INCLUDE "disk.asm"
 %INCLUDE "fat.asm"
 
-start_message:      DB `\r\nBitix Bootloader\r\n`, 0
+start_message:      DB `\r\nGummy Bootloader\r\n`, 0
 disk_error_message: DB `Disk error!\r\n`, 0
 fat_error_message:  DB `FAT error!\r\n`, 0
 halted_message:     DB `System is halted! Please, reboot.\r\n`, 0

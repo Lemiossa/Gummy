@@ -1,5 +1,5 @@
 ;; entry.asm
-;; 32-bit protected mode entry point for Bitix kernel
+;; 32-bit protected mode entry point for Gummy kernel
 BITS 32
 
 SECTION .text
