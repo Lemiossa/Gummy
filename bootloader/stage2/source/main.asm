@@ -22,8 +22,6 @@ main:
     MOV SI, start_message
     CALL console_print_string
 
-    XOR AX, AX
-    MOV DX, AX
     CALL fat_init
     JNC .fat_ok
     MOV SI, fat_error_message
