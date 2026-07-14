@@ -39,7 +39,7 @@ fat_init:
     CALL disk_read_sector
     CMP WORD[ES:0x500+510], 0xAA55
     JNE .error
-    ;; Verify if is FAT32
+    ;; Reject FAT32
     CMP WORD[ES:0x500+fat_bpb.sectors_per_fat], 0
     JE .error
     ;; Verify if bytes per sector is 512
@@ -69,6 +69,9 @@ fat_init:
     ADD AX, CX
     ;; DX:AX = first_part_sector + fat_bpb.reserved_sectors + root_dir_sectors + (fat_bpb.num_fat_tables * fat_bpb.sectors_per_fat)
     MOV WORD[fat_first_data_sector], AX
+    ;; fat_first_root_dir_sector = fat_first_data_sector - fat_root_dir_sectors
+    SUB AX, WORD[fat_root_dir_sectors]
+    MOV WORD[fat_first_root_dir_sector], AX
     ;; first_fat_sector = fat_bpb.reserved_sectors
     MOV AX, WORD[ES:0x500+fat_bpb.reserved_sectors]
     MOV WORD[fat_first_fat_sector], AX
@@ -189,7 +192,7 @@ fat_read_root_dir:
     ;; sector = root_dir_sector + (byte_pos / 512)
     ;; offset = byte_pos % 512
     MOV BX, 32
-    MUL AX
+    MUL BX
     ;; DX:AX = index * 32
     MOV BX, 512
     DIV BX
@@ -200,6 +203,9 @@ fat_read_root_dir:
     ;; DX = offset
     MOV SI, DX
     XOR DX, DX
+    MOV DS, DX
+    ADD SI, 0x700
+    MOV BX, 0x700
     CALL disk_read_sector
     ;; Copy the entry
     MOV CX, 32
