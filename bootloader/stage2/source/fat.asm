@@ -148,6 +148,7 @@ fat12_next_cluster:
     XOR DX, DX
     MOV BX, temp_sector_buffer
     CALL disk_read_sector
+    JC .error
     ADD AX, 1
     ADC DX, 0
     ADD BX, 512
