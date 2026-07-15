@@ -305,6 +305,29 @@ fat_read_root_dir:
     POP AX
     RET
 
+;; Converts Cluster to LBA
+;; AX: Cluster
+;; Returns:
+;; DX:AX: LBA
+fat_cluster_to_lba:
+    PUSH BX
+    PUSH ES
+    ;; LBA = ((cluster - 2) * fat_bpb.sectors_per_cluster) + fat_first_data_sector
+    SUB AX, 2
+    ;; AX = cluster - 2
+    XOR BX, BX
+    MOV ES, BX
+    MOV BL, BYTE [ES:0x500+fat_bpb.sectors_per_cluster]
+    MUL BX
+    ;; DX:AX = (cluster - 2) * fat_bpb.sectors_per_cluster
+    ADD AX, WORD [fat_first_data_sector]
+    ADC DX, 0
+    ;; DX:AX = LBA
+    POP ES
+    POP BX
+    RET
+
+
 ;; Read fat file
 ;; DS:SI: Entry
 ;; ES:DI: Output
