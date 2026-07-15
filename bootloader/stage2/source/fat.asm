@@ -231,6 +231,27 @@ fat16_next_cluster:
     POP BX
     RET
 
+;; Get next cluster
+;; AX: Cluster
+;; Return:
+;; AX: Cluster
+;; CF=1 if an error occours
+fat_next_cluster:
+    CMP BYTE[fat_type], 12
+    JE .fat12
+    CMP BYTE[fat_type], 16
+    JNE .error
+    CALL fat16_next_cluster
+.fat12:
+    CALL fat12_next_cluster
+.end:
+    CLC
+    JMP .ret
+.error:
+    STC
+.ret:
+    RET
+
 ;; Read an root dir entry
 ;; AX: entry index
 ;; ES:DI: Pointer to data
