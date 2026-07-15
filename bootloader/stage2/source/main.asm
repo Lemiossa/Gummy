@@ -29,23 +29,6 @@ main:
     JMP halt
 .fat_ok:
 
-    XOR AX, AX
-    MOV DI, entry
-    CALL fat_read_root_dir
-    JNC .read_ok
-    MOV SI, fat_error_message
-    CALL console_print_string
-    JMP halt
-.read_ok:
-    
-    MOV CX, 11
-    MOV AH, 0x0E
-    MOV SI, entry
-print_char:
-    LODSB
-    INT 0x10
-    LOOP print_char
-
 ;; Halts the system
 halt:
     MOV SI, halted_message
