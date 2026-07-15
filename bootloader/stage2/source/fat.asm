@@ -22,6 +22,22 @@ STRUC fat_bpb
     .total_sectors32:     RESD 1
 ENDSTRUC
 
+STRUC fat_entry
+    .name:                RESB 11
+    .attr:                RESB 1
+    .res0:                RESB 1
+    .time_hundredths:     RESB 1
+    .ctime:               RESW 1
+    .cdate:               RESW 1
+    .adate:               RESW 1
+    .cluster_hi:          RESW 1
+    .mtime:               RESW 1
+    .mdate:               RESW 1
+    .cluster_lo:          RESW 1
+    .file_size_lo:        RESW 1
+    .file_size_hi:        RESW 1
+ENDSTRUC
+
 ;; Initializes FAT system
 ;; Returns: 
 ;; CF=1 if an error occours
@@ -175,6 +191,46 @@ fat12_next_cluster:
     POP BX
     RET
 
+;; Get next cluster in FAT16
+;; AX: Cluster
+;; Return:
+;; AX: Cluster
+;; CF=1 if an error occours
+fat16_next_cluster:
+    PUSH BX
+    PUSH CX
+    PUSH DX
+    ;; fat_offset = cluster * 2
+    ;; fat_sector = fat_first_fat_sector + (fat_offset / 512)
+    ;; ent_offset = fat_offset % 512
+    SHL AX, 1 ;; Multiply by 2
+    ;; AX = fat_offset
+    XOR DX, DX
+    MOV BX, 512
+    DIV BX
+    ;; AX = fat_offset / 512
+    ;; DX = ent_offset
+    ADD AX, WORD[fat_first_fat_sector]
+    ;; AX = fat_sector
+    ;; DX = ent_offset
+    MOV CX, DX
+    XOR DX, DX
+    MOV BX, temp_sector_buffer
+    CALL disk_read_sector
+    JC .error
+    ADD BX, CX
+    MOV AX, WORD[ES:BX]
+.end:
+    CLC
+    JMP .ret
+.error:
+    STC
+.ret:
+    POP DX
+    POP CX
+    POP BX
+    RET
+
 ;; Read an root dir entry
 ;; AX: entry index
 ;; ES:DI: Pointer to data
@@ -205,8 +261,8 @@ fat_read_root_dir:
     MOV SI, DX
     XOR DX, DX
     MOV DS, DX
-    ADD SI, 0x700
-    MOV BX, 0x700
+    ADD SI, temp_sector_buffer
+    MOV BX, temp_sector_buffer
     CALL disk_read_sector
     ;; Copy the entry
     MOV CX, 32
@@ -226,6 +282,13 @@ fat_read_root_dir:
     POP CX
     POP BX
     POP AX
+    RET
+
+;; Read fat file
+;; DS:SI: Entry
+;; ES:DI: Output
+fat_read_file:
+    
     RET
 
 fat_type:                 DB 0
