@@ -242,6 +242,7 @@ fat_next_cluster:
     CMP BYTE[fat_type], 16
     JNE .error
     CALL fat16_next_cluster
+    JMP .end
 .fat12:
     CALL fat12_next_cluster
 .end:
