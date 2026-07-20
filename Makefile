@@ -10,7 +10,7 @@ IMGROOT  := $(BUILDDIR)/imgroot
 IMAGE      := $(IMGDIR)/Gummy.img
 BOOTLOADER := $(BINDIR)/bootloader.bin
 KERNEL     := $(BINDIR)/kernel.bin
-PATH       := $(CURDIR)/cross/install/bin:/sbin:/usr/sbin:$(PATH)
+PATH       := /sbin:/usr/sbin:$(PATH)
 
 define check_tool
 	command -v $(1) >/dev/null 2>&1 || { echo "ERROR: $(1) not found. Install it and try again."; exit 1; }
@@ -24,12 +24,9 @@ QEMUFLAGS := \
 
 export PROJ
 
-.PHONY: all build-cross bootloader clean clean-cross qemu qemu-ng
+.PHONY: all bootloader clean qemu qemu-ng
 
-all: build-cross $(IMAGE)
-
-build-cross:
-	sh $(CURDIR)/cross/build.sh
+all: $(IMAGE)
 
 $(BOOTLOADER): FORCE
 	$(MAKE) -C bootloader
@@ -60,9 +57,6 @@ $(IMAGE): $(BOOTLOADER) $(KERNEL)
 clean:
 	$(MAKE) -C bootloader clean
 	rm -rf $(BUILDDIR)
-
-clean-cross:
-	sh $(CURDIR)/cross/clean.sh
 
 qemu: $(IMAGE)
 	$(call check_tool,qemu-system-i386)

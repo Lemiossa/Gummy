@@ -8,11 +8,11 @@ OBJDIR   := $(BUILDDIR)/obj
 DEPDIR   := $(BUILDDIR)/dep
 
 ASM      := nasm
-CC       := i686-elf-gcc
-LD       := i686-elf-ld
-OBJCOPY  := i686-elf-objcopy
+CC       := clang
+LD       := ld.lld
+OBJCOPY  := llvm-objcopy
 
-CCFLAGS := -m32 -std=c99 -O2 -Wall -Wextra -ffreestanding -fno-stack-protector -fno-builtin -nostdlib
+CCFLAGS := -target i686-pn-none-elf -m32 -std=c99 -O2 -Wall -Wextra -ffreestanding -fno-stack-protector -fno-builtin -nostdlib
 ASMFLAGS := -f elf32
 LDFLAGS  := -T kernel.ld -nostdlib
 
