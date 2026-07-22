@@ -328,12 +328,91 @@ fat_cluster_to_lba:
     POP BX
     RET
 
+;; Return CF=1 if cluster is EOF
+;; AX: Cluster
+fat_cluster_is_eof: 
+    CMP BYTE[fat_type], 12
+    JE .fat12
+    CMP BYTE[fat_type], 16
+    JNE .eof
+    CMP AX, 0xFFF8
+    JAE .eof
+    JMP .neof
+.fat12:
+    CMP AX, 0x0FF8
+    JAE .eof
+.neof:
+    CLC
+    JMP .ret
+.eof:
+    STC
+.ret:
+    RET
 
-;; Read fat file
+;; Reads a fat file
 ;; DS:SI: Entry
-;; ES:DI: Output
+;; ES:BX: Output
+;; Returns:
+;; CF=1 if an error occours
 fat_read_file:
-    
+    PUSH AX
+    PUSH BX
+    PUSH CX
+    PUSH DX
+    PUSH SI
+    PUSH DI
+    ;; Reject !archive
+    TEST WORD[SI+fat_entry.attr], 0x20
+    JZ .error
+    MOV AX, WORD[SI+fat_entry.cluster_lo]
+    CMP AX, 2
+    JB .error
+.loop:
+    CALL fat_cluster_is_eof
+    JC .end
+    ;; AX = cluster
+    MOV DI, AX
+    CALL fat_cluster_to_lba 
+    PUSH ES
+    XOR CX, CX
+    MOV ES, CX
+    MOV CX, WORD[ES:0x500+fat_bpb.sectors_per_cluster]
+    POP ES
+.read:
+    CMP BX, 0x8000
+    JB .no_inc_seg
+    ;; If (bx >= 0x8000) 
+    ;; {
+    ;;   bx -= 0x8000;
+    ;;   es += 0x800;
+    ;; }
+    SUB BX, 0x8000
+    PUSH AX
+    MOV AX, ES
+    ADD AX, 0x800
+    MOV ES, AX
+    POP AX
+.no_inc_seg:
+    CALL disk_read_sector
+    JC .error
+    ADD BX, 512
+    ADD AX, 1
+    ADC DX, 0
+    LOOP .read
+    MOV AX, DI
+    JMP .loop
+.end:
+    CLC
+    JMP .ret
+.error:
+    STC
+.ret:
+    POP DI
+    POP SI
+    POP DX
+    POP CX
+    POP BX
+    POP AX
     RET
 
 fat_type:                 DB 0
