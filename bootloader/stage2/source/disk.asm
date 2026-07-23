@@ -16,8 +16,10 @@ disk_init:
     JC .error
     MOV BYTE [sectors_per_track], CL
     MOV BYTE [heads], DH
-    MOV BYTE [sectors_per_track+1], 0
-    MOV BYTE [heads+1], 0
+    TEST CL, CL
+    JZ .error
+    TEST DH, DH
+    JZ .error
 .end:
     CLC
     JMP .ret
@@ -38,8 +40,15 @@ disk_get_parameters:
     PUSH AX
     MOV AH, 0x08
     INT 0x13
+    JC .error
     INC DH
     AND CL, 0x3F
+.end:
+    CLC
+    JMP .ret
+.error:
+    STC
+.ret:
     POP AX
     RET
 
@@ -92,11 +101,20 @@ disk_read_sector:
     PUSH BX
     PUSH CX
     PUSH DX
+    PUSH SI
     PUSH ES
     CALL disk_lba_to_chs
-    MOV AX, 0x0201
+    MOV SI, 3
+.read_loop:
     MOV DL, [drive]
+    MOV AX, 0x0201
     INT 0x13
+    JNC .end
+    MOV DL, [drive]
+    XOR AH, AH
+    INT 0x13
+    DEC SI
+    JNZ .read_loop
     JC .error
 .end:
     CLC
@@ -105,6 +123,7 @@ disk_read_sector:
     STC
 .ret:
     POP ES
+    POP SI
     POP DX
     POP CX
     POP BX
