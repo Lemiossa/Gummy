@@ -45,8 +45,8 @@ $(IMAGE): $(BOOTLOADER) $(KERNEL)
 	$(call check_tool,mcopy)
 	$(call check_tool,dd)
 	mkdir -p $(dir $@)
-	mkdir -p $(IMGROOT)/system
-	cp $(KERNEL) $(IMGROOT)/system/kernel.sys
+	mkdir -p $(IMGROOT)
+	cp $(KERNEL) $(IMGROOT)/kernel.sys
 	dd if=/dev/zero of=$(IMAGE) bs=1K count=1440 status=none
 	mkfs.fat --mbr=y -F 12 -n GUMMY -R 64 $(IMAGE)
 	mcopy -i $(IMAGE) -s $(IMGROOT)/* ::
