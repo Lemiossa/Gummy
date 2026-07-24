@@ -1,22 +1,25 @@
 # Makefile
 # Created by Matheus Leme Da Silva
 
-PROJ     ?= $(CURDIR)/..
-BUILDDIR := $(PROJ)/build
-BINDIR   := $(BUILDDIR)/bin
-OBJDIR   := $(BUILDDIR)/obj
-DEPDIR   := $(BUILDDIR)/dep
+PROJ        ?= $(CURDIR)/..
+BUILDDIR    := $(PROJ)/build
+BINDIR      := $(BUILDDIR)/bin
+OBJDIR      := $(BUILDDIR)/obj
+DEPDIR      := $(BUILDDIR)/dep
 
 ASM      := nasm
 CC       := clang
 LD       := ld.lld
 OBJCOPY  := llvm-objcopy
 
-CCFLAGS := -target i686-pn-none-elf -m32 -std=c99 -O2 -Wall -Wextra -ffreestanding -fno-stack-protector -fno-builtin -nostdlib
+CFLAGS   := -target i686-pn-none-elf -m32 -std=c99 -O2 -Wall -Wextra \
+		   -ffreestanding -fno-stack-protector -fno-builtin -nostdlib
+CPPFLAGS := -I$(PROJ)/include -I$(PROJ)/kernel/include
 ASMFLAGS := -f elf32
 LDFLAGS  := -T kernel.ld -nostdlib
+LDLIBS   :=
 
-SOURCES  := entry.asm kmain.c
+SOURCES  := entry.asm kmain.c terminal.c
 
 OBJS     := $(addprefix $(OBJDIR)/, $(addsuffix .o, $(basename $(SOURCES))))
 TARGET_ELF := $(BINDIR)/kernel.elf
@@ -34,11 +37,11 @@ $(OBJDIR)/%.o: source/%.asm
 
 $(OBJDIR)/%.o: source/%.c
 	mkdir -p $(dir $@)
-	$(CC) $(CCFLAGS) -c -o $@ $<
+	$(CC) $(CPPFLAGS) $(CFLAGS) -c -o $@ $< 
 
 $(TARGET_ELF): $(OBJS) kernel.ld
 	mkdir -p $(dir $@)
-	$(LD) $(LDFLAGS) -o $@ $(OBJS)
+	$(LD) $(LDFLAGS) -o $@ $(OBJS) $(LDLIBS)
 
 $(TARGET_BIN): $(TARGET_ELF)
 	mkdir -p $(dir $@)
