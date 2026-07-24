@@ -8,7 +8,7 @@
 void kmain()
 {
     terminal_init();
-    terminal_print_string("Hello World");
+    terminal_print_string("Hello World\r\n");
 
     while (1);
 }

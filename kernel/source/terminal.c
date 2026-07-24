@@ -3,25 +3,11 @@
  * Created by Matheus Leme da Silva
  * */
 #include <types.h>
+#include <vga.h>
 #include <terminal.h>
 
 uint16_t cursor_x, cursor_y;
 uint8_t current_color = 0x07;
-volatile uint16_t *vga = (uint16_t *)0xB8000;
-
-// Draws a cell in the specified position
-void terminal_draw_cell(uint8_t c, uint8_t color, uint16_t x, uint16_t y)
-{
-    uint16_t pos = y * TERMINAL_WIDTH + x;
-    vga[pos] = (color << 8) | c;
-}
-
-// Peeks achar in the specified position
-uint16_t terminal_peek_cell(uint16_t x, uint16_t y)
-{
-    uint16_t pos = y * TERMINAL_WIDTH + x;
-    return vga[pos];
-}
 
 // Scrolls up one line in the terminal
 void terminal_scroll_up(void)
@@ -30,15 +16,14 @@ void terminal_scroll_up(void)
     {
         for (uint16_t x = 0; x < TERMINAL_WIDTH; x++)
         {
-            uint16_t cell = terminal_peek_cell(x, y);
-            uint8_t ch = cell & 0xFF;
-            uint8_t color = (cell >> 8) & 0xFF;
-            terminal_draw_cell(ch, color, x, y - 1);
+            VgaCell cell = vga_peek_cell(x, y);
+            vga_draw_cell(cell, x, y - 1);
         }
     }
 
+    VgaCell space_cell = {' ', current_color};
     for (uint16_t x = 0; x < TERMINAL_WIDTH; x++)
-        terminal_draw_cell(' ', current_color, x, TERMINAL_HEIGHT - 1);
+        vga_draw_cell(space_cell, x, TERMINAL_HEIGHT - 1);
 }
 
 // Prints a char in the terminal and updates cursor position.
@@ -49,7 +34,10 @@ void terminal_putchar(char c)
     else if (c == '\r')
         cursor_x = 0;
     else
-        terminal_draw_cell(c, current_color, cursor_x++, cursor_y);
+    {
+        VgaCell cell = {c, current_color};
+        vga_draw_cell(cell, cursor_x++, cursor_y);
+    }
     
     if (cursor_x >= TERMINAL_WIDTH)
     {
@@ -63,6 +51,8 @@ void terminal_putchar(char c)
         cursor_x = TERMINAL_HEIGHT - 1;
         cursor_y--;
     }
+
+    vga_update_cursor(cursor_x, cursor_y);
 }
 
 // Prints a string on the terminal
@@ -78,8 +68,11 @@ void terminal_init(void)
     cursor_x = 0;
     cursor_y = 0;
 
+    VgaCell space_cell = {' ', current_color};
     for (uint16_t y = 0; y < TERMINAL_HEIGHT; y++)
         for (uint16_t x = 0; x < TERMINAL_WIDTH; x++)
-            terminal_draw_cell(' ', 0x07, x, y);
+            vga_draw_cell(space_cell, x, y);
+
+    vga_update_cursor(cursor_x, cursor_y);
 }
 

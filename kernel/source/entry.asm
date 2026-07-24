@@ -1,5 +1,5 @@
 ;; entry.asm
-;; 32-bit protected mode entry point for Gummy kernel
+;; Created by Matheus Leme da Silva
 BITS 32
 
 SECTION .text

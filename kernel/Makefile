@@ -19,7 +19,7 @@ ASMFLAGS := -f elf32
 LDFLAGS  := -T kernel.ld -nostdlib
 LDLIBS   :=
 
-SOURCES  := entry.asm kmain.c terminal.c
+SOURCES  := entry.asm io.asm kmain.c vga.c terminal.c
 
 OBJS     := $(addprefix $(OBJDIR)/, $(addsuffix .o, $(basename $(SOURCES))))
 TARGET_ELF := $(BINDIR)/kernel.elf
