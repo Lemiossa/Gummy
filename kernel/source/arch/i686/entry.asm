@@ -13,8 +13,7 @@ _start:
     MOV FS, AX
     MOV GS, AX
     MOV SS, AX
-
-    MOV ESP, stack_top
+    MOV ESP, 0x7C00
 
     CALL kmain
 
@@ -22,9 +21,3 @@ _start:
     CLI
     HLT
     JMP .hang
-
-SECTION .bss
-ALIGN 16
-stack_bottom:
-    RESB 16384
-stack_top:

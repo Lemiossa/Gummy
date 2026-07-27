@@ -1,45 +1,61 @@
 # Makefile
 # Created by Matheus Leme Da Silva
 
+ARCH        ?= i686
 PROJ        ?= $(CURDIR)/..
-BUILDDIR    := $(PROJ)/build
+BUILDDIR    := $(CURDIR)/build
 BINDIR      := $(BUILDDIR)/bin
 OBJDIR      := $(BUILDDIR)/obj
 DEPDIR      := $(BUILDDIR)/dep
+SOURCEDIR   := $(CURDIR)/source
+ARCHDIR     := $(SOURCEDIR)/arch/$(ARCH)
 
 ASM      := nasm
 CC       := clang
 LD       := ld.lld
 OBJCOPY  := llvm-objcopy
 
-CFLAGS   := -target i686-pn-none-elf -m32 -std=c99 -O2 -Wall -Wextra \
-		   -ffreestanding -fno-stack-protector -fno-builtin -nostdlib
-CPPFLAGS := -I$(PROJ)/include -I$(PROJ)/kernel/include
+LINKER_FILE := $(ARCHDIR)/link.ld
+CFLAGS   := -target $(ARCH)-pn-none-elf -m32 -std=c99 -O0 -g -Wall -Wextra \
+			-ffreestanding -fno-stack-protector -fno-builtin -nostdlib \
+			-nostdinc -fno-omit-frame-pointer -fno-strict-aliasing \
+			-fno-pic -fno-pie -fdata-sections -ffunction-sections
+CPPFLAGS := -I$(PROJ)/include -I$(CURDIR)/include \
+			-I$(CURDIR)/include/arch/$(ARCH) -DVERSION=\"$(VERSION)\"
 ASMFLAGS := -f elf32
-LDFLAGS  := -T kernel.ld -nostdlib
+LDFLAGS  := -T $(LINKER_FILE) -static -nostdlib --gc-sections
 LDLIBS   :=
 
-SOURCES  := entry.asm io.asm kmain.c vga.c terminal.c
+SOURCE  := \
+			$(ARCHDIR)/entry.asm \
+			$(ARCHDIR)/gdt.asm \
+			$(SOURCEDIR)/io.asm \
+			$(SOURCEDIR)/kmain.c \
+			$(ARCHDIR)/gdt.c \
+			$(SOURCEDIR)/vga.c \
+			$(SOURCEDIR)/terminal.c
 
-OBJS     := $(addprefix $(OBJDIR)/, $(addsuffix .o, $(basename $(SOURCES))))
+SOURCE_C   := $(filter %.c,$(SOURCE))
+SOURCE_ASM := $(filter %.asm,$(SOURCE))
+OBJS_C     := $(patsubst %.c,$(OBJDIR)/%.c.o,$(SOURCE_C))
+OBJS_ASM   := $(patsubst %.asm,$(OBJDIR)/%.asm.o,$(SOURCE_ASM))
+OBJS       := $(OBJS_ASM) $(OBJS_C)
 TARGET_ELF := $(BINDIR)/kernel.elf
-TARGET_BIN := $(BINDIR)/kernel.bin
-
-rel = $(subst $(PROJ)/,,$(1))
+TARGET_BIN ?= $(BINDIR)/kernel.bin
 
 .PHONY: all clean
 
 all: $(TARGET_BIN)
 
-$(OBJDIR)/%.o: source/%.asm
+$(OBJDIR)/%.asm.o: %.asm
 	mkdir -p $(dir $@)
 	$(ASM) $(ASMFLAGS) -o $@ $<
 
-$(OBJDIR)/%.o: source/%.c
+$(OBJDIR)/%.c.o: %.c
 	mkdir -p $(dir $@)
 	$(CC) $(CPPFLAGS) $(CFLAGS) -c -o $@ $< 
 
-$(TARGET_ELF): $(OBJS) kernel.ld
+$(TARGET_ELF): $(OBJS) $(LINKER_FILE)
 	mkdir -p $(dir $@)
 	$(LD) $(LDFLAGS) -o $@ $(OBJS) $(LDLIBS)
 

@@ -1,6 +1,9 @@
 # Makefile
 # Created by Matheus Leme Da Silva
 
+VERSION  := 0.1.0
+ARCH     := i686
+
 PROJ     := $(CURDIR)
 BUILDDIR := $(PROJ)/build
 BINDIR   := $(BUILDDIR)/bin
@@ -16,27 +19,27 @@ define check_tool
 	command -v $(1) >/dev/null 2>&1 || { echo "ERROR: $(1) not found. Install it and try again."; exit 1; }
 endef
 
-rel = $(subst $(PROJ)/,,$(1))
-
 QEMUFLAGS := \
 	-drive file=$(IMAGE),format=raw,if=ide,media=disk \
 	-machine pc -vga std -display gtk
 
 export PROJ
+export VERSION
+export ARCH
 
 .PHONY: all bootloader clean qemu qemu-ng
 
 all: $(IMAGE)
 
 $(BOOTLOADER): FORCE
-	$(MAKE) -C bootloader
+	$(MAKE) -C bootloader TARGET_BIN=$(BOOTLOADER)
 
 FORCE:
 
 bootloader: $(BOOTLOADER)
 
 $(KERNEL): FORCE
-	$(MAKE) -C kernel
+	$(MAKE) -C kernel TARGET_BIN=$(KERNEL)
 
 kernel: $(KERNEL)
 
@@ -55,7 +58,8 @@ $(IMAGE): $(BOOTLOADER) $(KERNEL)
 	dd if=$(BOOTLOADER) of=$(IMAGE) bs=1 skip=512 seek=512 conv=notrunc status=none
 
 clean:
-	$(MAKE) -C bootloader clean
+	$(MAKE) -C bootloader clean TARGET_BIN=$(BOOTLOADER)
+	$(MAKE) -C kernel     clean TARGET_BIN=$(KERNEL)
 	rm -rf $(BUILDDIR)
 
 qemu: $(IMAGE)

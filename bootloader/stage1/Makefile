@@ -2,30 +2,28 @@
 # Created by Matheus Leme Da Silva
 
 PROJ     ?= $(CURDIR)/../..
-BUILDDIR := $(PROJ)/build
+BUILDDIR := $(CURDIR)/build
 BINDIR   := $(BUILDDIR)/bin
 
-TARGET  ?= $(BINDIR)/stage1.bin
-DEP      := $(BUILDDIR)/dep/stage1.d
-SOURCE   := source/main.asm
-INCLUDES := $(wildcard $(CURDIR)/source/*.asm)
-
-rel = $(subst $(PROJ)/,,$(1))
+TARGET_BIN  ?= $(BINDIR)/stage1.bin
+DEP         := $(BUILDDIR)/dep/stage1.d
+SOURCE      := source/main.asm
+INCLUDES    := $(wildcard $(CURDIR)/source/*.asm)
 
 .PHONY: all clean check dirs
 
-all: check $(TARGET)
+all: check $(TARGET_BIN)
 
 check:
 	command -v nasm >/dev/null 2>&1 || { echo "ERROR: nasm not found. Install nasm and try again."; exit 1; }
 
-$(TARGET): $(INCLUDES) | dirs
-	nasm -f bin -Isource $(SOURCE) -o $(TARGET) -MD $(DEP)
+$(TARGET_BIN): $(INCLUDES) | dirs
+	nasm -f bin -Isource $(SOURCE) -o $(TARGET_BIN) -MD $(DEP)
 
 dirs:
-	mkdir -p $(dir $(TARGET)) $(dir $(DEP))
+	mkdir -p $(dir $(TARGET_BIN)) $(dir $(DEP))
 
 clean:
-	rm -f $(TARGET) $(DEP)
+	rm -f $(TARGET_BIN) $(DEP)
 
 -include $(DEP)

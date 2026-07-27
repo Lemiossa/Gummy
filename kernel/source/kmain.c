@@ -4,9 +4,11 @@
  */
 #include <types.h>
 #include <terminal.h>
+#include <gdt.h>
 
 void kmain()
 {
+    gdt_init();
     terminal_init();
     terminal_print_string("Hello World\r\n");
 
