@@ -2,7 +2,7 @@
 ;; Created by Matheus Leme da Silva
 BITS 32
 
-;; void gdt_flush(GdtR *);
+;; void gdt_flush(GDTR *);
 GLOBAL gdt_flush
 gdt_flush:
     MOV EAX, [ESP+4]

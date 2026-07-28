@@ -5,8 +5,8 @@
 typedef struct 
 {
     uint16_t size;
-    uint32_t loc;
-} __attribute__((packed)) GdtR;
+    uint32_t offset;
+} __attribute__((packed)) GDTR;
 
 typedef struct 
 {
@@ -16,7 +16,7 @@ typedef struct
     uint8_t access;
     uint8_t flags_and_limit_high;
     uint8_t base_high;
-} __attribute__((packed)) GdtEntry;
+} __attribute__((packed)) GDTEntry;
 
 #define GDT_ENTRIES 8
 
