@@ -17,10 +17,11 @@ _start:
     MOV ESP, 0x7C00
 
     ;; Zero BSS
+    CLD
     XOR AL, AL
-    MOV ECX, __bss_end
-    SUB ECX, __bss_start
     MOV EDI, __bss_start
+    MOV ECX, __bss_end
+    SUB ECX, EDI
     REP STOSB
 
     CALL kmain
