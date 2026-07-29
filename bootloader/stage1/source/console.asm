@@ -1,24 +1,24 @@
 ;; console.asm
 ;; Created by Matheus Leme Da Silva
-%IFNDEF _CONSOLE_ASM_
-%DEFINE _CONSOLE_ASM_
+%ifndef _console_asm_
+%define _console_asm_
 
 ;; Prints a string ending with zero on the screen
 ;; DS:SI: pointer to string
 print_string:
-	PUSH AX
-	PUSH SI
-	MOV AH, 0x0E
+	push ax
+	push si
+	mov ah, 0x0e
 .loop:
-	LODSB ;; AL = DS:SI++
-	TEST AL, AL
-	JZ .end
-	INT 0x10
-	JMP .loop
+	lodsb ;; AL = DS:SI++
+	test al, al
+	jz .end
+	int 0x10
+	jmp .loop
 .end:
-	POP SI
-	POP AX
-	RET
+	pop si
+	pop ax
+	ret
 
-%ENDIF ;; _CONSOLE_ASM_
+%endif ;; _CONSOLE_ASM_
 

@@ -1,34 +1,34 @@
 ;; disk.asm
 ;; Created by Matheus Leme da Silva
-%IFNDEF DISK_ASM
-%DEFINE DISK_ASM
-BITS 16
+%ifndef disk_asm
+%define disk_asm
+bits 16
 
 ;; Initialize disk system
 ;; DL: Disk Drive
 ;; Returns:
 ;; CF=1 if an error occours
 disk_init:
-    PUSH CX
-    PUSH DX
-    MOV BYTE [drive], DL
-    CALL disk_get_parameters
-    JC .error
-    MOV BYTE [sectors_per_track], CL
-    MOV BYTE [heads], DH
-    TEST CL, CL
-    JZ .error
-    TEST DH, DH
-    JZ .error
+    push cx
+    push dx
+    mov byte [drive], dl
+    call disk_get_parameters
+    jc .error
+    mov byte [sectors_per_track], cl
+    mov byte [heads], dh
+    test cl, cl
+    jz .error
+    test dh, dh
+    jz .error
 .end:
-    CLC
-    JMP .ret
+    clc
+    jmp .ret
 .error:
-    STC
+    stc
 .ret:
-    POP DX
-    POP CX
-    RET
+    pop dx
+    pop cx
+    ret
 
 ;; Gets disk paramenters
 ;; DL: Disk drive
@@ -37,20 +37,20 @@ disk_init:
 ;; DH: Heads
 ;; CF=1 if an error occours
 disk_get_parameters:
-    PUSH AX
-    MOV AH, 0x08
-    INT 0x13
-    JC .error
-    INC DH
-    AND CL, 0x3F
+    push ax
+    mov ah, 0x08
+    int 0x13
+    jc .error
+    inc dh
+    and cl, 0x3f
 .end:
-    CLC
-    JMP .ret
+    clc
+    jmp .ret
 .error:
-    STC
+    stc
 .ret:
-    POP AX
-    RET
+    pop ax
+    ret
 
 ;; Converts LBA to CHS
 ;; DX:AX: LBA
@@ -59,8 +59,8 @@ disk_get_parameters:
 ;;  CX = Cylinder and Sector
 ;;  DH = Head
 disk_lba_to_chs:
-    PUSH BP
-    PUSH AX
+    push bp
+    push ax
     ;; https://wiki.osdev.org/Disk_access_using_the_BIOS_(INT_13h)
     ;; Temp = LBA / (Sectors per Track)
     ;; Sector = (LBA % (Sectors per Track)) + 1
@@ -68,28 +68,28 @@ disk_lba_to_chs:
     ;; Cylinder = Temp / (Number of Heads)
 
     ;; Temp
-    DIV WORD [sectors_per_track]
+    div word [sectors_per_track]
     ;; AX = Temp
     ;; DX = Sector - 1
-    INC DX
-    MOV BP, DX
+    inc dx
+    mov bp, dx
 
-    XOR DX, DX
-    DIV WORD [heads]
+    xor dx, dx
+    div word [heads]
     ;; AX = Cylinder
     ;; DX = Head
-    MOV DH, DL
-    XOR DL, DL
+    mov dh, dl
+    xor dl, dl
 
-    MOV CX, BP
-    MOV CH, AL
-    SHR AX, 2
-    AND AX, 0xC0
-    OR CL, AL
+    mov cx, bp
+    mov ch, al
+    shr ax, 2
+    and ax, 0xc0
+    or cl, al
 
-    POP AX
-    POP BP
-    RET
+    pop ax
+    pop bp
+    ret
 
 ;; Reads disk sector
 ;; DX:AX: Sector
@@ -97,41 +97,41 @@ disk_lba_to_chs:
 ;; Returns:
 ;; CF=1 if an error occours
 disk_read_sector:
-    PUSH AX
-    PUSH BX
-    PUSH CX
-    PUSH DX
-    PUSH SI
-    PUSH ES
-    CALL disk_lba_to_chs
-    MOV SI, 3
+    push ax
+    push bx
+    push cx
+    push dx
+    push si
+    push es
+    call disk_lba_to_chs
+    mov si, 3
 .read_loop:
-    MOV DL, [drive]
-    MOV AX, 0x0201
-    INT 0x13
-    JNC .end
-    MOV DL, [drive]
-    XOR AH, AH
-    INT 0x13
-    DEC SI
-    JNZ .read_loop
-    JC .error
+    mov dl, [drive]
+    mov ax, 0x0201
+    int 0x13
+    jnc .end
+    mov dl, [drive]
+    xor ah, ah
+    int 0x13
+    dec si
+    jnz .read_loop
+    jc .error
 .end:
-    CLC
-    JMP .ret
+    clc
+    jmp .ret
 .error:
-    STC
+    stc
 .ret:
-    POP ES
-    POP SI
-    POP DX
-    POP CX
-    POP BX
-    POP AX
-    RET
+    pop es
+    pop si
+    pop dx
+    pop cx
+    pop bx
+    pop ax
+    ret
 
-drive:             DB 0
-sectors_per_track: DW 0
-heads:             DW 0
+drive:             db 0
+sectors_per_track: dw 0
+heads:             dw 0
 
-%ENDIF ;; DISK_ASM
+%endif ;; DISK_ASM

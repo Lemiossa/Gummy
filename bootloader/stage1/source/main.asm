@@ -1,43 +1,43 @@
 ;; main.asm
 ;; Created by Matheus Leme Da Silva
-BITS 16
-ORG 0x7C00
+bits 16
+org 0x7c00
 
-start_addr:   EQU 0x7E00
-start_sector: EQU 1
-sector_count: EQU 62
+start_addr:   equ 0x7e00
+start_sector: equ 1
+sector_count: equ 62
 
-JMP short main
-NOP
+jmp short main
+nop
 
 ;; Space for BPB
-TIMES 62 - ($ - $$) DB 0
+times 62 - ($ - $$) db 0
 
 ;; Main function
 main:
-	CLI
-	XOR AX, AX
-	MOV DS, AX
-	MOV ES, AX
-	MOV SS, AX
-	MOV SP, 0x7C00
-	STI
+	cli
+	xor ax, ax
+	mov ds, ax
+	mov es, ax
+	mov ss, ax
+	mov sp, 0x7c00
+	sti
 
-	MOV [drive], DL
+	mov [drive], dl
 
 	;; Get sectors per track AND heads from disk
-	MOV AH, 0x08
-	XOR DI, DI
-	INT 0x13
-	JC int13_failed
+	mov ah, 0x08
+	xor di, di
+	int 0x13
+	jc int13_failed
 
 	;; AH = status
 	;; CL[BITS 0-5] = sectors per track
 	;; DH = heads - 1
-	AND CL, 0x3F
-	INC DH
-	MOV [sectors_per_track], CL
-	MOV [heads], DH
+	and cl, 0x3f
+	inc dh
+	mov [sectors_per_track], cl
+	mov [heads], dh
 
 	;; Setup
 	;; Set ES:BX to start_addr
@@ -54,76 +54,76 @@ main:
 	;; back to LOOP
 
 	;; Address
-	MOV BX, (start_addr >> 4)
-	MOV ES, BX
-	MOV BX, (start_addr & 0x0F)
+	mov bx, (start_addr >> 4)
+	mov es, bx
+	mov bx, (start_addr & 0x0f)
 
 	;; Sector
-	MOV AX, (start_sector & 0xFFFF)
-	MOV DX, ((start_sector >> 8) & 0xFFFF)
+	mov ax, (start_sector & 0xffff)
+	mov dx, ((start_sector >> 8) & 0xffff)
 	
-	MOV CX, sector_count
+	mov cx, sector_count
 .loop:
-	TEST CX, CX
-	JZ .end
+	test cx, cx
+	jz .end
 	
-	CMP BX, 0x8000
-	JB .no_increment_segment
+	cmp bx, 0x8000
+	jb .no_increment_segment
 
-	SUB BX, 0x8000
+	sub bx, 0x8000
 
-	PUSH AX
-	MOV AX, ES
-	ADD AX, 0x800
-	MOV ES, AX
-	POP AX
+	push ax
+	mov ax, es
+	add ax, 0x800
+	mov es, ax
+	pop ax
 
 .no_increment_segment:
-	CALL read_sector
+	call read_sector
 
-	PUSH AX
-	MOV AH, 0x0E
-	MOV AL, '.'
-	INT 0x10
-	POP AX
+	push ax
+	mov ah, 0x0e
+	mov al, '.'
+	int 0x10
+	pop ax
 
-	ADD BX, 512
+	add bx, 512
 	
-	ADD AX, 1
-	ADC DX, 0
+	add ax, 1
+	adc dx, 0
 	
-	DEC CX
-	JMP .loop
+	dec cx
+	jmp .loop
 .end:
-	MOV DL, [drive]
+	mov dl, [drive]
 
 	;; Far jump
-	PUSH word (start_addr >> 4)   ;; SEGMENT
-	PUSH word (start_addr & 0x0F) ;; offset
-	RETF
+	push word (start_addr >> 4)   ;; SEGMENT
+	push word (start_addr & 0x0f) ;; offset
+	retf
 
-	JMP halt
+	jmp halt
 
-%INCLUDE "console.asm"
-%INCLUDE "disk.asm"
+%include "console.asm"
+%include "disk.asm"
 
 ;; Display halt message AND halt the computer
 halt:
-	MOV SI, halted_message
-	CALL print_string
+	mov si, halted_message
+	call print_string
 
-	CLI
-	HLT
+	cli
+	hlt
 
-halted_message: DB "System halted. Please restart.", 0x0D, 0x0A, 0
+halted_message: db "System halted. Please restart.", 0x0d, 0x0a, 0
 
-drive: DB 0
-sectors_per_track: DW 0
-heads: DW 0
+drive: db 0
+sectors_per_track: dw 0
+heads: dw 0
 
-TIMES 440 - ($ - $$) DB 0
+times 440 - ($ - $$) db 0
 ;; Boot signature
-DD __TIME__
+dd __TIME__
 
-TIMES 510 - ($ - $$) DB 0
-DW 0xAA55
+times 510 - ($ - $$) db 0
+dw 0xaa55

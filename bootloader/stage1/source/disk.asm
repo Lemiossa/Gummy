@@ -1,7 +1,7 @@
 ;; disk.asm
 ;; Created by Matheus Leme Da Silva
-%IFNDEF _DISK_ASM_
-%DEFINE _DISK_ASM_
+%ifndef _disk_asm_
+%define _disk_asm_
 
 ;; Read a sector (DX:AX) from disk to memory (ES:BX)
 ;; DX: High LBA
@@ -9,35 +9,35 @@
 ;; ES: SEGMENT to load
 ;; BX: Offset to load
 read_sector:
-	PUSH AX
-	PUSH CX
-	PUSH DX
+	push ax
+	push cx
+	push dx
 
 	;; LBA -> CHS
 	;; C = (LBA / sectors_per_track) / heads
 	;; H = (LBA / sectors_per_track) % heads
 	;; S = (LBA % sectors_per_track) + 1
 	
-	DIV word [sectors_per_track]
+	div word [sectors_per_track]
 	;; AX = LBA / sectors_per_track
 	;; DX = LBA % sectors_per_track
-	INC DX
-	MOV DH, DL
-	PUSH DX
+	inc dx
+	mov dh, dl
+	push dx
 	
-	XOR DX, DX
-	DIV word [heads]
+	xor dx, dx
+	div word [heads]
 	;; AX = (LBA / sectors_per_track) / heads
 	;; DX = (LBA % sectors_per_track) % heads
 	
-	MOV CH, AL
-	SHL AH, 6
-	MOV CL, AH
+	mov ch, al
+	shl ah, 6
+	mov cl, ah
 	
-	POP AX
-	OR CL, AL
+	pop ax
+	or cl, al
 
-	SHL DX, 8
+	shl dx, 8
 
 	;; int13h AH=2 func
 	;; Parameters:
@@ -48,23 +48,23 @@ read_sector:
 	;; DL = drive
 	;; ES:BX = pointer
 
-	MOV AX, 0x0201 ;; read function, 1 sector
-	MOV DL, [drive]
-	INT 0x13
+	mov ax, 0x0201 ;; read function, 1 sector
+	mov dl, [drive]
+	int 0x13
 
-	JC int13_failed
+	jc int13_failed
 	
-	POP DX
-	POP CX
-	POP AX
-	RET
+	pop dx
+	pop cx
+	pop ax
+	ret
 
 ;; Display int13 error message AND halt the computer
 int13_failed:
-	MOV SI, int13_failed_message
-	CALL print_string
-	JMP halt
+	mov si, int13_failed_message
+	call print_string
+	jmp halt
 
-int13_failed_message: DB "Int13 failed!", 0x0D, 0x0A, 0
+int13_failed_message: db "Int13 failed!", 0x0d, 0x0a, 0
 
-%ENDIF ;; _DISK_ASM_
+%endif ;; _DISK_ASM_

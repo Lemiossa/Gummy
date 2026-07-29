@@ -1,108 +1,108 @@
 ;; main.asm
 ;; Created by Matheus Leme Da Silva
-ORG 0x7E00
-BITS 16
+org 0x7e00
+bits 16
 
 main:
-    CLI
-    XOR AX, AX
-    MOV DS, AX
-    MOV ES, AX
-    MOV SS, AX
-    MOV SP, 0x7C00
-    STI
-    CALL disk_init
-    JNC .disk_ok
-    MOV SI, disk_error_message 
-    CALL console_print_string
-    JMP halt
+    cli
+    xor ax, ax
+    mov ds, ax
+    mov es, ax
+    mov ss, ax
+    mov sp, 0x7c00
+    sti
+    call disk_init
+    jnc .disk_ok
+    mov si, disk_error_message 
+    call console_print_string
+    jmp halt
 .disk_ok:
-    MOV SI, start_message
-    CALL console_print_string
-    CALL fat_init
-    JC fat_error
+    mov si, start_message
+    call console_print_string
+    call fat_init
+    jc fat_error
 
     ;; Find file
-    MOV SI, kernel_file
-    CALL fat_find_in_root_dir
-    JC fat_error
+    mov si, kernel_file
+    call fat_find_in_root_dir
+    jc fat_error
     ;; AX = root directory index
     ;; Peek entry
-    MOV DI, .entry
-    CALL fat_read_root_dir
-    JC fat_error
+    mov di, .entry
+    call fat_read_root_dir
+    jc fat_error
     ;; Read kernel file
-    MOV SI, .entry
-    MOV BX, 0x1000
-    MOV ES, BX
-    XOR BX, BX
-    CALL fat_read_file
-    JC fat_error
-    JMP jump_to_kernel
-    JMP halt
-.entry: TIMES 32 DB 0
+    mov si, .entry
+    mov bx, 0x1000
+    mov es, bx
+    xor bx, bx
+    call fat_read_file
+    jc fat_error
+    jmp jump_to_kernel
+    jmp halt
+.entry: times 32 db 0
 
 ;; Halts the system
 halt:
-    MOV SI, halted_message
-    CALL console_print_string
-    CLI
-    HLT
+    mov si, halted_message
+    call console_print_string
+    cli
+    hlt
 
 fat_error:
-    MOV SI, fat_error_message
-    CALL console_print_string
-    JMP halt
+    mov si, fat_error_message
+    call console_print_string
+    jmp halt
 
-%INCLUDE "console.asm"
-%INCLUDE "disk.asm"
-%INCLUDE "fat.asm"
+%include "console.asm"
+%include "disk.asm"
+%include "fat.asm"
 
-start_message:      DB `\r\nGummy Bootloader\r\n`, 0
-disk_error_message: DB `Disk error!\r\n`, 0
-fat_error_message:  DB `FAT error!\r\n`, 0
-halted_message:     DB `System is halted! Please, reboot.\r\n`, 0
-kernel_file:        DB `KERNEL  SYS`
+start_message:      db `\r\nGummy Bootloader\r\n`, 0
+disk_error_message: db `Disk error!\r\n`, 0
+fat_error_message:  db `FAT error!\r\n`, 0
+halted_message:     db `System is halted! Please, reboot.\r\n`, 0
+kernel_file:        db `KERNEL  SYS`
 
 %macro gdt_entry 4
     ;; base limit access flags
-    DW (%2 & 0xFFFF)
-    DW (%1 & 0xFFFF)
-    DB ((%1 >> 16) & 0xFF)
-    DB (%3 & 0xFF)
-    DB (((%4 & 0x0F) << 4) | ((%2 >> 16) & 0x0F))
-    DB ((%1 >> 24) & 0xFF)
+    dw (%2 & 0xffff)
+    dw (%1 & 0xffff)
+    db ((%1 >> 16) & 0xff)
+    db (%3 & 0xff)
+    db (((%4 & 0x0f) << 4) | ((%2 >> 16) & 0x0f))
+    db ((%1 >> 24) & 0xff)
 %endmacro
 
 gdt:
-    .NULL:   gdt_entry 0x00000000, 0x00000, 0b00000000, 0b0000
-    .CODE32: gdt_entry 0x00000000, 0xFFFFF, 0b10011010, 0b1100
-    .DATA32: gdt_entry 0x00000000, 0xFFFFF, 0b10010010, 0b1100
+    .null:   gdt_entry 0x00000000, 0x00000, 0b00000000, 0b0000
+    .code32: gdt_entry 0x00000000, 0xfffff, 0b10011010, 0b1100
+    .data32: gdt_entry 0x00000000, 0xfffff, 0b10010010, 0b1100
 gdt_end
 
 gdtr:
-    DW gdt_end - gdt - 1
-    DD gdt
+    dw gdt_end - gdt - 1
+    dd gdt
 
 jump_to_kernel:
-    CLI
-    IN AL, 0x92
-    OR AL, 2
-    OUT 0x92, AL
-    LGDT [gdtr]
-    MOV EAX, CR0
-    OR AL, 1
-    MOV CR0, EAX
-    JMP 0x08:pmode
-BITS 32
+    cli
+    in al, 0x92
+    or al, 2
+    out 0x92, al
+    lgdt [gdtr]
+    mov eax, cr0
+    or al, 1
+    mov cr0, eax
+    jmp 0x08:pmode
+bits 32
 pmode:
-    MOV AX, 0x10
-    MOV DS, AX
-    MOV ES, AX
-    MOV GS, AX
-    MOV FS, AX
-    MOV SS, AX
-    MOV ESP, 0x7C00
-    JMP 0x08:0x10000
-    CLI
-    HLT
+    mov ax, 0x10
+    mov ds, ax
+    mov es, ax
+    mov gs, ax
+    mov fs, ax
+    mov ss, ax
+    mov esp, 0x7c00
+    jmp 0x08:0x10000
+    cli
+    hlt

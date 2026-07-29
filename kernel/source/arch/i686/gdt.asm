@@ -1,18 +1,18 @@
 ;; gdt.asm
 ;; Created by Matheus Leme da Silva
-BITS 32
+bits 32
 
 ;; void gdt_flush(GDTR *);
-GLOBAL gdt_flush
+global gdt_flush
 gdt_flush:
-    MOV EAX, [ESP+4]
-    LGDT [EAX]
-    JMP 0x08:flush
+    mov eax, [esp+4]
+    lgdt [eax]
+    jmp 0x08:flush
 flush:
-    MOV AX, 0x10
-    MOV DS, AX
-    MOV ES, AX
-    MOV FS, AX
-    MOV GS, AX
-    MOV SS, AX
-    RET
+    mov ax, 0x10
+    mov ds, ax
+    mov es, ax
+    mov fs, ax
+    mov gs, ax
+    mov ss, ax
+    ret

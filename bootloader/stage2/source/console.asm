@@ -1,60 +1,60 @@
 ;; console.asm
 ;; Created by Matheus Leme da Silva
-%IFNDEF CONSOLE_ASM
-%DEFINE CONSOLE_ASM
+%ifndef console_asm
+%define console_asm
 
-BITS 16
+bits 16
 
 ;; Prints a string on the screen
 ;; DS:SI: String pointer
 ;; Returns: None
 console_print_string:
-    PUSH AX
-    PUSH SI
-    MOV AH, 0x0E
+    push ax
+    push si
+    mov ah, 0x0e
 .loop:
-    LODSB
-    TEST AL, AL
-    JZ .end
-    INT 0x10
-    JMP .loop
+    lodsb
+    test al, al
+    jz .end
+    int 0x10
+    jmp .loop
 .end:
-    POP SI
-    POP AX
-    RET
+    pop si
+    pop ax
+    ret
 
 ;; Prints a nibble(4-bit)
 ;; AL: Nibble
 ;; Returns: None
 console_print_nibble:
-    PUSH AX
-    AND AL, 0x0F
+    push ax
+    and al, 0x0f
     ;; If AL < 10: print AL + '0'
     ;; else: print AL + 'A' - 10
-    MOV AH, 0x0E
-    CMP AL, 10
-    JAE .else
-    ADD AL, '0'
-    JMP .end
+    mov ah, 0x0e
+    cmp al, 10
+    jae .else
+    add al, '0'
+    jmp .end
 .else:
-    ADD AL, 'A' - 10
+    add al, 'A' - 10
 .end:
-    INT 0x10
-    MOV DX, 0x00
-    MOV AH, 0x01
-    INT 0x14
-    POP AX
-    RET
+    int 0x10
+    mov dx, 0x00
+    mov ah, 0x01
+    int 0x14
+    pop ax
+    ret
 
 ;; Prints a byte(8-bit)
 ;; AL: Byte
 ;; Returns: None
 console_print_byte:
-    PUSH AX
-    SHR AL, 4
-    CALL console_print_nibble
-    POP AX
-    CALL console_print_nibble
-    RET
+    push ax
+    shr al, 4
+    call console_print_nibble
+    pop ax
+    call console_print_nibble
+    ret
 
-%ENDIF ;; CONSOLE_ASM
+%endif ;; CONSOLE_ASM

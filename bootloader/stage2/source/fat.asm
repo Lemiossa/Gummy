@@ -1,152 +1,152 @@
 ;; fat.asm
 ;; Created by Matheus Leme da Silva
-%IFNDEF FAT_ASM
-%DEFINE FAT_ASM
+%ifndef fat_asm
+%define fat_asm
 
-BITS 16
+bits 16
 
-temp_sector_buffer: EQU 0x500
+temp_sector_buffer: equ 0x500
 
-STRUC fat_bpb
-    .jump:                RESB 3
-    .oem:                 RESB 8
-    .bytes_per_sector:    RESW 1
-    .sectors_per_cluster: RESB 1
-    .reserved_sectors:    RESW 1
-    .num_fat_tables:      RESB 1
-    .root_dir_entries:    RESW 1
-    .total_sectors16:     RESW 1
-    .media_descriptor:    RESB 1
-    .sectors_per_fat:     RESW 1
-    .sectors_per_track:   RESW 1
-    .heads:               RESW 1
-    .hidden_sectors:      RESD 1
-    .total_sectors32:     RESD 1
-ENDSTRUC
+struc fat_bpb
+    .jump:                resb 3
+    .oem:                 resb 8
+    .bytes_per_sector:    resw 1
+    .sectors_per_cluster: resb 1
+    .reserved_sectors:    resw 1
+    .num_fat_tables:      resb 1
+    .root_dir_entries:    resw 1
+    .total_sectors16:     resw 1
+    .media_descriptor:    resb 1
+    .sectors_per_fat:     resw 1
+    .sectors_per_track:   resw 1
+    .heads:               resw 1
+    .hidden_sectors:      resd 1
+    .total_sectors32:     resd 1
+endstruc
 
-STRUC fat_entry
-    .name:                RESB 11
-    .attr:                RESB 1
-    .res0:                RESB 1
-    .time_hundredths:     RESB 1
-    .ctime:               RESW 1
-    .cdate:               RESW 1
-    .adate:               RESW 1
-    .cluster_hi:          RESW 1
-    .mtime:               RESW 1
-    .mdate:               RESW 1
-    .cluster_lo:          RESW 1
-    .file_size_lo:        RESW 1
-    .file_size_hi:        RESW 1
-ENDSTRUC
+struc fat_entry
+    .name:                resb 11
+    .attr:                resb 1
+    .res0:                resb 1
+    .time_hundredths:     resb 1
+    .ctime:               resw 1
+    .cdate:               resw 1
+    .adate:               resw 1
+    .cluster_hi:          resw 1
+    .mtime:               resw 1
+    .mdate:               resw 1
+    .cluster_lo:          resw 1
+    .file_size_lo:        resw 1
+    .file_size_hi:        resw 1
+endstruc
 
 ;; Initializes FAT system
 ;; Returns: 
 ;; CF=1 if an error occours
 fat_init:
-    PUSH AX
-    PUSH BX
-    PUSH CX
-    PUSH DX
-    PUSH SI
-    PUSH DI
-    XOR AX, AX
-    XOR DX, DX
-    PUSH ES
-    MOV BX, (temp_sector_buffer >> 4)
-    MOV ES, BX
-    MOV BX, (temp_sector_buffer & 0x0F)
-    CALL disk_read_sector
-    POP ES
-    JC .error
-    PUSH DS
-    CLD
-    MOV SI, (temp_sector_buffer >> 4)
-    MOV DS, SI
-    MOV SI, (temp_sector_buffer & 0x0F)
-    MOV DI, fat_bpb_data
-    MOV CX, fat_bpb_size
-    REP MOVSB
-    POP DS
+    push ax
+    push bx
+    push cx
+    push dx
+    push si
+    push di
+    xor ax, ax
+    xor dx, dx
+    push es
+    mov bx, (temp_sector_buffer >> 4)
+    mov es, bx
+    mov bx, (temp_sector_buffer & 0x0f)
+    call disk_read_sector
+    pop es
+    jc .error
+    push ds
+    cld
+    mov si, (temp_sector_buffer >> 4)
+    mov ds, si
+    mov si, (temp_sector_buffer & 0x0f)
+    mov di, fat_bpb_data
+    mov cx, fat_bpb_size
+    rep movsb
+    pop ds
     ;; Reject FAT32
-    CMP WORD[fat_bpb_data+fat_bpb.sectors_per_fat], 0
-    JE .error
+    cmp word[fat_bpb_data+fat_bpb.sectors_per_fat], 0
+    je .error
     ;; Verify if bytes per sector is 512
-    MOV AX, WORD[fat_bpb_data+fat_bpb.bytes_per_sector]
-    CMP AX, 512
-    JNE .error
+    mov ax, word[fat_bpb_data+fat_bpb.bytes_per_sector]
+    cmp ax, 512
+    jne .error
     ;; All informations in: https://wiki.osdev.org/FAT#Programming_Guide
     ;; root_dir_sectors = ((fat_bpb.root_dir_entries * 32) + 511) / 512;
-    MOV AX, WORD[fat_bpb_data+fat_bpb.root_dir_entries]
-    MOV BX, 32
-    MUL BX
+    mov ax, word[fat_bpb_data+fat_bpb.root_dir_entries]
+    mov bx, 32
+    mul bx
     ;; DX:AX = fat_bpb.root_dir_entries * 32
-    ADD AX, 511
-    ADC DX, 0
+    add ax, 511
+    adc dx, 0
     ;; DX:AX = (fat_bpb.root_dir_entries * 32) + 511
-    MOV BX, 512
-    DIV BX 
+    mov bx, 512
+    div bx 
     ;; AX = ((fat_bpb.root_dir_entries * 32) + 511) / 512
-    MOV WORD[fat_root_dir_sectors], AX
+    mov word[fat_root_dir_sectors], ax
     ;; first_data_sector = fat_bpb.reserved_sectors + (fat_bpb.num_fat_tables * fat_bpb.sectors_per_fat) + root_dir_sectors
-    ADD AX, WORD[fat_bpb_data+fat_bpb.reserved_sectors]
+    add ax, word[fat_bpb_data+fat_bpb.reserved_sectors]
     ;; AX = fat_bpb.reserved_sectors + root_dir_sectors
-    MOV CX, AX
-    XOR AX, AX
-    MOV AL, BYTE[fat_bpb_data+fat_bpb.num_fat_tables]
-    MUL WORD[fat_bpb_data+fat_bpb.sectors_per_fat]
-    ADD AX, CX
+    mov cx, ax
+    xor ax, ax
+    mov al, byte[fat_bpb_data+fat_bpb.num_fat_tables]
+    mul word[fat_bpb_data+fat_bpb.sectors_per_fat]
+    add ax, cx
     ;; DX:AX = first_part_sector + fat_bpb.reserved_sectors + root_dir_sectors + (fat_bpb.num_fat_tables * fat_bpb.sectors_per_fat)
-    MOV WORD[fat_first_data_sector], AX
+    mov word[fat_first_data_sector], ax
     ;; fat_first_root_dir_sector = fat_first_data_sector - fat_root_dir_sectors
-    SUB AX, WORD[fat_root_dir_sectors]
-    MOV WORD[fat_first_root_dir_sector], AX
+    sub ax, word[fat_root_dir_sectors]
+    mov word[fat_first_root_dir_sector], ax
     ;; first_fat_sector = fat_bpb.reserved_sectors
-    MOV AX, WORD[fat_bpb_data+fat_bpb.reserved_sectors]
-    MOV WORD[fat_first_fat_sector], AX
+    mov ax, word[fat_bpb_data+fat_bpb.reserved_sectors]
+    mov word[fat_first_fat_sector], ax
     ;; data_sectors = fat_bpb.total_sectors - (fat_bpb.reserved_sectors + (fat_bpb.num_fat_tables * fat_bpb.sectors_per_fat) + root_dir_sectors)
-    XOR AH, AH
-    MOV AL, BYTE[fat_bpb_data+fat_bpb.num_fat_tables]
-    MOV BX, WORD[fat_bpb_data+fat_bpb.sectors_per_fat]
-    MUL BX
+    xor ah, ah
+    mov al, byte[fat_bpb_data+fat_bpb.num_fat_tables]
+    mov bx, word[fat_bpb_data+fat_bpb.sectors_per_fat]
+    mul bx
     ;; DX:AX = fat_bpb.num_fat_tables * fat_bpb.sectors_per_fat
-    ADD AX, WORD[fat_bpb_data+fat_bpb.reserved_sectors]
+    add ax, word[fat_bpb_data+fat_bpb.reserved_sectors]
     ;; AX = fat_bpb.reserved_sectors + (fat_bpb.num_fat_tables * fat_bpb.sectors_per_fat)
-    ADD AX, WORD[fat_root_dir_sectors]
+    add ax, word[fat_root_dir_sectors]
     ;; AX = (fat_bpb.reserved_sectors + (fat_bpb.num_fat_tables * fat_bpb.sectors_per_fat)) + root_dir_sectors
-    MOV BX, WORD[fat_bpb_data+fat_bpb.total_sectors16]
-    SUB BX, AX
-    MOV AX, BX
+    mov bx, word[fat_bpb_data+fat_bpb.total_sectors16]
+    sub bx, ax
+    mov ax, bx
     ;; AX = fat_bpb.total_sectors - (fat_bpb.reserved_secotrs + ((fat_bpb.num_fat_tables * fat_bpb.sectors_per_fat) + root_dir_sectors))
     ;; AX = data_sectors
-    MOV WORD[fat_data_sectors], AX
+    mov word[fat_data_sectors], ax
     ;; total_clusters = data_sectors / fat_bpb.sectors_per_cluster
-    XOR DX, DX
-    MOV BL, BYTE[fat_bpb_data+fat_bpb.sectors_per_cluster]
-    XOR BH, BH
-    DIV BX
+    xor dx, dx
+    mov bl, byte[fat_bpb_data+fat_bpb.sectors_per_cluster]
+    xor bh, bh
+    div bx
     ;; AX = total_clusters
     ;; If total_clusters < 4085: FAT12
     ;; If total_clusters < 65525: FAT16
-    CMP AX, 4085
-    JB .fat12
-    MOV BYTE[fat_type], 16
-    JMP .end
+    cmp ax, 4085
+    jb .fat12
+    mov byte[fat_type], 16
+    jmp .end
 .fat12:
-    MOV BYTE[fat_type], 12
+    mov byte[fat_type], 12
 .end:
-    CLC
-    JMP .ret
+    clc
+    jmp .ret
 .error:
-    STC
+    stc
 .ret:
-    POP DI
-    POP SI
-    POP DX
-    POP CX
-    POP BX
-    POP AX
-    RET
+    pop di
+    pop si
+    pop dx
+    pop cx
+    pop bx
+    pop ax
+    ret
 
 ;; Get next cluster in FAT12
 ;; AX: Cluster
@@ -154,61 +154,61 @@ fat_init:
 ;; AX: Cluster
 ;; CF=1 if an error occours
 fat12_next_cluster:
-    PUSH BX
-    PUSH CX
-    PUSH DX
-    PUSH DI
-    PUSH ES
+    push bx
+    push cx
+    push dx
+    push di
+    push es
     ;; fat_offset = cluster + (cluster / 2)
     ;; fat_sector = fat_first_fat_sector + (fat_offset / 512)
     ;; ent_offset = fat_offset % 512
-    MOV BX, AX
-    MOV DI, AX
-    SHR AX, 1 ;; Divide by 2
+    mov bx, ax
+    mov di, ax
+    shr ax, 1 ;; Divide by 2
     ;; AX = cluster / 2
-    ADD AX, BX
+    add ax, bx
     ;; AX = fat_offset
-    XOR DX, DX
-    MOV BX, 512
-    DIV BX
+    xor dx, dx
+    mov bx, 512
+    div bx
     ;; AX = fat_offset / 512
     ;; DX = ent_offset
-    ADD AX, WORD[fat_first_fat_sector]
+    add ax, word[fat_first_fat_sector]
     ;; AX = fat_sector
     ;; DX = ent_offset
-    MOV CX, DX
-    XOR DX, DX
-    MOV BX, (temp_sector_buffer >> 4)
-    MOV ES, BX
-    MOV BX, (temp_sector_buffer & 0x0F)
-    CALL disk_read_sector
-    JC .error
-    ADD AX, 1
-    ADC DX, 0
-    ADD BX, 512
-    CALL disk_read_sector
-    SUB BX, 512
-    JC .error
-    ADD BX, CX
-    MOV AX, WORD[ES:BX]
-    TEST DI, 1
-    JZ .zero
-    SHR AX, 4
-    JMP .end
+    mov cx, dx
+    xor dx, dx
+    mov bx, (temp_sector_buffer >> 4)
+    mov es, bx
+    mov bx, (temp_sector_buffer & 0x0f)
+    call disk_read_sector
+    jc .error
+    add ax, 1
+    adc dx, 0
+    add bx, 512
+    call disk_read_sector
+    sub bx, 512
+    jc .error
+    add bx, cx
+    mov ax, word[es:bx]
+    test di, 1
+    jz .zero
+    shr ax, 4
+    jmp .end
 .zero:
-    AND AX, 0xFFF
+    and ax, 0xfff
 .end:
-    CLC
-    JMP .ret
+    clc
+    jmp .ret
 .error:
-    STC
+    stc
 .ret:
-    POP ES
-    POP DI
-    POP DX
-    POP CX
-    POP BX
-    RET
+    pop es
+    pop di
+    pop dx
+    pop cx
+    pop bx
+    ret
 
 ;; Get next cluster in FAT16
 ;; AX: Cluster
@@ -216,43 +216,43 @@ fat12_next_cluster:
 ;; AX: Cluster
 ;; CF=1 if an error occours
 fat16_next_cluster:
-    PUSH BX
-    PUSH CX
-    PUSH DX
-    PUSH ES
+    push bx
+    push cx
+    push dx
+    push es
     ;; fat_offset = cluster * 2
     ;; fat_sector = fat_first_fat_sector + (fat_offset / 512)
     ;; ent_offset = fat_offset % 512
-    MOV BX, 2
-    MUL BX
+    mov bx, 2
+    mul bx
     ;; DX:AX = fat_offset
-    MOV BX, 512
-    DIV BX
+    mov bx, 512
+    div bx
     ;; AX = fat_offset / 512
     ;; DX = ent_offset
-    ADD AX, WORD[fat_first_fat_sector]
+    add ax, word[fat_first_fat_sector]
     ;; AX = fat_sector
     ;; DX = ent_offset
-    MOV CX, DX
-    XOR DX, DX
-    MOV BX, (temp_sector_buffer >> 4)
-    MOV ES, BX
-    MOV BX, (temp_sector_buffer & 0x0F)
-    CALL disk_read_sector
-    JC .error
-    ADD BX, CX
-    MOV AX, WORD[ES:BX]
+    mov cx, dx
+    xor dx, dx
+    mov bx, (temp_sector_buffer >> 4)
+    mov es, bx
+    mov bx, (temp_sector_buffer & 0x0f)
+    call disk_read_sector
+    jc .error
+    add bx, cx
+    mov ax, word[es:bx]
 .end:
-    CLC
-    JMP .ret
+    clc
+    jmp .ret
 .error:
-    STC
+    stc
 .ret:
-    POP ES
-    POP DX
-    POP CX
-    POP BX
-    RET
+    pop es
+    pop dx
+    pop cx
+    pop bx
+    ret
 
 ;; Get next cluster
 ;; AX: Cluster
@@ -260,25 +260,25 @@ fat16_next_cluster:
 ;; AX: Cluster
 ;; CF=1 if an error occours
 fat_next_cluster:
-    CMP BYTE[fat_type], 12
-    JE .fat12
-    CMP BYTE[fat_type], 16
-    JE .fat16
-    JMP .error
+    cmp byte[fat_type], 12
+    je .fat12
+    cmp byte[fat_type], 16
+    je .fat16
+    jmp .error
 .fat12:
-    CALL fat12_next_cluster
-    JC .error
-    JMP .end
+    call fat12_next_cluster
+    jc .error
+    jmp .end
 .fat16:
-    CALL fat16_next_cluster 
-    JC .error
+    call fat16_next_cluster 
+    jc .error
 .end:
-    CLC
-    JMP .ret
+    clc
+    jmp .ret
 .error:
-    STC
+    stc
 .ret:
-    RET
+    ret
 
 ;; Read an root dir entry
 ;; AX: entry index
@@ -286,61 +286,61 @@ fat_next_cluster:
 ;; Returns:
 ;; CF=1 If an error occours
 fat_read_root_dir:
-    PUSH AX
-    PUSH BX
-    PUSH CX
-    PUSH DX
-    PUSH DI
-    PUSH SI
-    PUSH DS
-    PUSH ES
+    push ax
+    push bx
+    push cx
+    push dx
+    push di
+    push si
+    push ds
+    push es
     ;; byte_pos = index * 32
     ;; sector = root_dir_sector + (byte_pos / 512)
     ;; offset = byte_pos % 512
-    MOV BX, 32
-    MUL BX
+    mov bx, 32
+    mul bx
     ;; DX:AX = index * 32
-    MOV BX, 512
-    DIV BX
+    mov bx, 512
+    div bx
     ;; AX = byte_pos / 512
     ;; DX = offset
-    ADD AX, WORD[fat_first_root_dir_sector]
+    add ax, word[fat_first_root_dir_sector]
     ;; AX = sector
     ;; DX = offset
-    MOV SI, DX
+    mov si, dx
     ;; DX:AX LBA
-    PUSH ES
-    MOV BX, (temp_sector_buffer >> 4)
-    MOV ES, BX
-    MOV BX, (temp_sector_buffer & 0x0F)
-    XOR DX, DX
-    CALL disk_read_sector
-    POP ES
-    JC .error
-    ADD SI, BX
+    push es
+    mov bx, (temp_sector_buffer >> 4)
+    mov es, bx
+    mov bx, (temp_sector_buffer & 0x0f)
+    xor dx, dx
+    call disk_read_sector
+    pop es
+    jc .error
+    add si, bx
     ;; SI = offset
-    MOV BX, (temp_sector_buffer >> 4)
-    MOV DS, BX
+    mov bx, (temp_sector_buffer >> 4)
+    mov ds, bx
     ;; DS:SI = source
     ;; ES:DI = output
-    CLD
-    MOV CX, 32
-    REP MOVSB
+    cld
+    mov cx, 32
+    rep movsb
 .end:
-    CLC 
-    JMP .ret
+    clc 
+    jmp .ret
 .error:
-    STC
+    stc
 .ret:
-    POP ES
-    POP DS
-    POP SI
-    POP DI
-    POP DX
-    POP CX
-    POP BX
-    POP AX
-    RET
+    pop es
+    pop ds
+    pop si
+    pop di
+    pop dx
+    pop cx
+    pop bx
+    pop ax
+    ret
 
 ;; Finds a fat file in a root directory
 ;; DS:SI: Filename
@@ -348,90 +348,90 @@ fat_read_root_dir:
 ;; AX: Index
 ;; CF=1 if an error occours
 fat_find_in_root_dir:
-    PUSH BX
-    PUSH CX
-    PUSH DX
-    PUSH DI
-    PUSH SI
-    PUSH DS
-    PUSH ES
-    PUSH CS
-    POP ES
-    XOR AX, AX
-    MOV DX, SI
-    MOV BX, WORD[fat_bpb_data+fat_bpb.root_dir_entries]
+    push bx
+    push cx
+    push dx
+    push di
+    push si
+    push ds
+    push es
+    push cs
+    pop es
+    xor ax, ax
+    mov dx, si
+    mov bx, word[fat_bpb_data+fat_bpb.root_dir_entries]
 .find_loop:
-    MOV DI, .entry
-    CALL fat_read_root_dir
-    JC .error
-    CMP BYTE[ES:DI], 0
-    JE .error
-    CMP BYTE[ES:DI], 0xE5
-    JE .next
-    CLD
-    MOV CX, 11
-    MOV SI, DX
-    REPE CMPSB
-    JE .end
+    mov di, .entry
+    call fat_read_root_dir
+    jc .error
+    cmp byte[es:di], 0
+    je .error
+    cmp byte[es:di], 0xe5
+    je .next
+    cld
+    mov cx, 11
+    mov si, dx
+    repe cmpsb
+    je .end
 .next:
-    INC AX
-    DEC BX
-    JNZ .find_loop
+    inc ax
+    dec bx
+    jnz .find_loop
 .end:
-    CLC
-    JMP .ret
+    clc
+    jmp .ret
 .error:
-    STC
+    stc
 .ret:
-    POP ES
-    POP DS
-    POP SI
-    POP DI
-    POP DX
-    POP CX
-    POP BX
-    RET
-.entry: TIMES 32 DB 0
+    pop es
+    pop ds
+    pop si
+    pop di
+    pop dx
+    pop cx
+    pop bx
+    ret
+.entry: times 32 db 0
 
 ;; Converts Cluster to LBA
 ;; AX: Cluster
 ;; Returns:
 ;; DX:AX: LBA
 fat_cluster_to_lba:
-    PUSH BX
+    push bx
     ;; LBA = ((cluster - 2) * fat_bpb.sectors_per_cluster) + fat_first_data_sector
-    SUB AX, 2
+    sub ax, 2
     ;; AX = cluster - 2
-    MOV BL, BYTE[fat_bpb_data+fat_bpb.sectors_per_cluster]
-    XOR BH, BH
-    MUL BX
+    mov bl, byte[fat_bpb_data+fat_bpb.sectors_per_cluster]
+    xor bh, bh
+    mul bx
     ;; DX:AX = (cluster - 2) * fat_bpb.sectors_per_cluster
-    ADD AX, WORD[fat_first_data_sector]
-    ADC DX, 0
+    add ax, word[fat_first_data_sector]
+    adc dx, 0
     ;; DX:AX = LBA
-    POP BX
-    RET
+    pop bx
+    ret
 
 ;; Return CF=1 if cluster is EOF
 ;; AX: Cluster
 fat_cluster_is_eof: 
-    CMP BYTE[fat_type], 12
-    JE .fat12
-    CMP BYTE[fat_type], 16
-    JNE .eof
-    CMP AX, 0xFFF8
-    JAE .eof
-    JMP .neof
+    cmp byte[fat_type], 12
+    je .fat12
+    cmp byte[fat_type], 16
+    jne .eof
+    cmp ax, 0xfff8
+    jae .eof
+    jmp .neof
 .fat12:
-    CMP AX, 0x0FF8
-    JAE .eof
+    cmp ax, 0x0ff8
+    jae .eof
 .neof:
-    CLC
-    JMP .ret
+    clc
+    jmp .ret
 .eof:
-    STC
+    stc
 .ret:
-    RET
+    ret
 
 ;; Reads a fat file
 ;; DS:SI: Entry
@@ -439,68 +439,68 @@ fat_cluster_is_eof:
 ;; Returns:
 ;; CF=1 if an error occours
 fat_read_file:
-    PUSH AX
-    PUSH BX
-    PUSH CX
-    PUSH DX
-    PUSH SI
-    PUSH DI
-    MOV AX, WORD[SI+fat_entry.cluster_lo]
-    CMP AX, 2
-    JB .error
+    push ax
+    push bx
+    push cx
+    push dx
+    push si
+    push di
+    mov ax, word[si+fat_entry.cluster_lo]
+    cmp ax, 2
+    jb .error
 .loop:
-    CALL fat_cluster_is_eof
-    JC .end
+    call fat_cluster_is_eof
+    jc .end
     ;; AX = cluster
-    MOV DI, AX
-    CALL fat_cluster_to_lba 
-    MOV CL, BYTE[fat_bpb_data+fat_bpb.sectors_per_cluster]
-    XOR CH, CH
+    mov di, ax
+    call fat_cluster_to_lba 
+    mov cl, byte[fat_bpb_data+fat_bpb.sectors_per_cluster]
+    xor ch, ch
 .read:
-    CMP BX, 0x8000
-    JB .no_inc_seg
+    cmp bx, 0x8000
+    jb .no_inc_seg
     ;; If (bx >= 0x8000) 
     ;; {
     ;;   bx -= 0x8000;
     ;;   es += 0x800;
     ;; }
-    SUB BX, 0x8000
-    PUSH AX
-    MOV AX, ES
-    ADD AX, 0x800
-    MOV ES, AX
-    POP AX
+    sub bx, 0x8000
+    push ax
+    mov ax, es
+    add ax, 0x800
+    mov es, ax
+    pop ax
 .no_inc_seg:
-    CALL disk_read_sector
-    JC .error
-    ADD BX, 512
-    ADD AX, 1
-    ADC DX, 0
-    LOOP .read
-    MOV AX, DI
-    CALL fat_next_cluster
-    JC .error
-    JMP .loop
+    call disk_read_sector
+    jc .error
+    add bx, 512
+    add ax, 1
+    adc dx, 0
+    loop .read
+    mov ax, di
+    call fat_next_cluster
+    jc .error
+    jmp .loop
 .end:
-    CLC
-    JMP .ret
+    clc
+    jmp .ret
 .error:
-    STC
+    stc
 .ret:
-    POP DI
-    POP SI
-    POP DX
-    POP CX
-    POP BX
-    POP AX
-    RET
+    pop di
+    pop si
+    pop dx
+    pop cx
+    pop bx
+    pop ax
+    ret
 
-fat_type:                 DB 0
-fat_root_dir_sectors:     DW 0
-fat_data_sectors:         DW 0
-fat_first_data_sector:    DW 0
-fat_first_fat_sector:     DW 0
-fat_first_root_dir_sector:DW 0
-fat_bpb_data:             TIMES fat_bpb_size DB 0
+fat_type:                 db 0
+fat_root_dir_sectors:     dw 0
+fat_data_sectors:         dw 0
+fat_first_data_sector:    dw 0
+fat_first_fat_sector:     dw 0
+fat_first_root_dir_sector:dw 0
+fat_bpb_data:             times fat_bpb_size db 0
 
-%ENDIF ;; FAT_ASM
+%endif ;; FAT_ASM

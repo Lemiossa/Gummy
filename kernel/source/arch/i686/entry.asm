@@ -1,32 +1,32 @@
 ;; entry.asm
 ;; Created by Matheus Leme da Silva
-BITS 32
+bits 32
 
-SECTION .text
-GLOBAL _start
-EXTERN kmain
-EXTERN __bss_start, __bss_end
+section .text
+global _start
+extern kmain
+extern __bss_start, __bss_end
 
 _start:
-    MOV AX, 0x10
-    MOV DS, AX
-    MOV ES, AX
-    MOV FS, AX
-    MOV GS, AX
-    MOV SS, AX
-    MOV ESP, 0x7C00
+    mov ax, 0x10
+    mov ds, ax
+    mov es, ax
+    mov fs, ax
+    mov gs, ax
+    mov ss, ax
+    mov esp, 0x7c00
 
     ;; Zero BSS
-    CLD
-    XOR AL, AL
-    MOV EDI, __bss_start
-    MOV ECX, __bss_end
-    SUB ECX, EDI
-    REP STOSB
+    cld
+    xor al, al
+    mov edi, __bss_start
+    mov ecx, __bss_end
+    sub ecx, edi
+    rep stosb
 
-    CALL kmain
+    call kmain
 
 .hang:
-    CLI
-    HLT
-    JMP .hang
+    cli
+    hlt
+    jmp .hang
