@@ -29,9 +29,11 @@ LDLIBS   :=
 SOURCE  := \
 			$(ARCHDIR)/entry.asm \
 			$(ARCHDIR)/gdt.asm \
+			$(ARCHDIR)/idt.asm \
 			$(SOURCEDIR)/io.asm \
 			$(SOURCEDIR)/kmain.c \
 			$(ARCHDIR)/gdt.c \
+			$(ARCHDIR)/idt.c \
 			$(SOURCEDIR)/vga.c \
 			$(SOURCEDIR)/terminal.c
 
