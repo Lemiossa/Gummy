@@ -1,6 +1,14 @@
 ;; io.asm
 ;; Created by Matheus Leme da Silva
-bits 32
+
+;; void io_wait(void);
+global io_wait
+io_wait:
+    push ax
+    mov al, 0
+    out 0x80, al
+    pop ax
+    ret
 
 ;; Out byte to IO port
 ;; void outb(unsigned short port, unsigned char value);

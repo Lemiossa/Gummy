@@ -30,8 +30,9 @@ SOURCE  := \
 			$(ARCHDIR)/entry.asm \
 			$(ARCHDIR)/gdt.asm \
 			$(ARCHDIR)/idt.asm \
-			$(SOURCEDIR)/io.asm \
+			$(ARCHDIR)/io.asm \
 			$(SOURCEDIR)/kmain.c \
+			$(SOURCEDIR)/pic.c \
 			$(ARCHDIR)/gdt.c \
 			$(ARCHDIR)/idt.c \
 			$(SOURCEDIR)/vga.c \
