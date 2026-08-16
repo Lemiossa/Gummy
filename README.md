@@ -31,6 +31,8 @@ make clean
 - NASM
 - QEMU
 - dosfstools
+- mtools
+- GCC 15.2.0 cross-compiler for the specified architecture(with libgcc and binutils 2.45)
 
 ## License
 
