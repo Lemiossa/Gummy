@@ -355,9 +355,8 @@ fat_find_in_root_dir:
     push si
     push ds
     push es
-    push cs
-    pop es
     xor ax, ax
+    mov es, ax
     mov dx, si
     mov bx, word[fat_bpb_data+fat_bpb.root_dir_entries]
 .find_loop:

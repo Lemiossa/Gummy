@@ -38,6 +38,8 @@ main:
     xor bx, bx
     call fat_read_file
     jc fat_error
+    call e820_init
+    jc mem_error
     jmp jump_to_kernel
     jmp halt
 .entry: times 32 db 0
@@ -54,13 +56,20 @@ fat_error:
     call console_print_string
     jmp halt
 
+mem_error:
+    mov si, mem_error_message
+    call console_print_string
+    jmp halt
+
 %include "console.asm"
 %include "disk.asm"
 %include "fat.asm"
+%include "e820.asm"
 
 start_message:      db `\r\nGummy Bootloader\r\n`, 0
 disk_error_message: db `Disk error!\r\n`, 0
 fat_error_message:  db `FAT error!\r\n`, 0
+mem_error_message:  db `Mem error!\r\n`, 0
 halted_message:     db `System is halted! Please, reboot.\r\n`, 0
 kernel_file:        db `KERNEL  SYS`
 
@@ -78,7 +87,7 @@ gdt:
     .null:   gdt_entry 0x00000000, 0x00000, 0b00000000, 0b0000
     .code32: gdt_entry 0x00000000, 0xfffff, 0b10011010, 0b1100
     .data32: gdt_entry 0x00000000, 0xfffff, 0b10010010, 0b1100
-gdt_end
+gdt_end:
 
 gdtr:
     dw gdt_end - gdt - 1

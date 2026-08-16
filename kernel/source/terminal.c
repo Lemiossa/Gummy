@@ -6,6 +6,12 @@
 #include <vga.h>
 #include <terminal.h>
 
+#define BYTE_TO_HEX(byte, dest) do { \
+    (dest)[0] = "0123456789abcdef"[((byte) >> 4) & 0x0F]; \
+    (dest)[1] = "0123456789abcdef"[(byte) & 0x0F]; \
+    (dest)[2] = '\0'; \
+} while(0)
+
 uint16_t cursor_x, cursor_y;
 uint8_t current_color = 0x07;
 
@@ -76,3 +82,31 @@ void terminal_init(void)
     vga_update_cursor(cursor_x, cursor_y);
 }
 
+// Print a hex byte
+void terminal_print_hex8(uint8_t b)
+{
+    char str[3];
+    BYTE_TO_HEX(b, str);
+    terminal_print_string(str);
+}
+
+// Print a hex word
+void terminal_print_hex16(uint16_t w)
+{
+    terminal_print_hex8((w >> 8) & 0xFF);
+    terminal_print_hex8(w & 0xFF);
+}
+
+// Print a hex dword
+void terminal_print_hex32(uint32_t dw)
+{
+    terminal_print_hex16((dw >> 16) & 0xFFFF);
+    terminal_print_hex16(dw & 0xFFFF);
+}
+
+// Print a hex qword
+void terminal_print_hex64(uint64_t qw)
+{
+    terminal_print_hex32((qw >> 32) & 0xFFFFFFFF);
+    terminal_print_hex32(qw & 0xFFFFFFFF);
+}

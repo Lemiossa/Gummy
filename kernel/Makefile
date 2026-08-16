@@ -35,6 +35,7 @@ SOURCE  := \
 			$(SOURCEDIR)/pic.c \
 			$(ARCHDIR)/gdt.c \
 			$(ARCHDIR)/idt.c \
+			$(ARCHDIR)/e820.c \
 			$(SOURCEDIR)/vga.c \
 			$(SOURCEDIR)/terminal.c
 

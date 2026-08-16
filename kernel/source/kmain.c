@@ -7,6 +7,7 @@
 #include <gdt.h>
 #include <idt.h>
 #include <pic.h>
+#include <e820.h>
 
 void kmain()
 {
@@ -14,6 +15,7 @@ void kmain()
     terminal_init();
     pic_remap();
     idt_init();
+    E820_init();
     terminal_print_string("Hello World\r\n");
 
     while (1);
