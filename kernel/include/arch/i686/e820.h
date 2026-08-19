@@ -12,6 +12,8 @@ typedef struct
     uint32_t acpi_extended;
 } __attribute__((packed)) E820Entry;
 
+extern uint32_t total_memory;
+
 // Get memory map
 void E820_init(void);
 

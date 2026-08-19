@@ -16,6 +16,9 @@ void kmain()
     pic_remap();
     idt_init();
     E820_init();
+    terminal_print_string("Total memory: 0x");
+    terminal_print_hex32(total_memory);
+    terminal_print_string("\r\n");
     terminal_print_string("Hello World\r\n");
 
     while (1);

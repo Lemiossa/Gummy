@@ -8,6 +8,7 @@
 
 uint16_t E820_entry_count;
 E820Entry *E820_entries;
+uint32_t total_memory;
 
 // Get memory map
 void E820_init(void)
@@ -17,6 +18,7 @@ void E820_init(void)
     terminal_print_string("E820 Entry Count: ");
     terminal_print_hex16(E820_entry_count); 
     terminal_print_string("\r\n");
+    total_memory = 0;
 
     for (uint16_t i = 0; i < E820_entry_count; i++) {
         terminal_print_string("[");
@@ -30,7 +32,9 @@ void E820_init(void)
         terminal_print_string(" | Type: ");
         terminal_print_hex32(E820_entries[i].type);
         terminal_print_string("\r\n");
+        total_memory += E820_entries[i].length;
     }
+    
     terminal_print_string("E820 initialized\r\n");
 }
 
