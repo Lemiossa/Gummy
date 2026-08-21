@@ -66,7 +66,7 @@ mem_error:
 %include "fat.asm"
 %include "e820.asm"
 
-start_message:      db `\r\nGummy Bootloader\r\n`, 0
+start_message:      db `\r\n`, NAME, ` bootloader v`, VERSION, `\r\n`, 0
 disk_error_message: db `Disk error!\r\n`, 0
 fat_error_message:  db `FAT error!\r\n`, 0
 mem_error_message:  db `Mem error!\r\n`, 0

@@ -2,6 +2,8 @@
 # Created by Matheus Leme Da Silva
 
 ARCH        ?= i686
+NAME        ?= Gummy
+VERSION     ?= dev
 PROJ        ?= $(CURDIR)/..
 BUILDDIR    := $(CURDIR)/build
 BINDIR      := $(BUILDDIR)/bin
@@ -21,7 +23,8 @@ CFLAGS   := -m32 -std=c99 -O2 -g -Wall -Wextra \
 			-nostdinc -fno-omit-frame-pointer -fno-strict-aliasing \
 			-fno-pic -fno-pie -fdata-sections -ffunction-sections
 CPPFLAGS := -I$(PROJ)/include -I$(CURDIR)/include \
-			-I$(CURDIR)/include/arch/$(ARCH) -DVERSION=\"$(VERSION)\"
+			-I$(CURDIR)/include/arch/$(ARCH) \
+			-DNAME=\"$(NAME)\" -DVERSION=\"$(VERSION)\"
 ASMFLAGS := -f elf32
 LDFLAGS  := -T $(LINKER_FILE) -static -nostdlib --gc-sections
 LDLIBS   :=

@@ -8,6 +8,10 @@ A simple hobby operating system for x86 architecture.
 make
 ```
 
+This produces `build/images/Gummy-<version>.img`, where the version comes
+from the `VERSION` variable in the root `Makefile`. Both the kernel and the
+bootloader receive the `NAME` and `VERSION` macros at compile time.
+
 ## Running
 
 ```bash

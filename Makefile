@@ -1,7 +1,8 @@
 # Makefile
 # Created by Matheus Leme Da Silva
 
-VERSION  := 0.2.0
+NAME     := Gummy
+VERSION  := 0.3.0
 ARCH     := i686
 
 PROJ     := $(CURDIR)
@@ -10,7 +11,7 @@ BINDIR   := $(BUILDDIR)/bin
 IMGDIR   := $(BUILDDIR)/images
 IMGROOT  := $(BUILDDIR)/imgroot
 
-IMAGE      := $(IMGDIR)/Gummy.img
+IMAGE      := $(IMGDIR)/$(NAME)-$(VERSION).img
 BOOTLOADER := $(BINDIR)/bootloader.bin
 KERNEL     := $(BINDIR)/kernel.bin
 PATH       := /sbin:/usr/sbin:$(PATH)
@@ -24,6 +25,7 @@ QEMUFLAGS := \
 	-machine pc -vga std -display gtk
 
 export PROJ
+export NAME
 export VERSION
 export ARCH
 

@@ -11,8 +11,12 @@
 
 void kmain()
 {
-    gdt_init(); 
+    gdt_init();
     terminal_init();
+    terminal_print_string(NAME);
+    terminal_print_string(" v");
+    terminal_print_string(VERSION);
+    terminal_print_string("\r\n");
     pic_remap();
     idt_init();
     E820_init();
