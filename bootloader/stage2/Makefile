@@ -4,11 +4,12 @@
 PROJ     ?= $(CURDIR)/../..
 BUILDDIR := $(CURDIR)/build
 BINDIR   := $(BUILDDIR)/bin
+SOURCEDIR:= $(CURDIR)/src
 
 TARGET_BIN  ?= $(BINDIR)/stage2.bin
 DEP         := $(BUILDDIR)/dep/stage2.d
-SOURCE      := source/main.asm
-INCLUDES    := $(wildcard $(CURDIR)/source/*.asm)
+SOURCE      := $(SOURCEDIR)/main.asm
+INCLUDES    := $(wildcard $(CURDIR)/$(SOURCEDIR)/*.asm)
 
 
 .PHONY: all clean check dirs
@@ -19,7 +20,7 @@ check:
 	command -v nasm >/dev/null 2>&1 || { echo "ERROR: nasm not found. Install nasm and try again."; exit 1; }
 
 $(TARGET_BIN): $(INCLUDES) | dirs
-	nasm -f bin -Isource $(SOURCE) -o $(TARGET_BIN) -MD $(DEP)
+	nasm -f bin -I$(SOURCEDIR) $(SOURCE) -o $(TARGET_BIN) -MD $(DEP)
 
 dirs:
 	mkdir -p $(dir $(TARGET_BIN)) $(dir $(DEP))

@@ -7,7 +7,7 @@ BUILDDIR    := $(CURDIR)/build
 BINDIR      := $(BUILDDIR)/bin
 OBJDIR      := $(BUILDDIR)/obj
 DEPDIR      := $(BUILDDIR)/dep
-SOURCEDIR   := $(CURDIR)/source
+SOURCEDIR   := $(CURDIR)/src
 ARCHDIR     := $(SOURCEDIR)/arch/$(ARCH)
 
 ASM      := nasm
