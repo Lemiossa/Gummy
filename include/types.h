@@ -15,4 +15,7 @@ typedef int32_t ssize_t;
 
 #define NULL ((void *)0)
 
+#define ALIGN_UP(x, a) (((x) + ((a)-1)) & ~((a)-1))
+#define ALIGN_DOWN(x, a) ((x) & ~((a)-1))
+
 #endif // TYPES_H
