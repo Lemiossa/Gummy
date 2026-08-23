@@ -13,6 +13,8 @@ typedef struct
 } __attribute__((packed)) E820Entry;
 
 extern uint32_t total_memory;
+extern uint16_t E820_entry_count;
+extern E820Entry *E820_entries;
 
 // Get memory map
 void E820_init(void);

@@ -8,6 +8,7 @@
 #include <idt.h>
 #include <pic.h>
 #include <e820.h>
+#include <pmm.h>
 
 void kmain()
 {
@@ -23,6 +24,7 @@ void kmain()
     terminal_print_string("Total memory: 0x");
     terminal_print_hex32(total_memory);
     terminal_print_string("\r\n");
+    pmm_init();
 
     terminal_print_string("Hello World\r\n");
 

@@ -4,6 +4,7 @@ ENTRY(_start)
 
 SECTIONS
 {
+	__kernel_start = .;
 	. = 0x10000;
 
 	.text : {
@@ -24,4 +25,5 @@ SECTIONS
 		*(.bss*)
 	}
 	__bss_end = .;
+	__kernel_end = .;
 }
