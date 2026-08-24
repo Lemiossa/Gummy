@@ -18,7 +18,7 @@ LD       := i686-elf-ld
 OBJCOPY  := i686-elf-objcopy
 
 LINKER_FILE := $(ARCHDIR)/link.ld
-CFLAGS   := -m32 -std=c99 -O2 -g -Wall -Wextra \
+	CFLAGS   := -m32 -std=c11 -O2 -g -Wall -Wextra \
 			-ffreestanding -fno-stack-protector -fno-builtin -nostdlib \
 			-nostdinc -fno-omit-frame-pointer -fno-strict-aliasing \
 			-fno-pic -fno-pie -fdata-sections -ffunction-sections
