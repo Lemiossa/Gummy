@@ -41,6 +41,7 @@ SOURCE  := \
 			$(ARCHDIR)/idt.c \
 			$(ARCHDIR)/e820.c \
 			$(ARCHDIR)/pmm.c \
+			$(ARCHDIR)/vmm.c \
 			$(SOURCEDIR)/vga.c \
 			$(SOURCEDIR)/terminal.c
 

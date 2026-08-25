@@ -91,7 +91,4 @@ void pmm_init()
         bitmap_set_bit(bitmap, page);
 
     terminal_print_string("PMM initialized\r\n");
-    terminal_print_string("Pages: 0x");
-    terminal_print_hex32(bitmap_size_in_bits);
-    terminal_print_string("\r\n");
 }

@@ -10,6 +10,7 @@
 #include <pic.h>
 #include <e820.h>
 #include <pmm.h>
+#include <vmm.h>
 
 void kmain()
 {
@@ -20,6 +21,7 @@ void kmain()
     pic_remap();
     E820_init();
     pmm_init();
+    vmm_init();
 
     terminal_print_string(NAME);
     terminal_print_string(" v");

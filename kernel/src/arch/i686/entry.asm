@@ -9,7 +9,7 @@ extern __bss_start, __bss_end
 
 _start:
     cli
-    mov esp, 0x7c00
+    mov esp, stack_top
 
     ;; Zero BSS
     cld
@@ -25,3 +25,9 @@ _start:
     cli
     hlt
     jmp .hang
+
+section .bss
+align 16
+stack_bottom:
+    resb 4096
+stack_top:
