@@ -2,7 +2,8 @@
  * idt.c
  * Created by Matheus Leme da Silva
  * */
-#include "terminal.h"
+#include <io.h>
+#include <terminal.h>   
 #include <idt.h>
 #include <types.h>
 
@@ -62,7 +63,18 @@ void idt_set_entry(uint16_t index, uint32_t offset, uint16_t selector, uint8_t a
 void interrupt_handler(interrupt_context *ctx)
 {
     if (ctx->int_num < 32)
-        terminal_print_string("Exception\r\n");
+    {
+        terminal_print_string("Exception: 0x");
+        terminal_print_hex32(ctx->int_num);
+        terminal_print_string(", Code: 0x");
+        terminal_print_hex32(ctx->error_code);
+        if (ctx->int_num == 14) // Page fault
+        {
+            terminal_print_string(", CR2: 0x");
+            terminal_print_hex32(read_cr2());
+        }
+        terminal_print_string("\r\n");
+    }
 }
 
 // Initializes IDT

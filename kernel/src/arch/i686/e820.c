@@ -35,6 +35,9 @@ void E820_init(void)
         total_memory += E820_entries[i].length;
     }
     
+    terminal_print_string("Total memory: 0x");
+    terminal_print_hex32(total_memory);
+    terminal_print_string("\r\n");
     terminal_print_string("E820 initialized\r\n");
 }
 

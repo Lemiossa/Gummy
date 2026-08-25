@@ -2,7 +2,7 @@
 #define E820_H
 #include <types.h>
 
-#define E820_ADDRESS  0x500
+#define E820_ADDRESS  0xC0000500
 
 typedef struct 
 {

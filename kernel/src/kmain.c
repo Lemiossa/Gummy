@@ -2,6 +2,7 @@
  * kmain.c
  * Created by Matheus Leme Da Silva
  */
+#include <io.h>
 #include <types.h>
 #include <terminal.h>
 #include <gdt.h>
@@ -12,20 +13,18 @@
 
 void kmain()
 {
+    disable_interrupts();
     gdt_init();
     terminal_init();
+    idt_init();
+    pic_remap();
+    E820_init();
+    pmm_init();
+
     terminal_print_string(NAME);
     terminal_print_string(" v");
     terminal_print_string(VERSION);
     terminal_print_string("\r\n");
-    pic_remap();
-    idt_init();
-    E820_init();
-    terminal_print_string("Total memory: 0x");
-    terminal_print_hex32(total_memory);
-    terminal_print_string("\r\n");
-    pmm_init();
-
     terminal_print_string("Hello World\r\n");
 
     while (1);

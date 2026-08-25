@@ -10,9 +10,9 @@
 
 #define VGA_TEXT_MODE_WIDTH 80
 #define VGA_TEXT_MODE_HEIGHT 25
-#define VGA_LOC 0xB8000
+#define VGA_LOC 0xC00B8000
 
-volatile VgaCell *vga = (VgaCell *)0xB8000;
+volatile VgaCell *vga = (VgaCell *)VGA_LOC;
 
 // Draws a cell in the specified position
 // **FOR TEXT MODE**

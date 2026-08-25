@@ -9,7 +9,6 @@ load_idt:
     cli
     mov eax, [esp+4]
     lidt [eax]
-    sti
     ret
 
 extern interrupt_handler

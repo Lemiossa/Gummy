@@ -5,7 +5,7 @@ ENTRY(_start)
 SECTIONS
 {
 	__kernel_start = .;
-	. = 0x10000;
+	. = 0xC0010000;
 
 	.text : {
 		*(.text*)

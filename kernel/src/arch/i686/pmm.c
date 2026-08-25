@@ -8,9 +8,9 @@
 #include <e820.h>
 #include <pmm.h>
 
-#define BITMAP_LOCATION 0x100000 // Location of the bitmap in memory
 extern uint8_t *__kernel_start; // Start of the kernel in memory
 extern uint8_t *__kernel_end; // End of the kernel in memory
+#define BITMAP_LOCATION ((uint32_t)&__kernel_end) // Location of the bitmap in memory
 
 uint8_t *bitmap;
 uint32_t bitmap_size_in_bits = 0; // size of bitmap in bits
