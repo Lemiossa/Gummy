@@ -9,7 +9,7 @@ BUILDDIR    := $(CURDIR)/build
 BINDIR      := $(BUILDDIR)/bin
 OBJDIR      := $(BUILDDIR)/obj
 DEPDIR      := $(BUILDDIR)/dep
-SOURCEDIR   := $(CURDIR)/src
+SOURCEDIR   := src
 ARCHDIR     := $(SOURCEDIR)/arch/$(ARCH)
 
 ASM      := nasm
@@ -17,11 +17,12 @@ CC       := i686-elf-gcc
 LD       := i686-elf-ld
 OBJCOPY  := i686-elf-objcopy
 
-LINKER_FILE := $(ARCHDIR)/link.ld
-	CFLAGS   := -m32 -std=c11 -O2 -g -Wall -Wextra \
+LINKER_FILE := $(CURDIR)/$(ARCHDIR)/link.ld
+CFLAGS   := -m32 -std=c11 -O2 -g -Wall -Wextra \
 			-ffreestanding -fno-stack-protector -fno-builtin -nostdlib \
 			-nostdinc -fno-omit-frame-pointer -fno-strict-aliasing \
-			-fno-pic -fno-pie -fdata-sections -ffunction-sections
+			-fno-pic -fno-pie -fdata-sections -ffunction-sections \
+			-mno-sse -mno-sse2 -mno-mmx -mno-3dnow
 CPPFLAGS := -I$(PROJ)/include -I$(CURDIR)/include \
 			-I$(CURDIR)/include/arch/$(ARCH) \
 			-DNAME=\"$(NAME)\" -DVERSION=\"$(VERSION)\"
@@ -48,6 +49,7 @@ SOURCE_ASM := $(filter %.asm,$(SOURCE))
 OBJS_C     := $(patsubst %.c,$(OBJDIR)/%.c.o,$(SOURCE_C))
 OBJS_ASM   := $(patsubst %.asm,$(OBJDIR)/%.asm.o,$(SOURCE_ASM))
 OBJS       := $(OBJS_ASM) $(OBJS_C)
+DEPS       := $(OBJS:.o=.d)
 TARGET_ELF := $(BINDIR)/kernel.elf
 TARGET_BIN ?= $(BINDIR)/kernel.bin
 
@@ -61,7 +63,7 @@ $(OBJDIR)/%.asm.o: %.asm
 
 $(OBJDIR)/%.c.o: %.c
 	mkdir -p $(dir $@)
-	$(CC) $(CPPFLAGS) $(CFLAGS) -c -o $@ $< 
+	$(CC) $(CPPFLAGS) $(CFLAGS) -c -o $@ $< -MD
 
 $(TARGET_ELF): $(OBJS) $(LINKER_FILE)
 	mkdir -p $(dir $@)
@@ -75,3 +77,5 @@ clean:
 	rm -rf $(OBJDIR)
 	rm -f $(TARGET_ELF)
 	rm -f $(TARGET_BIN)
+
+-include $(DEPS)
