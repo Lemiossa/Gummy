@@ -12,7 +12,7 @@ extern uint8_t *__kernel_start; // Start of the kernel in memory
 extern uint8_t *__kernel_end; // End of the kernel in memory
 #define BITMAP_LOCATION ((uint32_t)&__kernel_end) // Location of the bitmap in memory
 
-uint8_t *bitmap;
+uint8_t *bitmap = NULL; // Pointer to the bitmap
 uint32_t bitmap_size_in_bits = 0; // size of bitmap in bits
 uint32_t bitmap_size_in_bytes = 0; // size of bitmap in bytes
 
@@ -22,13 +22,11 @@ void *pmm_alloc_page()
     if (bitmap == NULL || bitmap_size_in_bits == 0)
         return NULL;
 
-    for (uint32_t i = 0; i < bitmap_size_in_bits; i++)
+    int32_t page = bitmap_find_free_bit(bitmap, bitmap_size_in_bits);
+    if (page != -1)
     {
-        if (!bitmap_test_bit(bitmap, i))
-        {
-            bitmap_set_bit(bitmap, i);
-            return (void *)(i * PAGE_SIZE);
-        }
+        bitmap_set_bit(bitmap, (uint32_t)page); // Mark the page as used
+        return (void *)((uint32_t)page * PAGE_SIZE);
     }
 
     return NULL; // No free pages available
