@@ -6,14 +6,14 @@ NAME     ?= Gummy
 VERSION  ?= dev
 BUILDDIR := $(CURDIR)/build
 BINDIR   := $(BUILDDIR)/bin
-SOURCEDIR:= $(CURDIR)/src
+SRCDIR   := $(CURDIR)/src
 
 DEFINES := -DNAME=\"$(NAME)\" -DVERSION=\"$(VERSION)\"
 
 TARGET_BIN  ?= $(BINDIR)/stage2.bin
 DEP         := $(BUILDDIR)/dep/stage2.d
-SOURCE      := $(SOURCEDIR)/main.asm
-INCLUDES    := $(wildcard $(CURDIR)/$(SOURCEDIR)/*.asm)
+SRC      := $(SRCDIR)/main.asm
+INCLUDES    := $(wildcard $(CURDIR)/$(SRCDIR)/*.asm)
 
 
 .PHONY: all clean check dirs
@@ -24,7 +24,7 @@ check:
 	command -v nasm >/dev/null 2>&1 || { echo "ERROR: nasm not found. Install nasm and try again."; exit 1; }
 
 $(TARGET_BIN): $(INCLUDES) | dirs
-	nasm -f bin -I$(SOURCEDIR) $(DEFINES) $(SOURCE) -o $(TARGET_BIN) -MD $(DEP)
+	nasm -f bin -I$(SRCDIR) $(DEFINES) $(SRC) -o $(TARGET_BIN) -MD $(DEP)
 
 dirs:
 	mkdir -p $(dir $(TARGET_BIN)) $(dir $(DEP))

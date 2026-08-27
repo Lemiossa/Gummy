@@ -9,8 +9,8 @@ BUILDDIR    := $(CURDIR)/build
 BINDIR      := $(BUILDDIR)/bin
 OBJDIR      := $(BUILDDIR)/obj
 DEPDIR      := $(BUILDDIR)/dep
-SOURCEDIR   := src
-ARCHDIR     := $(SOURCEDIR)/arch/$(ARCH)
+SRCDIR      := src
+ARCHDIR     := $(SRCDIR)/arch/$(ARCH)
 
 ASM      := nasm
 CC       := i686-elf-gcc
@@ -30,25 +30,25 @@ ASMFLAGS := -f elf32
 LDFLAGS  := -T $(LINKER_FILE) -static -nostdlib --gc-sections
 LDLIBS   :=
 
-SOURCE  := \
+SRC  := \
 			$(ARCHDIR)/entry.asm \
 			$(ARCHDIR)/gdt.asm \
 			$(ARCHDIR)/idt.asm \
 			$(ARCHDIR)/io.asm \
-			$(SOURCEDIR)/kmain.c \
-			$(SOURCEDIR)/pic.c \
+			$(SRCDIR)/kmain.c \
+			$(SRCDIR)/pic.c \
 			$(ARCHDIR)/gdt.c \
 			$(ARCHDIR)/idt.c \
 			$(ARCHDIR)/e820.c \
 			$(ARCHDIR)/pmm.c \
 			$(ARCHDIR)/vmm.c \
-			$(SOURCEDIR)/vga.c \
-			$(SOURCEDIR)/terminal.c
+			$(SRCDIR)/vga.c \
+			$(SRCDIR)/terminal.c
 
-SOURCE_C   := $(filter %.c,$(SOURCE))
-SOURCE_ASM := $(filter %.asm,$(SOURCE))
-OBJS_C     := $(patsubst %.c,$(OBJDIR)/%.c.o,$(SOURCE_C))
-OBJS_ASM   := $(patsubst %.asm,$(OBJDIR)/%.asm.o,$(SOURCE_ASM))
+SRC_C      := $(filter %.c,$(SRC))
+SRC_ASM    := $(filter %.asm,$(SRC))
+OBJS_C     := $(patsubst %.c,$(OBJDIR)/%.c.o,$(SRC_C))
+OBJS_ASM   := $(patsubst %.asm,$(OBJDIR)/%.asm.o,$(SRC_ASM))
 OBJS       := $(OBJS_ASM) $(OBJS_C)
 DEPS       := $(OBJS:.o=.d)
 TARGET_ELF := $(BINDIR)/kernel.elf
