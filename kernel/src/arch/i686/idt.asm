@@ -3,7 +3,7 @@
 bits 32
 
 ;; Loads the idt
-;; void load_idt(IDTR *);
+;; void load_idt(idtr_t *);
 global load_idt
 load_idt:
     cli

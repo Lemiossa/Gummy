@@ -7,11 +7,11 @@
 #include <idt.h>
 #include <types.h>
 
-IDTR idtr = {0};
-IDTEntry idt[IDT_ENTRIES] = {0};
-IntHandler handlers[IDT_ENTRIES] = {0};
+idtr_t idtr = {0};
+idt_entry_t idt[IDT_ENTRIES] = {0};
+interrupt_handler_t handlers[IDT_ENTRIES] = {0};
 
-extern void load_idt(IDTR *);
+extern void load_idt(idtr_t *);
 extern uint32_t isr_table[IDT_ENTRIES];
 
 // Sets a IDT entry
@@ -28,19 +28,19 @@ static void idt_set_entry(uint16_t index, uint32_t offset, uint16_t selector, ui
 }
 
 // Interrupt handler
-void interrupt_handler(IntCtx *ctx)
+void interrupt_handler(interrupt_context_t *ctx)
 {
     if (ctx->int_num >= IDT_ENTRIES)
         return;
 
-    IntHandler handler = handlers[ctx->int_num];
+    interrupt_handler_t handler = handlers[ctx->int_num];
 
     if (handler)
         handler(ctx);
 }
 
 // set a idt handler
-void idt_set_handler(uint16_t index, IntHandler handler)
+void idt_set_handler(uint16_t index, interrupt_handler_t handler)
 {
     if (index > IDT_ENTRIES)
         return;
@@ -52,7 +52,7 @@ void idt_set_handler(uint16_t index, IntHandler handler)
 void idt_init(void)
 {
     idtr.offset = (uint32_t)idt;
-    idtr.size = IDT_ENTRIES * sizeof (IDTEntry) - 1;
+    idtr.size = IDT_ENTRIES * sizeof (idt_entry_t) - 1;
 
     for (int i = 0; i < IDT_ENTRIES; i++)
         idt_set_entry(i, isr_table[i], 0x08, IDT_INTERRUPT_GATE);

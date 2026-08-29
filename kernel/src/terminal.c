@@ -7,8 +7,8 @@
 #include <terminal.h>
 
 #define BYTE_TO_HEX(byte, dest) do { \
-    (dest)[0] = "0123456789abcdef"[((byte) >> 4) & 0x0F]; \
-    (dest)[1] = "0123456789abcdef"[(byte) & 0x0F]; \
+    (dest)[0] = "0123456789ABCDEF"[((byte) >> 4) & 0x0F]; \
+    (dest)[1] = "0123456789ABCDEF"[(byte) & 0x0F]; \
     (dest)[2] = '\0'; \
 } while(0)
 
@@ -22,12 +22,12 @@ void terminal_scroll_up(void)
     {
         for (uint16_t x = 0; x < TERMINAL_WIDTH; x++)
         {
-            VgaCell cell = vga_peek_cell(x, y);
+            vga_cell_t cell = vga_peek_cell(x, y);
             vga_draw_cell(cell, x, y - 1);
         }
     }
 
-    VgaCell space_cell = {' ', current_color};
+    vga_cell_t space_cell = {' ', current_color};
     for (uint16_t x = 0; x < TERMINAL_WIDTH; x++)
         vga_draw_cell(space_cell, x, TERMINAL_HEIGHT - 1);
 }
@@ -41,7 +41,7 @@ void terminal_putchar(char c)
         cursor_x = 0;
     else
     {
-        VgaCell cell = {c, current_color};
+        vga_cell_t cell = {c, current_color};
         vga_draw_cell(cell, cursor_x++, cursor_y);
     }
     
@@ -74,7 +74,7 @@ void terminal_init(void)
     cursor_x = 0;
     cursor_y = 0;
 
-    VgaCell space_cell = {' ', current_color};
+    vga_cell_t space_cell = {' ', current_color};
     for (uint16_t y = 0; y < TERMINAL_HEIGHT; y++)
         for (uint16_t x = 0; x < TERMINAL_WIDTH; x++)
             vga_draw_cell(space_cell, x, y);

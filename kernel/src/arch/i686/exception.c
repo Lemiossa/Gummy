@@ -43,14 +43,21 @@ static const char *exception_names[32] = {
 };
 
 // Handles exceptions
-static void exception_handler(IntCtx *ctx)
+static void exception_handler(interrupt_context_t *ctx)
 {
     terminal_print_string("\r\n\n*** CPU EXCEPTION ***\r\n");
 
     terminal_print_string("Exception: ");
     terminal_print_string(exception_names[ctx->int_num]);
-    terminal_print_string("\r\nINT: 0x");
+    terminal_print_string("\r\n  INT: 0x");
     terminal_print_hex32(ctx->int_num);
+
+    if (ctx->int_num == 14 ) // Page Fault
+    {
+        uint32_t cr2 = read_cr2();
+        terminal_print_string("\r\n  CR2: 0x");
+        terminal_print_hex32(cr2);
+    }
 
     terminal_print_string("\r\n\nSystem halted.\r\n");
 

@@ -12,11 +12,11 @@
 #define VGA_TEXT_MODE_HEIGHT 25
 #define VGA_LOC 0xC00B8000
 
-volatile VgaCell *vga = (VgaCell *)VGA_LOC;
+volatile vga_cell_t *vga = (vga_cell_t *)VGA_LOC;
 
 // Draws a cell in the specified position
 // **FOR TEXT MODE**
-void vga_draw_cell(VgaCell cell, uint16_t x, uint16_t y)
+void vga_draw_cell(vga_cell_t cell, uint16_t x, uint16_t y)
 {
     uint16_t pos = y * VGA_TEXT_MODE_WIDTH + x;
     vga[pos] = cell;
@@ -24,7 +24,7 @@ void vga_draw_cell(VgaCell cell, uint16_t x, uint16_t y)
 
 // Peeks a cell in the specified position
 // **FOR TEXT MODE**
-VgaCell vga_peek_cell(uint16_t x, uint16_t y)
+vga_cell_t vga_peek_cell(uint16_t x, uint16_t y)
 {
     uint16_t pos = y * VGA_TEXT_MODE_WIDTH + x;
     return vga[pos];

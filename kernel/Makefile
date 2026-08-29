@@ -35,14 +35,14 @@ SRC  := \
 			$(ARCHDIR)/gdt.asm \
 			$(ARCHDIR)/idt.asm \
 			$(ARCHDIR)/io.asm \
-			$(SRCDIR)/kmain.c \
-			$(SRCDIR)/pic.c \
 			$(ARCHDIR)/gdt.c \
 			$(ARCHDIR)/idt.c \
 			$(ARCHDIR)/exception.c \
 			$(ARCHDIR)/e820.c \
 			$(ARCHDIR)/pmm.c \
 			$(ARCHDIR)/vmm.c \
+			$(SRCDIR)/kmain.c \
+			$(SRCDIR)/pic.c \
 			$(SRCDIR)/vga.c \
 			$(SRCDIR)/terminal.c
 

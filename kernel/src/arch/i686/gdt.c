@@ -5,10 +5,10 @@
 #include <types.h>
 #include <gdt.h>
 
-extern void gdt_flush(GDTR *);
+extern void gdt_flush(gdtr_t *);
 
-GDTEntry gdt[GDT_ENTRIES] = {0};
-GDTR gdtr = {0};
+gdt_entry_t gdt[GDT_ENTRIES] = {0};
+gdtr_t gdtr = {0};
 
 // Sets a GDT entry
 void gdt_set_entry(uint16_t index, uint32_t base, uint32_t limit, uint8_t access, uint8_t flags)
@@ -27,7 +27,7 @@ void gdt_set_entry(uint16_t index, uint32_t base, uint32_t limit, uint8_t access
 // Initializes the basic GDT
 void gdt_init(void)
 {
-    gdtr.size = GDT_ENTRIES * sizeof(GDTEntry) - 1;
+    gdtr.size = GDT_ENTRIES * sizeof(gdt_entry_t) - 1;
     gdtr.offset = (uint32_t)gdt;
     for (int i = 0; i < GDT_ENTRIES; i++)
         gdt_set_entry(i, 0x00000000, 0x00000, 0b00000000, 0b0000); //NULL 

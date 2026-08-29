@@ -7,14 +7,14 @@
 #include <e820.h>
 
 uint16_t E820_entry_count;
-E820Entry *E820_entries;
+e820_entry_t *E820_entries;
 uint32_t total_memory;
 
 // Get memory map
 void E820_init(void)
 {
     E820_entry_count = (*(uint16_t *)E820_ADDRESS);
-    E820_entries = (E820Entry *)(E820_ADDRESS + 2);
+    E820_entries = (e820_entry_t *)(E820_ADDRESS + 2);
     terminal_print_string("E820 Entry Count: ");
     terminal_print_hex16(E820_entry_count); 
     terminal_print_string("\r\n");
