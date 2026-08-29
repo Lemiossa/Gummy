@@ -34,5 +34,9 @@ void kmain()
     terminal_print_string("\r\n");
     terminal_print_string("Hello World\r\n");
 
-    while (1);
+    while (1)
+    {
+        terminal_print_hex32(timer_get_ticks());
+        terminal_putchar('\r');
+    }
 }
