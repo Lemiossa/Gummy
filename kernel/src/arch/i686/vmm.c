@@ -124,5 +124,9 @@ int vmm_unmap(uint32_t virt)
 // Initialize the virtual memory manager
 void vmm_init() 
 {
+    // Unmap the first MiB
+    for (uint32_t virt = 0; virt < 0x100000; virt += PAGE_SIZE)
+        vmm_unmap(virt);
+
     terminal_print_string("VMM initialized\r\n");
 }
