@@ -12,6 +12,7 @@
 #include <e820.h>
 #include <pmm.h>
 #include <vmm.h>
+#include <timer.h>
 
 void kmain()
 {
@@ -24,6 +25,7 @@ void kmain()
     E820_init();
     pmm_init();
     vmm_init();
+    timer_init(100);
     enable_interrupts();
 
     terminal_print_string(NAME);

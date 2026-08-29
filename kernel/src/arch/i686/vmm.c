@@ -125,8 +125,8 @@ int vmm_unmap(void *virt)
 void vmm_init() 
 {
     // Unmap the first MiB
-    for (uint32_t virt = 0; virt < 0x100000; virt += PAGE_SIZE)
-        vmm_unmap((void *)virt);
+    //for (uint32_t virt = 0; virt < 0x100000; virt += PAGE_SIZE)
+    //    vmm_unmap((void *)virt);
 
     terminal_print_string("VMM initialized\r\n");
 }
