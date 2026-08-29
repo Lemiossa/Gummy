@@ -43,7 +43,7 @@ _32bit_entry:
     mov cr0, eax
 
 
-    jmp GDT_CODE32:KERNEL_LOAD_ADDRESS
+    jmp GDT_CODE32:KERNEL_LOAD_ADDRESS + 0xC0000000
     cli
     hlt
 

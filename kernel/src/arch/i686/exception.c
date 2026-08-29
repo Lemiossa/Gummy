@@ -51,6 +51,8 @@ static void exception_handler(interrupt_context_t *ctx)
     terminal_print_string(exception_names[ctx->int_num]);
     terminal_print_string("\r\n  INT: 0x");
     terminal_print_hex32(ctx->int_num);
+    terminal_print_string("\r\n  EIP: 0x");
+    terminal_print_hex32(ctx->eip);
 
     if (ctx->int_num == 14 ) // Page Fault
     {

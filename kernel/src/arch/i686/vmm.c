@@ -6,30 +6,11 @@
 #include <terminal.h>
 #include <types.h>
 #include <pmm.h>
+#include <vmm.h>
 
 // https://wiki.osdev.org/X86_Paging
 
-// PDE Bits
-#define PDE_PRESENT   (1 << 0)
-#define PDE_RW        (1 << 1)
-#define PDE_USER      (1 << 2)
-#define PDE_PWT       (1 << 3)
-#define PDE_PCD       (1 << 4)
-#define PDE_ACCESSED  (1 << 5)
-#define PDE_RESERVED  (1 << 6)
-#define PDE_PAGE_SIZE (1 << 7)
-#define PDE_GLOBAL    (1 << 8)
-
-// PTE Bits
-#define PTE_PRESENT   (1 << 0)
-#define PTE_RW        (1 << 1)
-#define PTE_USER      (1 << 2)
-#define PTE_PWT       (1 << 3)
-#define PTE_PCD       (1 << 4)
-#define PTE_ACCESSED  (1 << 5)
-#define PTE_DIRTY     (1 << 6)
-#define PTE_PAT       (1 << 7)
-#define PTE_GLOBAL    (1 << 8)
+uint32_t kernel_cr3 = 0;
 
 // invlpg
 static inline void invlpg(uint32_t addr)
@@ -63,7 +44,7 @@ static inline uint32_t *get_pde(uint32_t virt)
 static inline uint32_t *get_pt(uint32_t virt)
 {
     uint32_t *pde = get_pde(virt);
-    if (!(*pde & PDE_PRESENT)) 
+    if (!(*pde & VMM_FLAGS_PRESENT)) 
         return NULL; // Page directory entry not present
     
     return (uint32_t *)(0xFFC00000 + (get_pde_index(virt) * 0x1000)); // Get the page table address
@@ -73,7 +54,7 @@ static inline uint32_t *get_pt(uint32_t virt)
 static inline uint32_t *get_pte(uint32_t virt)
 {
     uint32_t *pde = get_pde(virt);
-    if (!(*pde & PDE_PRESENT)) 
+    if (!(*pde & VMM_FLAGS_PRESENT)) 
         return NULL; // Page directory entry not present
     
     uint32_t *pt = get_pt(virt);
@@ -85,14 +66,14 @@ static inline uint32_t *get_pte(uint32_t virt)
 int vmm_map(void *virt, void *phys, uint32_t flags)
 {
     uint32_t *pde = get_pde((uint32_t)virt);
-    if (!(*pde & PDE_PRESENT)) 
+    if (!(*pde & VMM_FLAGS_PRESENT)) 
     {
         // Allocate a new page table
         uint32_t pt_phys = (uint32_t)pmm_alloc_page();
         if (!pt_phys)
             return -1; // Failed to allocate a new page table
 
-        *pde = pt_phys | PDE_PRESENT | PDE_RW | PDE_USER; // Set the PDE to point to the new page table
+        *pde = pt_phys | flags; // Set the PDE to point to the new page table
 
         // Zero PT
         uint32_t *pt = get_pt((uint32_t)virt);
@@ -113,7 +94,7 @@ int vmm_map(void *virt, void *phys, uint32_t flags)
 int vmm_unmap(void *virt)
 {
     uint32_t *pte = get_pte((uint32_t)virt);
-    if (!pte || !(*pte & PTE_PRESENT))
+    if (!pte || !(*pte & VMM_FLAGS_PRESENT))
         return -1; // PTE not present
 
     *pte = 0; // Clear the PTE
@@ -122,11 +103,25 @@ int vmm_unmap(void *virt)
 }
 
 // Initialize the virtual memory manager
-void vmm_init() 
+void vmm_init(void) 
 {
-    // Unmap the first MiB
-    //for (uint32_t virt = 0; virt < 0x100000; virt += PAGE_SIZE)
-    //    vmm_unmap((void *)virt);
+    terminal_print_string("Initializing VMM...\r\n");
 
-    terminal_print_string("VMM initialized\r\n");
+    kernel_cr3 = read_cr3();
+    terminal_print_string("Physical location of pd: 0x");
+    terminal_print_hex32(kernel_cr3);
+    terminal_print_string("\r\n");
+
+    // Unmap the first MiB
+    uint32_t *pde = get_pde(0x00000000);
+    *pde = 0;
+
+    terminal_print_string("PDE: 0x");
+    terminal_print_hex32((uint32_t)pde);
+    terminal_print_string("\r\n");
+
+    for (uint32_t addr = 0; addr < 0x100000; addr += PAGE_SIZE)
+        invlpg(addr);
+
+    terminal_print_string("\r\nVMM initialized\r\n");
 }
