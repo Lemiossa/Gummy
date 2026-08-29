@@ -8,6 +8,7 @@
 #include <gdt.h>
 #include <idt.h>
 #include <pic.h>
+#include <exception.h>
 #include <e820.h>
 #include <pmm.h>
 #include <vmm.h>
@@ -19,9 +20,11 @@ void kmain()
     terminal_init();
     idt_init();
     pic_remap();
+    exception_init();
     E820_init();
     pmm_init();
     vmm_init();
+    enable_interrupts();
 
     terminal_print_string(NAME);
     terminal_print_string(" v");

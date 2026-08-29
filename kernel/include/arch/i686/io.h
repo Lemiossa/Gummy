@@ -22,6 +22,12 @@ static inline void enable_interrupts(void)
     __asm__ volatile ("sti");
 }
 
+// Halts the CPU
+static inline void halt_cpu(void)
+{
+    __asm__ volatile ("hlt");
+}
+
 // Read the value of control register CR0
 static inline uint32_t read_cr0(void) 
 {

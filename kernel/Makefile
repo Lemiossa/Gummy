@@ -39,6 +39,7 @@ SRC  := \
 			$(SRCDIR)/pic.c \
 			$(ARCHDIR)/gdt.c \
 			$(ARCHDIR)/idt.c \
+			$(ARCHDIR)/exception.c \
 			$(ARCHDIR)/e820.c \
 			$(ARCHDIR)/pmm.c \
 			$(ARCHDIR)/vmm.c \

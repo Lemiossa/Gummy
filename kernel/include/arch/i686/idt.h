@@ -26,13 +26,18 @@ typedef struct
     uint32_t eip;
     uint32_t cs;
     uint32_t eflags;
-} __attribute__((packed)) interrupt_context;
+} __attribute__((packed)) IntCtx;
+
+typedef void (*IntHandler)(IntCtx *ctx);
 
 #define IDT_ENTRIES 256
 #define IDT_INTERRUPT_GATE 0x8E
 #define IDT_TRAP_GATE 0x8F
 #define IDT_TASK_GATE 0x85
 
+// Initializes IDT
 void idt_init(void);
+// Sets a IDT handler
+void idt_set_handler(uint16_t index, IntHandler handler);
 
 #endif // IDT_H
