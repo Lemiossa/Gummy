@@ -2,6 +2,14 @@
 
 A simple hobby operating system for x86 architecture.
 
+## Requirements
+
+- NASM
+- QEMU(optional, for tests)
+- dosfstools
+- mtools
+- GCC 15.2.0 cross-compiler for the specified architecture(with libgcc and binutils 2.45)
+
 ## Building
 
 ```bash
@@ -29,15 +37,6 @@ make qemu-ng
 ```bash
 make clean
 ```
-
-## Requirements
-
-- NASM
-- QEMU
-- dosfstools
-- mtools
-- GCC 15.2.0 cross-compiler for the specified architecture(with libgcc and binutils 2.45)
-
 ## cross-compiler
 
 Dependencies for building the cross-compiler:
