@@ -82,9 +82,9 @@ static inline uint32_t *get_pte(uint32_t virt)
 
 // Map a virtual address to a physical address
 // Return !0 if an error occours
-int vmm_map(uint32_t virt, uint32_t phys, uint32_t flags)
+int vmm_map(void *virt, void *phys, uint32_t flags)
 {
-    uint32_t *pde = get_pde(virt);
+    uint32_t *pde = get_pde((uint32_t)virt);
     if (!(*pde & PDE_PRESENT)) 
     {
         // Allocate a new page table
@@ -95,29 +95,29 @@ int vmm_map(uint32_t virt, uint32_t phys, uint32_t flags)
         *pde = pt_phys | PDE_PRESENT | PDE_RW | PDE_USER; // Set the PDE to point to the new page table
 
         // Zero PT
-        uint32_t *pt = get_pt(virt);
+        uint32_t *pt = get_pt((uint32_t)virt);
         for (int i = 0; i < 1024; i++) 
             pt[i] = 0; // Clear the PTE
     }
 
-    uint32_t *pte = get_pte(virt);
+    uint32_t *pte = get_pte((uint32_t)virt);
     if (pte) 
-        *pte = phys | flags; // Set the PTE to point to the physical address
+        *pte = (uint32_t)phys | flags; // Set the PTE to point to the physical address
 
-    invlpg(virt); // Invalidate the TLB entry for the virtual address
+    invlpg((uint32_t)virt); // Invalidate the TLB entry for the virtual address
     return 0;
 }
 
 // Unmap a virtual address
 // Return !0 if an error occours
-int vmm_unmap(uint32_t virt)
+int vmm_unmap(void *virt)
 {
-    uint32_t *pte = get_pte(virt);
+    uint32_t *pte = get_pte((uint32_t)virt);
     if (!pte || !(*pte & PTE_PRESENT))
         return -1; // PTE not present
 
     *pte = 0; // Clear the PTE
-    invlpg(virt); // Invalidate the TLB entry for the virtual address
+    invlpg((uint32_t)virt); // Invalidate the TLB entry for the virtual address
     return 0;
 }
 
@@ -126,7 +126,7 @@ void vmm_init()
 {
     // Unmap the first MiB
     for (uint32_t virt = 0; virt < 0x100000; virt += PAGE_SIZE)
-        vmm_unmap(virt);
+        vmm_unmap((void *)virt);
 
     terminal_print_string("VMM initialized\r\n");
 }
