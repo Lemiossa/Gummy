@@ -45,14 +45,14 @@ static const char *exception_names[32] = {
 // Handles exceptions
 static void exception_handler(IntCtx *ctx)
 {
-    terminal_print_string("\n\n*** CPU EXCEPTION ***\n");
+    terminal_print_string("\r\n\n*** CPU EXCEPTION ***\r\n");
 
     terminal_print_string("Exception: ");
     terminal_print_string(exception_names[ctx->int_num]);
-    terminal_print_string("\nINT: 0x");
+    terminal_print_string("\r\nINT: 0x");
     terminal_print_hex32(ctx->int_num);
 
-    terminal_print_string("\n\nSystem halted.\n");
+    terminal_print_string("\r\n\nSystem halted.\r\n");
 
     for (;;)
     {
