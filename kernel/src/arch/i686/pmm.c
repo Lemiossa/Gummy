@@ -88,8 +88,5 @@ void pmm_init()
     for (uint32_t page = 0; page < 16; page++)
         bitmap_set_bit(bitmap, page);
 
-    terminal_print_string("Bitmap location: 0x");
-    terminal_print_hex32(BITMAP_LOCATION);
-    terminal_print_string("\r\n");
     terminal_print_string("PMM initialized\r\n");
 }

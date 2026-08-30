@@ -105,23 +105,14 @@ int vmm_unmap(void *virt)
 // Initialize the virtual memory manager
 void vmm_init(void) 
 {
-    terminal_print_string("Initializing VMM...\r\n");
-
     kernel_cr3 = read_cr3();
-    terminal_print_string("Physical location of pd: 0x");
-    terminal_print_hex32(kernel_cr3);
-    terminal_print_string("\r\n");
 
     // Unmap the first MiB
-    uint32_t *pde = get_pde(0x00000000);
+    uint32_t *pde = get_pde(0);
     *pde = 0;
-
-    terminal_print_string("PDE: 0x");
-    terminal_print_hex32((uint32_t)pde);
-    terminal_print_string("\r\n");
 
     for (uint32_t addr = 0; addr < 0x100000; addr += PAGE_SIZE)
         invlpg(addr);
 
-    terminal_print_string("\r\nVMM initialized\r\n");
+    terminal_print_string("initialized\r\n");
 }
