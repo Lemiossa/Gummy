@@ -19,6 +19,13 @@ int vmm_map(void *virt, void *phys, uint32_t flags);
 // Unmap a virtual address
 // Return !0 if an error occours
 int vmm_unmap(void *virt);
+// Alloc n pages in specific region
+// Return NULL if an error occours
+// Map all the pages and return the first virtual address
+void *vmm_alloc_pages(uint32_t n, void *region_start, void *region_end, uint32_t flags);
+// free n pages starting from a virtual address
+// return !0 if an error occours
+int vmm_free_pages(void *virt, uint32_t n);
 // Initialize the virtual memory manager
 void vmm_init();
 
