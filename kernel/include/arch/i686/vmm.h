@@ -26,6 +26,8 @@ void *vmm_alloc_pages(uint32_t n, void *region_start, void *region_end, uint32_t
 // free n pages starting from a virtual address
 // return !0 if an error occours
 int vmm_free_pages(void *virt, uint32_t n);
+// Clone the current page directory and return the new CR3 value
+uint32_t vmm_clone(void);
 // Initialize the virtual memory manager
 void vmm_init();
 

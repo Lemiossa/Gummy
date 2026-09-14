@@ -61,6 +61,17 @@ static inline uint32_t *get_pte(uint32_t virt)
     return &pt[get_pte_index(virt)]; // Get the PTE for the virtual address
 }
 
+// Get the physical address of an address
+static inline uint32_t get_physical_address(uint32_t virtual_address)
+{
+    uint32_t *pte = get_pte(virtual_address);
+    if (!pte || !(*pte & VMM_FLAGS_PRESENT)) 
+        return 0; // Page table entry not present
+    
+    return (*pte & 0xFFFFF000) | (virtual_address & 0xFFF); // Get the physical address
+}
+
+
 // Map a virtual address to a physical address
 // Return !0 if an error occours
 int vmm_map(void *virt, void *phys, uint32_t flags)
@@ -111,7 +122,12 @@ void *vmm_alloc_pages(uint32_t n, void *region_start, void *region_end, uint32_t
         return NULL; // Invalid number of pages
 
     uint32_t start_page = ALIGN_UP((uint32_t)region_start, PAGE_SIZE);
-    uint32_t end_page = ALIGN_DOWN((uint32_t)region_end, PAGE_SIZE); 
+    uint32_t end_page;
+    if (region_end)
+        end_page = ALIGN_DOWN((uint32_t)region_end, PAGE_SIZE); 
+    else 
+        end_page = 0xFFFFFFFF; // If region_end is NULL, set it to the maximum address
+
 
     uint32_t consecutive_pages = 0;
     uint32_t first_page = 0;
@@ -187,6 +203,30 @@ int vmm_free_pages(void *virt, uint32_t n)
     }
 
     return 0;
+}
+
+// Clone the current page directory and return the new CR3 value
+uint32_t vmm_clone(void)
+{
+    uint32_t new_cr3 = (uint32_t)vmm_alloc_pages(1, NULL, NULL, VMM_FLAGS_PRESENT | VMM_FLAGS_RW);
+    if (!new_cr3)
+        return 0; // Failed to allocate a new page directory
+    uint32_t new_cr3_phys = get_physical_address(new_cr3);
+
+    // Copy the kernel space mappings (higher half)
+    uint32_t *new_pd = (uint32_t *)new_cr3;
+    uint32_t *old_pd = (uint32_t *)0xFFFFF000;
+    for (int i = 0; i < 1024; i++) 
+        new_pd[i] = 0; 
+
+    for (int i = 768; i < 1024; i++)
+        new_pd[i] = old_pd[i];
+
+    new_pd[1023] = new_cr3_phys | VMM_FLAGS_PRESENT | VMM_FLAGS_RW; 
+
+    vmm_unmap((void *)new_cr3);
+
+    return new_cr3_phys;
 }
 
 // Initialize the virtual memory manager
