@@ -43,7 +43,7 @@ SRC  := \
 			$(ARCHDIR)/vmm.c \
 			$(SRCDIR)/kmain.c \
 			$(SRCDIR)/pit.c \
-			$(SRCDIR)/timer.c \
+			$(SRCDIR)/sched.c \
 			$(SRCDIR)/pic.c \
 			$(SRCDIR)/vga.c \
 			$(SRCDIR)/terminal.c

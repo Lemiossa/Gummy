@@ -12,7 +12,7 @@
 #include <e820.h>
 #include <pmm.h>
 #include <vmm.h>
-#include <timer.h>
+#include <sched.h>
 
 void kmain()
 {
@@ -25,7 +25,7 @@ void kmain()
     E820_init();
     pmm_init();
     vmm_init();
-    timer_init(100);
+    sched_init(100);
     enable_interrupts();
 
     terminal_print_string(NAME);
@@ -36,7 +36,7 @@ void kmain()
 
     while (1)
     {
-        terminal_print_hex32(timer_get_ticks());
+        terminal_print_hex32(sched_get_ticks());
         terminal_putchar('\r');
     }
 }
