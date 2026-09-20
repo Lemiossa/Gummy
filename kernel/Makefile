@@ -11,6 +11,7 @@ OBJDIR      := $(BUILDDIR)/obj
 DEPDIR      := $(BUILDDIR)/dep
 SRCDIR      := src
 ARCHDIR     := $(SRCDIR)/arch/$(ARCH)
+DEBUG       ?= 1
 
 ASM      := nasm
 CC       := i686-elf-gcc
@@ -18,11 +19,16 @@ LD       := i686-elf-ld
 OBJCOPY  := i686-elf-objcopy
 
 LINKER_FILE := $(CURDIR)/$(ARCHDIR)/link.ld
-CFLAGS   := -m32 -std=c11 -O2 -g -Wall -Wextra \
+CFLAGS   := -m32 -std=c11 -Wall -Wextra \
 			-ffreestanding -fno-stack-protector -fno-builtin -nostdlib \
 			-nostdinc -fno-omit-frame-pointer -fno-strict-aliasing \
 			-fno-pic -fno-pie -fdata-sections -ffunction-sections \
 			-mno-sse -mno-sse2 -mno-mmx -mno-3dnow
+ifeq ($(DEBUG), 1)
+	CFLAGS += -O0 -g
+else
+	CFLAGS += -O2
+endif
 CPPFLAGS := -I$(PROJ)/include -I$(CURDIR)/include \
 			-I$(CURDIR)/include/arch/$(ARCH) \
 			-DNAME=\"$(NAME)\" -DVERSION=\"$(VERSION)\"
@@ -54,7 +60,7 @@ OBJS_C     := $(patsubst %.c,$(OBJDIR)/%.c.o,$(SRC_C))
 OBJS_ASM   := $(patsubst %.asm,$(OBJDIR)/%.asm.o,$(SRC_ASM))
 OBJS       := $(OBJS_ASM) $(OBJS_C)
 DEPS       := $(OBJS:.o=.d)
-TARGET_ELF := $(BINDIR)/kernel.elf
+TARGET_ELF ?= $(BINDIR)/kernel.elf
 TARGET_BIN ?= $(BINDIR)/kernel.bin
 
 .PHONY: all clean

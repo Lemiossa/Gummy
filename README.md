@@ -9,6 +9,7 @@ A simple hobby operating system for x86 architecture.
 - dosfstools
 - mtools
 - GCC 15.2.0 cross-compiler for the specified architecture(with libgcc and binutils 2.45)
+- GDB 17.2(optional, for debugging)
 
 ## Building
 
@@ -91,6 +92,24 @@ make -j$(nproc) all-gcc
 sudo make install-gcc
 make -j$(nproc) all-target-libgcc
 sudo make install-target-libgcc
+```
+
+### gdb
+```bash
+cd ~/cross
+wget https://ftp.gnu.org/gnu/gdb/gdb-17.2.tar.gz
+tar -xvf gdb-17.2.tar.gz
+cd gdb-17.2
+mkdir build
+cd build
+../configure --target=i686-elf \
+  --prefix="/usr/local" \
+  --with-sysroot \
+  --disable-nls \
+  --disable-werror \
+  --enable-default-execstack=no
+make -j$(nproc)
+sudo make install
 ```
 
 ## License

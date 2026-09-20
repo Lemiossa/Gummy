@@ -1,19 +1,26 @@
 # Makefile
 # Created by Matheus Leme Da Silva
 
-NAME     := Gummy
-VERSION  := 0.8.1
 ARCH     := i686
+VERSION  := 0.8.1
+NAME     := Gummy
 
 PROJ     := $(CURDIR)
 BUILDDIR := $(PROJ)/build
 BINDIR   := $(BUILDDIR)/bin
 IMGDIR   := $(BUILDDIR)/images
 IMGROOT  := $(BUILDDIR)/imgroot
+DEBUG    ?= 1
 
-IMAGE      := $(IMGDIR)/$(NAME)-$(VERSION).img
+ifeq ($(DEBUG), 1)
+IMAGE      := $(IMGDIR)/$(NAME)_$(ARCH)-$(VERSION)_debug.img
+BOOTLOADER := $(BINDIR)/bootloader_debug.bin
+KERNEL     := $(BINDIR)/kernel_debug.bin
+else
+IMAGE      := $(IMGDIR)/$(NAME)_$(ARCH)-$(VERSION).img
 BOOTLOADER := $(BINDIR)/bootloader.bin
 KERNEL     := $(BINDIR)/kernel.bin
+endif
 PATH       := /sbin:/usr/sbin:$(PATH)
 
 define check_tool
@@ -28,6 +35,7 @@ export PROJ
 export NAME
 export VERSION
 export ARCH
+export DEBUG
 
 .PHONY: all bootloader clean qemu qemu-ng
 
@@ -41,7 +49,7 @@ FORCE:
 bootloader: $(BOOTLOADER)
 
 $(KERNEL): FORCE
-	$(MAKE) -C kernel TARGET_BIN=$(KERNEL)
+	$(MAKE) -C kernel TARGET_BIN=$(KERNEL) TARGET_ELF=$(KERNEL).elf
 
 kernel: $(KERNEL)
 
@@ -71,3 +79,9 @@ qemu: $(IMAGE)
 qemu-ng: $(IMAGE)
 	$(call check_tool,qemu-system-i386)
 	qemu-system-i386 $(QEMUFLAGS) -nographic
+
+qemu-gdb: $(IMAGE)
+	$(call check_tool,qemu-system-i386)
+	qemu-system-i386 $(QEMUFLAGS) -s -S & 
+	$(call check_tool,$(ARCH)-elf-gdb)
+	$(ARCH)-elf-gdb -ex "target remote localhost:1234" -ex "symbol-file $(KERNEL).elf"
