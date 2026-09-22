@@ -34,11 +34,7 @@ void kmain()
     terminal_print_string(" v");
     terminal_print_string(VERSION);
     terminal_print_string("\r\n");
-    terminal_print_string("Hello World\r\n");
 
-    while (1)
-    {
-        terminal_print_hex32(sched_get_ticks());
-        terminal_putchar('\r');
-    }
+    disable_interrupts();
+    halt_cpu();
 }
