@@ -15,19 +15,22 @@
 
 // Map a virtual address to a physical address
 // Return !0 if an error occours
-int vmm_map(void *virt, void *phys, uint32_t flags);
+int vmm_map(uintptr_t virt, uintptr_t phys, uint32_t flags);
 // Unmap a virtual address
 // Return !0 if an error occours
-int vmm_unmap(void *virt);
+int vmm_unmap(uintptr_t virt);
 // Alloc n pages in specific region
 // Return NULL if an error occours
 // Map all the pages and return the first virtual address
-void *vmm_alloc_pages(uint32_t n, void *region_start, void *region_end, uint32_t flags);
+void *vmm_alloc_pages_region(uint32_t n, uint32_t flags, uintptr_t region_start);
+// Alloc n pages in the entire virtual address space
+// Return NULL if an error occours
+void *vmm_alloc_pages(uint32_t n, uint32_t flags);
 // free n pages starting from a virtual address
 // return !0 if an error occours
-int vmm_free_pages(void *virt, uint32_t n);
+int vmm_free_pages(uint32_t n, void *virt);
 // Clone the current page directory and return the new CR3 value
-uint32_t vmm_clone(void);
+uintptr_t vmm_clone(void);
 // Initialize the virtual memory manager
 void vmm_init();
 

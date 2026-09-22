@@ -13,6 +13,7 @@
 #include <pmm.h>
 #include <vmm.h>
 #include <sched.h>
+#include <heap.h>
 
 void kmain()
 {
@@ -25,6 +26,7 @@ void kmain()
     E820_init();
     pmm_init();
     vmm_init();
+    heap_init();
     sched_init(100);
     enable_interrupts();
 

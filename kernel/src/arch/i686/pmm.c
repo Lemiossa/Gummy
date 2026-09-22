@@ -13,73 +13,89 @@ extern uint8_t *__kernel_end; // End of the kernel in memory
 #define BITMAP_LOCATION ((uint32_t)&__kernel_end) // Location of the bitmap in memory
 
 uint8_t *bitmap = NULL; // Pointer to the bitmap
-uint32_t bitmap_size_in_bits = 0; // size of bitmap in bits
-uint32_t bitmap_size_in_bytes = 0; // size of bitmap in bytes
+uint32_t bitmap_bits = 0; // size of bitmap in bits
+uint32_t bitmap_bytes = 0; // size of bitmap in bytes
+uint64_t phys_top = 0;
+uint64_t usable_mem = 0;
 
 // Alloc a page of physical memory
-void *pmm_alloc_page()
+uintptr_t pmm_alloc_page(void)
 {
-    if (bitmap == NULL || bitmap_size_in_bits == 0)
-        return NULL;
-
-    int32_t page = bitmap_find_free_bit(bitmap, bitmap_size_in_bits);
-    if (page != -1)
+    if (bitmap == NULL || bitmap_bits == 0)
     {
-        bitmap_set_bit(bitmap, (uint32_t)page); // Mark the page as used
-        return (void *)((uint32_t)page * PAGE_SIZE);
+        terminal_print_string("PMM not initialized\r\n");
+        return 0;
     }
 
-    return NULL; // No free pages available
+    uint32_t page = bitmap_find_free_bit(bitmap, bitmap_bits);
+    if (page == 0)
+        return 0; // No free pages available
+
+    bitmap_set_bit(bitmap, page); // Mark the page as used
+    return (uintptr_t)(page * PAGE_SIZE);
 }
 
 // Free a page of physical memory
-void pmm_free_page(void *page)
+void pmm_free_page(uintptr_t page)
 {
-    if (bitmap == NULL || bitmap_size_in_bits == 0)
+    if (bitmap == NULL || bitmap_bits == 0)
         return;
 
-    bitmap_clear_bit(bitmap, ((uint32_t)page) / PAGE_SIZE);
+    bitmap_clear_bit(bitmap, (page / PAGE_SIZE));
 }
 
 // Initialize the physical memory manager
 void pmm_init()
 {
     bitmap = (uint8_t *)BITMAP_LOCATION;
-    bitmap_size_in_bits = total_memory / PAGE_SIZE; 
-    bitmap_size_in_bytes = ALIGN_UP(bitmap_size_in_bits, 8) / 8; 
+
+    for (int i = 0; i < E820_entry_count; i++)
+    {
+        e820_entry_t entry = E820_entries[i];
+        if (entry.base >= 0x100000000) // Skip entries above 4GB
+            continue;
+
+        uint64_t end = MIN(entry.base + entry.length, 0x100000000);
+        phys_top = MAX(phys_top, end);
+
+        if (entry.type == 1) // Usable memory
+            usable_mem += end - entry.base;
+    }
+
+    bitmap_bits = phys_top / PAGE_SIZE;
+    bitmap_bytes = ALIGN_UP(bitmap_bits, 8) / 8;
+
+    for (uint32_t i = 0; i < bitmap_bytes; i++)
+        bitmap[i] = 0xFF; // Mark all pages as used initially
 
     for (int i = 0; i < E820_entry_count; i++)
     {
         e820_entry_t *entry = &E820_entries[i];
-        if (entry->type == 1) 
-        {
-            uint32_t start_page = entry->base / PAGE_SIZE;
-            uint32_t end_page = (entry->base + entry->length) / PAGE_SIZE;
 
-            for (uint32_t page = start_page; page < end_page; page++)
-                bitmap_clear_bit(bitmap, page); // Mark as free
-        }
-        else
-        {
-            uint32_t start_page = entry->base / PAGE_SIZE;
-            uint32_t end_page = (entry->base + entry->length) / PAGE_SIZE;
+        if (entry->type != 1)
+            continue;
 
-            for (uint32_t page = start_page; page < end_page; page++)
-                bitmap_set_bit(bitmap, page); // Mark as used
-        }
+        if (entry->base >= 0x100000000) // Skip entries above 4GB
+            continue;
+
+        uint64_t end = MIN(entry->base + entry->length, 0x100000000);
+        uint32_t start_page = ALIGN_UP(entry->base, PAGE_SIZE) / PAGE_SIZE;
+        uint32_t end_page = ALIGN_DOWN(end, PAGE_SIZE) / PAGE_SIZE;
+
+        for (uint32_t page = start_page; page < end_page; page++)
+            bitmap_clear_bit(bitmap, page); // Mark as free
     }
 
-    // Mark the bitmap itself as used
-    uint32_t bitmap_pages = ALIGN_UP(bitmap_size_in_bytes, PAGE_SIZE) / PAGE_SIZE; 
-    uint32_t bitmap_start_page = BITMAP_LOCATION / PAGE_SIZE;
-    uint32_t bitmap_end_page = bitmap_start_page + bitmap_pages;
-    for (uint32_t page = bitmap_start_page; page < bitmap_end_page; page++)
-        bitmap_set_bit(bitmap, page);
-
     // Mark the kernel memory as used
-    uint32_t kernel_start_page = (uint32_t)&__kernel_start / PAGE_SIZE;
-    uint32_t kernel_end_page = (uint32_t)&__kernel_end / PAGE_SIZE;
-    for (uint32_t page = kernel_start_page; page < kernel_end_page; page++)
+    // NOTE: kernel symbols are higher-half virtual addresses (0xC0xxxxxx).
+    // The bitmap tracks *physical* pages, so convert virt -> phys.
+    uint32_t kstart_virt = (uint32_t)&__kernel_start;
+    uint32_t kend_virt = (uint32_t)&__kernel_end + bitmap_bytes;
+    uint32_t kernel_start_phys = kstart_virt - 0xC0000000;
+    uint32_t kernel_end_phys = kend_virt - 0xC0000000;
+    uint32_t kernel_start_page = ALIGN_DOWN(kernel_start_phys, PAGE_SIZE) / PAGE_SIZE;
+    uint32_t kernel_end_page = ALIGN_UP(kernel_end_phys, PAGE_SIZE) / PAGE_SIZE;
+    for (uint32_t page = kernel_start_page; page < kernel_end_page && page < bitmap_bits; page++)
         bitmap_set_bit(bitmap, page);
 
     // Mark E820 table as used
@@ -87,6 +103,4 @@ void pmm_init()
     // 64K / 4K = 16 pages
     for (uint32_t page = 0; page < 16; page++)
         bitmap_set_bit(bitmap, page);
-
-    terminal_print_string("PMM initialized\r\n");
 }

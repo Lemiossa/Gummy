@@ -15,7 +15,7 @@ DEBUG       ?= 1
 
 ASM      := nasm
 CC       := i686-elf-gcc
-LD       := i686-elf-ld
+LD       := i686-elf-gcc
 OBJCOPY  := i686-elf-objcopy
 
 LINKER_FILE := $(CURDIR)/$(ARCHDIR)/link.ld
@@ -27,14 +27,14 @@ CFLAGS   := -m32 -std=c11 -Wall -Wextra \
 ifeq ($(DEBUG), 1)
 	CFLAGS += -O0 -g
 else
-	CFLAGS += -O2
+	CFLAGS += -O1
 endif
 CPPFLAGS := -I$(PROJ)/include -I$(CURDIR)/include \
 			-I$(CURDIR)/include/arch/$(ARCH) \
 			-DNAME=\"$(NAME)\" -DVERSION=\"$(VERSION)\"
 ASMFLAGS := -f elf32
-LDFLAGS  := -T $(LINKER_FILE) -static -nostdlib --gc-sections
-LDLIBS   :=
+LDFLAGS  := -m32 -T $(LINKER_FILE) -static -nostdlib -Wl,--gc-sections
+LDLIBS   := -lgcc
 
 SRC  := \
 			$(ARCHDIR)/entry.asm \
@@ -48,6 +48,7 @@ SRC  := \
 			$(ARCHDIR)/pmm.c \
 			$(ARCHDIR)/vmm.c \
 			$(SRCDIR)/kmain.c \
+			$(SRCDIR)/heap.c \
 			$(SRCDIR)/pit.c \
 			$(SRCDIR)/sched.c \
 			$(SRCDIR)/pic.c \

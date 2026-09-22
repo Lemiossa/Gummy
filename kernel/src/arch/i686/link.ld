@@ -4,8 +4,8 @@ ENTRY(_start)
 
 SECTIONS
 {
-	__kernel_start = .;
 	. = 0xC0010000;
+	__kernel_start = .;
 
 	.text : {
 		*(.text*)
