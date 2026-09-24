@@ -54,7 +54,7 @@ void terminal_putchar(char c)
     if (cursor_y >= TERMINAL_HEIGHT)
     {
         terminal_scroll_up();
-        cursor_x = TERMINAL_HEIGHT - 1;
+        cursor_x = 0;
         cursor_y--;
     }
 
