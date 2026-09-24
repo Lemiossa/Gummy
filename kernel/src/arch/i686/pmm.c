@@ -22,10 +22,7 @@ uint64_t usable_mem = 0;
 uintptr_t pmm_alloc_page(void)
 {
     if (bitmap == NULL || bitmap_bits == 0)
-    {
-        terminal_print_string("PMM not initialized\r\n");
-        return 0;
-    }
+       return 0;
 
     uint32_t page = bitmap_find_free_bit(bitmap, bitmap_bits);
     if (page == 0)
