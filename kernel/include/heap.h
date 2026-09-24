@@ -2,8 +2,9 @@
 #define HEAP_H
 #include <types.h>
 
-#define HEAP_VIRTUAL_ADDRESS 0xE0000000
-#define HEAP_INITIAL_PAGES   2
+#define HEAP_VIRTUAL_ADDRESS      0xE0000000
+#define HEAP_INITIAL_PAGES        2
+#define HEAP_SPLIT_BLOCK_MIN_SIZE 32
 
 // Initializes the heap
 void heap_init(void);

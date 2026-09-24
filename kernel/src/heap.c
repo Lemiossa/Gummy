@@ -71,18 +71,74 @@ void *heap_expand(size_t n)
     return new_block;
 }
 
+// Merge adjacent free blocks
+// The current block must be free
+void heap_merge_free_blocks(heap_block_t *b)
+{
+    if (!b || b->used)
+        return;
+
+    // Merge previous block
+    if (b->prev && !b->prev->used)
+    {
+        b->prev->size += b->size + sizeof(heap_block_t);
+        b->prev->next = b->next;
+        if (b->next)
+            b->next->prev = b->prev;
+        b = b->prev;
+    }
+
+    // Merge next block
+    if (b->next && !b->next->used)
+    {
+        b->size += b->next->size + sizeof(heap_block_t);
+        b->next = b->next->next;
+        if (b->next)
+            b->next->prev = b;
+    }
+}
+
+// Split heap block to specified size
+// The current block must be free
+void heap_split_block(heap_block_t *b, size_t size)
+{
+    if (!b || b->used || b->size <= size)
+        return;
+
+    size_t new_size = b->size - size - sizeof(heap_block_t);
+    if (new_size < HEAP_SPLIT_BLOCK_MIN_SIZE)
+        return;
+
+    heap_block_t *new = (heap_block_t *)((uintptr_t)b + size + sizeof(heap_block_t));
+
+    new->size = new_size;
+    new->used = 0;
+    new->prev = b;
+    new->next = b->next;
+
+    if (b->next)
+        b->next->prev = new;
+
+    b->size = size;
+    b->next = new;
+}
+
 // Allocates a block of memory of the given size
 void *heap_alloc(size_t size)
 {
     if (size == 0)
         return NULL;
 
+    size = ALIGN_UP(size, sizeof(uintptr_t));
+
     heap_block_t *b = heap_start;
     while (b)
     {
         if (!b->used && b->size >= size)
         {
+            heap_split_block(b, size);
             b->used = 1;
+
             return (void *)((uintptr_t)b + sizeof(heap_block_t));
         }
 
@@ -113,10 +169,12 @@ void heap_free(void *ptr)
         if ((void *)((uintptr_t)b + sizeof(heap_block_t)) == ptr)
         {
             b->used = 0;
-            return;
+            break;
         }
         b = b->next;
-   }
+    }
+
+    heap_merge_free_blocks(b);
 }
 
 // Prints the current state of the heap (for debugging purposes)
@@ -132,11 +190,10 @@ void heap_print(void)
 
     while (b)
     {
-        terminal_print_string("Block at: ");
         terminal_print_hex64((uint64_t)(uintptr_t)b);
-        terminal_print_string(", Size: ");
+        terminal_print_string("\r\n    Sz: ");
         terminal_print_hex64((uint64_t)b->size);
-        terminal_print_string(", Used: ");
+        terminal_print_string("\r\n    Us: ");
         terminal_print_hex8(b->used);
         terminal_print_string("\r\n");
         b = b->next;
