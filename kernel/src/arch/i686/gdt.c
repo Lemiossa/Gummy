@@ -4,6 +4,7 @@
  * */
 #include <types.h>
 #include <gdt.h>
+#include <debug.h>
 
 extern void gdt_flush(gdtr_t *);
 
@@ -29,9 +30,18 @@ void gdt_init(void)
 {
     gdtr.size = GDT_ENTRIES * sizeof(gdt_entry_t) - 1;
     gdtr.offset = (uint32_t)gdt;
+
     for (int i = 0; i < GDT_ENTRIES; i++)
         gdt_set_entry(i, 0x00000000, 0x00000, 0b00000000, 0b0000); //NULL 
     gdt_set_entry(1, 0x00000000, 0xFFFFF, 0b10011010, 0b1100); //CODE32
     gdt_set_entry(2, 0x00000000, 0xFFFFF, 0b10010010, 0b1100); //DATA32
+    
+    debug_log_string("GDT", "Size: 0x");
+    debug_log_hex16(gdtr.size);
+    debug_print_string("\r\n");
+    debug_log_string("GDT", "Offset: 0x");
+    debug_log_hex32(gdtr.offset);
+    debug_print_string("\r\n");
+
     gdt_flush(&gdtr);
 }

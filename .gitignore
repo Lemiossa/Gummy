@@ -2,5 +2,5 @@ build/
 .cache/
 install/
 cross/src/
-
+qemu.log
 compile_commands.json

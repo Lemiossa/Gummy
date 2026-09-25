@@ -7,6 +7,7 @@
 #include <types.h>
 #include <pmm.h>
 #include <vmm.h>
+#include <debug.h>
 
 // https://wiki.osdev.org/X86_Paging
 
@@ -238,6 +239,10 @@ void vmm_init(void)
     // Unmap the first MiB
     uint32_t *pde = get_pde(0);
     *pde = 0;
+
+    debug_log_string("VMM", "Kernel CR3: 0x");
+    debug_log_hex32(kernel_cr3);
+    debug_print_string("\r\n");
 
     for (uint32_t addr = 0; addr < 0x100000; addr += PAGE_SIZE)
         invlpg(addr);

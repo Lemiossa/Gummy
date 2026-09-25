@@ -6,6 +6,7 @@
 #include <terminal.h>
 #include <idt.h>
 #include <types.h>
+#include <debug.h>
 
 idtr_t idtr = {0};
 idt_entry_t idt[IDT_ENTRIES] = {0};
@@ -59,6 +60,13 @@ void idt_init(void)
 
     idt_set_entry(3, isr_table[3], 0x08, IDT_TRAP_GATE);
     idt_set_entry(4, isr_table[4], 0x08, IDT_TRAP_GATE);
+
+    debug_log_string("IDT", "Size: 0x");
+    debug_log_hex16(idtr.size);
+    debug_print_string("\r\n");
+    debug_log_string("IDT", "Offset: 0x");
+    debug_log_hex32(idtr.offset);
+    debug_print_string("\r\n");
 
     load_idt(&idtr);
 }

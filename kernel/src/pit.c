@@ -6,6 +6,7 @@
 #include <types.h>
 #include <pit.h>
 #include <pic.h>
+#include <debug.h>
 
 #define PIT_CMD 0x43
 
@@ -14,6 +15,14 @@ void pit_set_frequency(uint16_t channel, uint16_t frequency, uint8_t mode)
 {
     if (channel > 2 || frequency == 0)
         return;
+
+    debug_log_string("PIT", "Set PIT[0x");
+    debug_log_hex16(channel);
+    debug_print_string("]: Freq=0x");
+    debug_log_hex16(frequency);
+    debug_print_string(", Mode=0x");
+    debug_log_hex8(mode);
+    debug_print_string("\r\n");
 
     uint32_t divisor = (uint32_t)PIT_BASE_FREQUENCY / frequency;
 

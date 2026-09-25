@@ -2,6 +2,7 @@
  * exception.c
  * Created by Matheus Leme da Silva
  * */
+#include "debug.h"
 #include "io.h"
 #include <terminal.h>
 #include <idt.h>
@@ -45,23 +46,27 @@ static const char *exception_names[32] = {
 // Handles exceptions
 static void exception_handler(interrupt_context_t *ctx)
 {
-    terminal_print_string("\r\n\n*** CPU EXCEPTION ***\r\n");
+    debug_log_string("CPU EXCEPTION", "*** CPU EXCEPTION ***\r\n");
 
-    terminal_print_string("Exception: ");
-    terminal_print_string(exception_names[ctx->int_num]);
-    terminal_print_string("\r\n  INT: 0x");
-    terminal_print_hex32(ctx->int_num);
-    terminal_print_string("\r\n  EIP: 0x");
-    terminal_print_hex32(ctx->eip);
+    debug_log_string("CPU EXCEPTION", "Exception: ");
+    debug_print_string(exception_names[ctx->int_num]);
+    debug_print_string("\r\n");
+    debug_log_string("CPU EXCEPTION", "INT: 0x");
+    debug_log_hex32(ctx->int_num);
+    debug_print_string("\r\n");
+    debug_log_string("CPU EXCEPTION", "EIP: 0x");
+    debug_log_hex32(ctx->eip);
+    debug_print_string("\r\n");
 
     if (ctx->int_num == 14 ) // Page Fault
     {
         uint32_t cr2 = read_cr2();
-        terminal_print_string("\r\n  CR2: 0x");
-        terminal_print_hex32(cr2);
+        debug_log_string("CPU EXCEPTION", "CR2: 0x");
+        debug_log_hex32(cr2);
+        debug_print_string("\r\n");
     }
 
-    terminal_print_string("\r\n\nSystem halted.\r\n");
+    debug_log_string("CPU EXCEPTION", "System halted.\r\n");
 
     for (;;)
     {

@@ -7,6 +7,7 @@
 #include <bitmap.h>
 #include <e820.h>
 #include <pmm.h>
+#include <debug.h>
 
 extern uint8_t *__kernel_start; // Start of the kernel in memory
 extern uint8_t *__kernel_end; // End of the kernel in memory
@@ -15,8 +16,8 @@ extern uint8_t *__kernel_end; // End of the kernel in memory
 uint8_t *bitmap = NULL; // Pointer to the bitmap
 uint32_t bitmap_bits = 0; // size of bitmap in bits
 uint32_t bitmap_bytes = 0; // size of bitmap in bytes
-uint64_t phys_top = 0;
-uint64_t usable_mem = 0;
+uint32_t phys_top = 0;
+uint32_t usable_mem = 0;
 
 // Alloc a page of physical memory
 uintptr_t pmm_alloc_page(void)
@@ -49,11 +50,11 @@ void pmm_init(void)
     for (int i = 0; i < E820_entry_count; i++)
     {
         e820_entry_t entry = E820_entries[i];
-        if (entry.base >= 0x100000000) // Skip entries above 4GB
+        if (entry.base >= 0xFFFFFFFF) // Skip entries above 4GB
             continue;
 
-        uint64_t end = MIN(entry.base + entry.length, 0x100000000);
-        phys_top = MAX(phys_top, end);
+        uint32_t end = MIN(entry.base + entry.length, 0xFFFFFFFF);
+        phys_top = (uint32_t)MAX(phys_top, end);
 
         if (entry.type == 1) // Usable memory
             usable_mem += end - entry.base;
@@ -72,10 +73,10 @@ void pmm_init(void)
         if (entry->type != 1)
             continue;
 
-        if (entry->base >= 0x100000000) // Skip entries above 4GB
+        if (entry->base >= 0xFFFFFFFF) // Skip entries above 4GB
             continue;
 
-        uint64_t end = MIN(entry->base + entry->length, 0x100000000);
+        uint32_t end = MIN(entry->base + entry->length, 0xFFFFFFFF);
         uint32_t start_page = ALIGN_UP(entry->base, PAGE_SIZE) / PAGE_SIZE;
         uint32_t end_page = ALIGN_DOWN(end, PAGE_SIZE) / PAGE_SIZE;
 
@@ -100,4 +101,8 @@ void pmm_init(void)
     // 64K / 4K = 16 pages
     for (uint32_t page = 0; page < 16; page++)
         bitmap_set_bit(bitmap, page);
+    
+    debug_log_string("PMM", "Usable memory: 0x");
+    debug_log_hex32(usable_mem);
+    debug_print_string("\r\n");
 }

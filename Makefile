@@ -2,7 +2,7 @@
 # Created by Matheus Leme Da Silva
 
 ARCH     := i686
-VERSION  := 0.11.0
+VERSION  := 0.11.1
 NAME     := Gummy
 
 PROJ     := $(CURDIR)
@@ -74,7 +74,10 @@ clean:
 
 qemu: $(IMAGE)
 	$(call check_tool,qemu-system-i386)
-	qemu-system-i386 $(QEMUFLAGS) -serial stdio
+	qemu-system-i386 $(QEMUFLAGS) \
+    -chardev stdio,id=serial0,mux=on \
+    -serial chardev:serial0 \
+    | tee qemu.log
 
 qemu-ng: $(IMAGE)
 	$(call check_tool,qemu-system-i386)

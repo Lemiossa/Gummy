@@ -7,6 +7,7 @@
 #include <heap.h>
 #include <pmm.h>
 #include <vmm.h>
+#include <debug.h>
 
 typedef struct heap_block
 {
@@ -25,16 +26,22 @@ void heap_init(void)
     uintptr_t region_end = HEAP_VIRTUAL_ADDRESS + HEAP_INITIAL_PAGES * PAGE_SIZE;
     if ((uintptr_t)region_end >= 0xFFC00000)
     {
-        terminal_print_string("Heap initialization failed: region_end exceeds 0xFFC00000\r\n");
+        debug_log_string("HEAP", "Initialization failed: region_end exceeds 0xFFC00000\r\n");
         return;
     }
 
     heap_start = (heap_block_t *)vmm_alloc_pages_region(HEAP_INITIAL_PAGES, VMM_FLAGS_RW | VMM_FLAGS_PRESENT, region_start);
     if (!heap_start)
     {
-        terminal_print_string("Heap initialization failed: vmm_alloc_pages returned NULL\r\n");
+        debug_log_string("HEAP", "Initialization failed: vmm_alloc_pages returned NULL\r\n");
         return;
     }
+
+    debug_log_string("HEAP", "vaddr: 0x");
+    debug_log_hex64((uint64_t)HEAP_VIRTUAL_ADDRESS);
+    debug_print_string(", initial pages: 0x");
+    debug_log_hex32((uint32_t)HEAP_INITIAL_PAGES);
+    debug_print_string("\r\n");
 
     size_t region_size = HEAP_INITIAL_PAGES * PAGE_SIZE;
     heap_start->size = region_size - sizeof(heap_block_t);

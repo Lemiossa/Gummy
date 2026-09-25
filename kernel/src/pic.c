@@ -6,6 +6,7 @@
 #include <types.h>
 #include <io.h>
 #include <pic.h>
+#include <debug.h>
 
 #define PIC1_CMD     0x20
 #define PIC2_CMD     0xA0
@@ -40,6 +41,12 @@ void pic_remap(void)
 
     outb(PIC1_DATA, 0xFF);
     outb(PIC2_DATA, 0xFF);
+
+    debug_log_string("PIC", "PIC Remapped to 0x");
+    debug_log_hex8(PIC_VECTOR_START);
+    debug_print_string("-0x");
+    debug_log_hex8(PIC_VECTOR_START+8);
+    debug_print_string("\r\n");
 }
 
 // Send End Of Interrupt to PIC
@@ -53,6 +60,10 @@ void pic_send_eoi(uint8_t irq)
 // Set IRQ mask
 void pic_irq_set_mask(uint8_t irq)
 {
+    debug_log_string("PIC", "Set IRQ 0x");
+    debug_log_hex8(irq);
+    debug_print_string("\r\n");
+
     if (irq < 8)
         outb(PIC1_DATA, inb(PIC1_DATA) | (1 << irq));
     else  
@@ -62,6 +73,10 @@ void pic_irq_set_mask(uint8_t irq)
 // Clear IRQ mask
 void pic_irq_clear_mask(uint8_t irq)
 {
+    debug_log_string("PIC", "Clear IRQ 0x");
+    debug_log_hex8(irq);
+    debug_print_string("\r\n");
+
     if (irq < 8)
         outb(PIC1_DATA, inb(PIC1_DATA) & ~(1 << irq));
     else  

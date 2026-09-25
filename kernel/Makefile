@@ -23,7 +23,7 @@ CFLAGS   := -m32 -std=c11 -Wall -Wextra \
 			-ffreestanding -fno-stack-protector -fno-builtin -nostdlib \
 			-nostdinc -fno-omit-frame-pointer -fno-strict-aliasing \
 			-fno-pic -fno-pie -fdata-sections -ffunction-sections \
-			-mno-sse -mno-sse2 -mno-mmx -mno-3dnow
+			-mno-sse -mno-sse2 -mno-mmx -mno-3dnow -fmerge-all-constants
 ifeq ($(DEBUG), 1)
 	CFLAGS += -O0 -g
 else
