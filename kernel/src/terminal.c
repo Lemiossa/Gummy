@@ -5,15 +5,11 @@
 #include <types.h>
 #include <vga.h>
 #include <terminal.h>
-
-#define BYTE_TO_HEX(byte, dest) do { \
-    (dest)[0] = "0123456789ABCDEF"[((byte) >> 4) & 0x0F]; \
-    (dest)[1] = "0123456789ABCDEF"[(byte) & 0x0F]; \
-    (dest)[2] = '\0'; \
-} while(0)
+#include <utils.h>
 
 uint16_t cursor_x, cursor_y;
 uint8_t current_color = 0x07;
+static int initialized = 0;
 
 // Scrolls up one line in the terminal
 void terminal_scroll_up(void)
@@ -64,6 +60,9 @@ void terminal_putchar(char c)
 // Prints a string on the terminal
 void terminal_print_string(const char *s)
 {
+    if (!initialized)
+        return;
+
     while (*s)
         terminal_putchar(*s++);
 }
@@ -80,9 +79,10 @@ void terminal_init(void)
             vga_draw_cell(space_cell, x, y);
 
     vga_update_cursor(cursor_x, cursor_y);
+    initialized = 1;
 }
 
-// Print a hex byte
+// Prints a hex byte
 void terminal_print_hex8(uint8_t b)
 {
     char str[3];
@@ -90,21 +90,21 @@ void terminal_print_hex8(uint8_t b)
     terminal_print_string(str);
 }
 
-// Print a hex word
+// Prints a hex word
 void terminal_print_hex16(uint16_t w)
 {
     terminal_print_hex8((w >> 8) & 0xFF);
     terminal_print_hex8(w & 0xFF);
 }
 
-// Print a hex dword
+// Prints a hex dword
 void terminal_print_hex32(uint32_t dw)
 {
     terminal_print_hex16((dw >> 16) & 0xFFFF);
     terminal_print_hex16(dw & 0xFFFF);
 }
 
-// Print a hex qword
+// Prints a hex qword
 void terminal_print_hex64(uint64_t qw)
 {
     terminal_print_hex32((qw >> 32) & 0xFFFFFFFF);

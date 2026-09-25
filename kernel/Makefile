@@ -48,6 +48,8 @@ SRC  := \
 			$(ARCHDIR)/pmm.c \
 			$(ARCHDIR)/vmm.c \
 			$(SRCDIR)/kmain.c \
+			$(SRCDIR)/serial.c \
+			$(SRCDIR)/debug.c \
 			$(SRCDIR)/heap.c \
 			$(SRCDIR)/pit.c \
 			$(SRCDIR)/sched.c \

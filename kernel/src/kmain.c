@@ -14,11 +14,13 @@
 #include <vmm.h>
 #include <sched.h>
 #include <heap.h>
+#include <debug.h>
 
-void kmain()
+void kmain(void)
 {
     disable_interrupts();
     gdt_init();
+    debug_init();
     terminal_init();
     idt_init();
     pic_remap();
@@ -35,52 +37,6 @@ void kmain()
     terminal_print_string(VERSION);
     terminal_print_string("\r\n");
 
-    terminal_print_string("Heap test...\r\n");
-
-    void *a = heap_alloc(64);
-    void *b = heap_alloc(128);
-
-    if (!a || !b)
-    {
-        terminal_print_string("FAIL: alloc\r\n");
-        return;
-    }
-
-    terminal_print_string("Alloc: PASS\r\n");
-
-    uint32_t *p = (uint32_t *)a;
-    for (uint32_t i = 0; i < 16; i++)
-        p[i] = 0xDEADBEEF;
-
-    for (uint32_t i = 0; i < 16; i++)
-    {
-        if (p[i] != 0xDEADBEEF)
-        {
-            terminal_print_string("FAIL: memory\r\n");
-            return;
-        }
-    }
-
-    terminal_print_string("Memory: PASS\r\n");
-
-    heap_free(a);
-    heap_free(b);
-
-    terminal_print_string("Free/merge: PASS\r\n");
-
-    void *c = heap_alloc(32);
-
-    if (!c)
-    {
-        terminal_print_string("FAIL: reuse\r\n");
-        return;
-    }
-
-    terminal_print_string("Reuse: PASS\r\n");
-
-    heap_print();
-
-    terminal_print_string("Heap test passed!\r\n");
 
     disable_interrupts();
     halt_cpu();
