@@ -42,7 +42,7 @@ void pmm_free_page(uintptr_t page)
 }
 
 // Initialize the physical memory manager
-void pmm_init()
+void pmm_init(void)
 {
     bitmap = (uint8_t *)BITMAP_LOCATION;
 

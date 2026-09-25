@@ -32,6 +32,6 @@ int vmm_free_pages(uint32_t n, void *virt);
 // Clone the current page directory and return the new CR3 value
 uintptr_t vmm_clone(void);
 // Initialize the virtual memory manager
-void vmm_init();
+void vmm_init(void);
 
 #endif // VMM_H

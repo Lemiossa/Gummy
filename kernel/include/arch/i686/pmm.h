@@ -9,6 +9,6 @@ uintptr_t pmm_alloc_page(void);
 // Free a page of physical memory
 void pmm_free_page(uintptr_t page);
 // Initialize the physical memory manager
-void pmm_init();
+void pmm_init(void);
 
 #endif // PMM_H
