@@ -68,7 +68,7 @@ static inline uint32_t get_physical_address(uintptr_t virt)
     uint32_t *pte = get_pte(virt);
     if (!pte || !(*pte & VMM_FLAGS_PRESENT)) 
         return 0; // Page table entry not present
-    
+
     return (*pte & 0xFFFFF000) | (virt & 0xFFF); // Get the physical address
 }
 
@@ -80,6 +80,8 @@ int vmm_map(uintptr_t virt, uintptr_t phys, uint32_t flags)
     uint32_t *pde = get_pde(virt);
     if (!(*pde & VMM_FLAGS_PRESENT)) 
     {
+        debug_log_string("VMM", "Creating a new Page Table.\r\n");
+
         // Allocate a new page table
         uintptr_t pt_phys = pmm_alloc_page();
         if (!pt_phys)
@@ -98,6 +100,11 @@ int vmm_map(uintptr_t virt, uintptr_t phys, uint32_t flags)
         *pte = phys | flags | VMM_FLAGS_PRESENT; // Set the PTE to point to the physical address
 
     invlpg(virt); // Invalidate the TLB entry for the virtual address
+    debug_log_string("VMM", "Mapped 0x");
+    debug_log_hex32(phys);
+    debug_print_string(", 0x");
+    debug_log_hex32(virt);
+    debug_print_string(".\r\n");
     return 0;
 }
 
@@ -145,6 +152,7 @@ void *vmm_alloc_pages_region(uint32_t n, uint32_t flags, uintptr_t region_start)
             goto found;
     }
 
+    debug_log_string("VMM", "No suitable region found.\r\n");
     return NULL; // No suitable region found
 
 found:
@@ -153,6 +161,7 @@ found:
         uintptr_t phys = pmm_alloc_page();
         if (phys == 0) 
         {
+            debug_log_string("VMM", "Failed to alloc physical page.\r\n");
             // Rollback if allocation fails
             for (uintptr_t rollback_page = first_page; rollback_page < page; rollback_page += PAGE_SIZE)
                 vmm_unmap(rollback_page);
@@ -161,6 +170,7 @@ found:
 
         if (vmm_map(page, phys, flags) != 0)
         {
+            debug_log_string("VMM", "Failed to map phys -> virt.\r\n");
             // Rollback if mapping fails
             pmm_free_page(phys);
             for (uintptr_t rollback_page = first_page; rollback_page < page; rollback_page += PAGE_SIZE)
@@ -168,6 +178,10 @@ found:
             return NULL;
         }
     }
+
+    debug_log_string("VMM", "Allocated 0x");
+    debug_log_hex32(n);
+    debug_print_string(" pages.\r\n");
 
     return (void *)first_page; // Return the first virtual address of the allocated pages
 }

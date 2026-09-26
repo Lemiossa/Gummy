@@ -23,13 +23,24 @@ uint32_t usable_mem = 0;
 uintptr_t pmm_alloc_page(void)
 {
     if (bitmap == NULL || bitmap_bits == 0)
-       return 0;
+    {
+        debug_log_string("PMM", "Attempt to allocate a physical page without initializing PMM.\r\n");
+        return 0;
+    }
 
     uint32_t page = bitmap_find_free_bit(bitmap, bitmap_bits);
     if (page == 0)
+    {
+        debug_log_string("PMM", "No free pages available.\r\n");
         return 0; // No free pages available
+    }
 
     bitmap_set_bit(bitmap, page); // Mark the page as used
+
+    debug_log_string("PMM", "Allocated page 0x");
+    debug_log_hex32(page);
+    debug_print_string(".\r\n");
+
     return (uintptr_t)(page * PAGE_SIZE);
 }
 
@@ -37,7 +48,10 @@ uintptr_t pmm_alloc_page(void)
 void pmm_free_page(uintptr_t page)
 {
     if (bitmap == NULL || bitmap_bits == 0)
+    {
+        debug_log_string("PMM", "Attempt to free a physical page without initializing PMM.\r\n");
         return;
+    }
 
     bitmap_clear_bit(bitmap, (page / PAGE_SIZE));
 }
