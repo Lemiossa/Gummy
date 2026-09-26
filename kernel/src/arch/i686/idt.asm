@@ -13,6 +13,14 @@ load_idt:
 
 extern interrupt_handler
 
+;; Switch the CPU context
+;; void switch_context(interrupt_context_t *ctx);
+global switch_context
+switch_context:
+    mov eax, [esp+4]
+    mov esp, eax
+    jmp _restore_context
+
 isr_common:
     push eax
     push ebx
@@ -27,10 +35,11 @@ isr_common:
     push fs
     push gs
 
-    push esp
+    push esp ;; *ctx
     call interrupt_handler
-    add esp, 4
+    add esp, 4 ;; esp -= sizeof(interrupt_context_t *)
 
+_restore_context:
     pop gs
     pop fs
     pop es

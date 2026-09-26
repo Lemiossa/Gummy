@@ -57,7 +57,13 @@ void kmain(void)
     heap_init();
     debug_log_string("KMAIN", "Heap initialized!\r\n");
 
-    sched_init(100);
+    debug_log_string("KMAIN", "Initializing scheduler...\r\n");
+    if (sched_init(100))
+    {
+        debug_log_string("KMAIN", "Failed to initialize scheduler!\r\n");
+        goto halt;
+    }
+    debug_log_string("KMAIN", "Scheduler initialized!\r\n");
     enable_interrupts();
 
     terminal_print_string(NAME);
@@ -65,6 +71,8 @@ void kmain(void)
     terminal_print_string(VERSION);
     terminal_print_string("\r\n");
 
+halt:
+    debug_log_string("KMAIN", "System Halted\r\n");
     disable_interrupts();
     halt_cpu();
 }

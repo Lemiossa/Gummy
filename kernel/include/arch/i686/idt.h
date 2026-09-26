@@ -39,5 +39,7 @@ typedef void (*interrupt_handler_t)(interrupt_context_t *ctx);
 void idt_init(void);
 // Sets a IDT handler
 void idt_set_handler(uint16_t index, interrupt_handler_t handler);
+// Switch the CPU context
+void switch_context(interrupt_context_t *ctx);
 
 #endif // IDT_H

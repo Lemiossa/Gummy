@@ -13,6 +13,8 @@
 #define VMM_FLAGS_PAGE_SIZE (1 << 7)
 #define VMM_FLAGS_GLOBAL    (1 << 8)
 
+extern uintptr_t kernel_cr3;
+
 // Map a virtual address to a physical address
 // Return !0 if an error occours
 int vmm_map(uintptr_t virt, uintptr_t phys, uint32_t flags);

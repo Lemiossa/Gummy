@@ -11,7 +11,7 @@
 
 // https://wiki.osdev.org/X86_Paging
 
-uint32_t kernel_cr3 = 0;
+uintptr_t kernel_cr3 = 0;
 
 // invlpg
 static inline void invlpg(uintptr_t addr)
@@ -102,7 +102,7 @@ int vmm_map(uintptr_t virt, uintptr_t phys, uint32_t flags)
     invlpg(virt); // Invalidate the TLB entry for the virtual address
     debug_log_string("VMM", "Mapped 0x");
     debug_log_hex32(phys);
-    debug_print_string(", 0x");
+    debug_print_string(" to 0x");
     debug_log_hex32(virt);
     debug_print_string(".\r\n");
     return 0;
@@ -116,6 +116,9 @@ int vmm_unmap(uintptr_t virt)
     if (!pte || !(*pte & VMM_FLAGS_PRESENT))
         return -1; // PTE not present
 
+    debug_log_string("VMM", "Ummapped 0x");
+    debug_log_hex32(virt & ~0xFFF);
+    debug_print_string(".\r\n");
     *pte = 0; // Clear the PTE
     invlpg(virt); // Invalidate the TLB entry for the virtual address
     return 0;
@@ -128,7 +131,7 @@ void *vmm_alloc_pages_region(uint32_t n, uint32_t flags, uintptr_t region_start)
 {
     if (n == 0)
         return NULL; // Invalid number of pages
-    
+
     region_start = ALIGN_UP(region_start, PAGE_SIZE);
 
     uint32_t consecutive_pages = 0;
