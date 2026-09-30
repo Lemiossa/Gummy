@@ -14,12 +14,11 @@ ARCHDIR     := $(SRCDIR)/arch/$(ARCH)
 DEBUG       ?= 1
 
 ASM      := nasm
-CC       := i686-elf-gcc
-LD       := i686-elf-gcc
-OBJCOPY  := i686-elf-objcopy
+CC       := $(ARCH)-elf-gcc
+OBJCOPY  := $(ARCH)-elf-objcopy
 
 LINKER_FILE := $(CURDIR)/$(ARCHDIR)/link.ld
-CFLAGS   := -m32 -std=c11 -Wall -Wextra \
+CFLAGS   := -std=c11 -Wall -Wextra \
 			-ffreestanding -fno-stack-protector -fno-builtin -nostdlib \
 			-nostdinc -fno-omit-frame-pointer -fno-strict-aliasing \
 			-fno-pic -fno-pie -fdata-sections -ffunction-sections \
@@ -32,9 +31,22 @@ endif
 CPPFLAGS := -I$(PROJ)/include -I$(CURDIR)/include \
 			-I$(CURDIR)/include/arch/$(ARCH) \
 			-DNAME=\"$(NAME)\" -DVERSION=\"$(VERSION)\"
-ASMFLAGS := -f elf32
-LDFLAGS  := -m32 -T $(LINKER_FILE) -static -nostdlib -Wl,--gc-sections
+LDFLAGS  := -T $(LINKER_FILE) -static -nostdlib -Wl,--gc-sections
 LDLIBS   := -lgcc
+
+ifeq ($(ARCH),i686)
+	ASMFLAGS := -f elf32
+	LDFLAGS += -m32
+	CFLAGS += -m32
+else
+	ifeq ($(ARCH),x86_64)
+		ASMFLAGS := -f elf64
+		LDFLAGS += -m64
+		CFLAGS += -m64
+	else
+		$(error Unsupported architecture)
+	endif
+endif
 
 SRC  := \
 			$(ARCHDIR)/entry.asm \
@@ -80,7 +92,7 @@ $(OBJDIR)/%.c.o: %.c
 
 $(TARGET_ELF): $(OBJS) $(LINKER_FILE)
 	mkdir -p $(dir $@)
-	$(LD) $(LDFLAGS) -o $@ $(OBJS) $(LDLIBS)
+	$(CC) $(LDFLAGS) -o $@ $(OBJS) $(LDLIBS)
 
 $(TARGET_BIN): $(TARGET_ELF)
 	mkdir -p $(dir $@)
