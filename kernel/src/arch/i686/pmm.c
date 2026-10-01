@@ -8,6 +8,7 @@
 #include <e820.h>
 #include <pmm.h>
 #include <debug.h>
+#include <string.h>
 
 extern uint8_t *__kernel_start; // Start of the kernel in memory
 extern uint8_t *__kernel_end; // End of the kernel in memory
@@ -77,8 +78,7 @@ void pmm_init(void)
     bitmap_bits = phys_top / PAGE_SIZE;
     bitmap_bytes = ALIGN_UP(bitmap_bits, 8) / 8;
 
-    for (uint32_t i = 0; i < bitmap_bytes; i++)
-        bitmap[i] = 0xFF; // Mark all pages as used initially
+    memset(bitmap, 0xFF, bitmap_bytes);
 
     for (int i = 0; i < E820_entry_count; i++)
     {

@@ -3,6 +3,7 @@
  * Created by Matheus Leme da Silva
  * */
 #include <io.h>
+#include <string.h>
 #include <terminal.h>
 #include <types.h>
 #include <pmm.h>
@@ -235,8 +236,7 @@ uintptr_t vmm_clone(void)
     // Copy the kernel space mappings (higher half)
     uint32_t *new_pd = (uint32_t *)new_cr3;
     uint32_t *old_pd = (uint32_t *)0xFFFFF000;
-    for (int i = 0; i < 1024; i++) 
-        new_pd[i] = 0; 
+    memset(new_pd, 0, 1024 * sizeof(uint32_t));
 
     for (int i = 768; i < 1024; i++)
         new_pd[i] = old_pd[i];
