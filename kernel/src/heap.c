@@ -75,6 +75,12 @@ void *heap_expand(size_t n)
     new_block->next = NULL;
     b->next = new_block;
 
+    debug_log_string("HEAP", "Expanded heap by 0x");
+    debug_log_hex32((uint32_t)n);
+    debug_print_string(" pages, new block at 0x");
+    debug_log_hex64((uint64_t)(uintptr_t)new_block);
+    debug_print_string("\r\n");
+
     return new_block;
 }
 
@@ -138,6 +144,10 @@ void *heap_alloc(size_t size)
 
     size = ALIGN_UP(size, sizeof(uintptr_t));
 
+    debug_log_string("HEAP", "Allocating 0x");
+    debug_log_hex64((uint64_t)size);
+    debug_print_string(" bytes\r\n");
+
     heap_block_t *b = heap_start;
     while (b)
     {
@@ -180,6 +190,10 @@ void heap_free(void *ptr)
         }
         b = b->next;
     }
+
+    debug_log_string("HEAP", "Freed block at 0x");
+    debug_log_hex64((uint64_t)(uintptr_t)b);
+    debug_print_string("\r\n");
 
     heap_merge_free_blocks(b);
 }
