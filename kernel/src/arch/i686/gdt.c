@@ -32,9 +32,11 @@ void gdt_init(void)
     gdtr.offset = (uint32_t)gdt;
 
     for (int i = 0; i < GDT_ENTRIES; i++)
-        gdt_set_entry(i, 0x00000000, 0x00000, 0b00000000, 0b0000); //NULL 
-    gdt_set_entry(1, 0x00000000, 0xFFFFF, 0b10011010, 0b1100); //CODE32
-    gdt_set_entry(2, 0x00000000, 0xFFFFF, 0b10010010, 0b1100); //DATA32
+        gdt_set_entry(i, 0x00000000, 0x00000, 0b00000000, 0b0000); // NULL 
+    gdt_set_entry(1, 0x00000000, 0xFFFFF, 0b10011010, 0b1100); // KCODE32
+    gdt_set_entry(2, 0x00000000, 0xFFFFF, 0b10010010, 0b1100); // KDATA32
+    gdt_set_entry(3, 0x00000000, 0xFFFFF, 0b11111010, 0b1100); // UCODE32
+    gdt_set_entry(4, 0x00000000, 0xFFFFF, 0b11110010, 0b1100); // UDATA32
     
     debug_log_string("GDT", "Size: 0x");
     debug_log_hex16(gdtr.size);

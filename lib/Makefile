@@ -60,7 +60,8 @@ else
 endif
 
 SRC := \
-		$(SRCDIR)/string.c
+		$(SRCDIR)/string.c \
+		$(SRCDIR)/queue.c
 
 SRC_C      := $(filter %.c,$(SRC))
 SRC_ASM    := $(filter %.asm,$(SRC))

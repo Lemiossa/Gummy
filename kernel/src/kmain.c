@@ -15,6 +15,7 @@
 #include <sched.h>
 #include <heap.h>
 #include <debug.h>
+#include <tss.h>
 
 void kmain(void)
 {
@@ -24,6 +25,11 @@ void kmain(void)
     debug_log_string("KMAIN", "Initializing GDT...\r\n");
     gdt_init();
     debug_log_string("KMAIN", "GDT Initialized!\r\n");
+
+    debug_log_string("KMAIN", "Initializing TSS...\r\n");
+    tss_init();
+    debug_log_string("KMAIN", "TSS Initialized!\r\n");
+
 
     debug_log_string("KMAIN", "Initializing terminal...\r\n");
     terminal_init();

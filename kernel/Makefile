@@ -70,6 +70,8 @@ SRC  := \
 			$(ARCHDIR)/e820.c \
 			$(ARCHDIR)/pmm.c \
 			$(ARCHDIR)/vmm.c \
+			$(ARCHDIR)/tss.c \
+			$(ARCHDIR)/tss.asm \
 			$(SRCDIR)/kmain.c \
 			$(SRCDIR)/serial.c \
 			$(SRCDIR)/debug.c \

@@ -13,10 +13,10 @@ load_idt:
 
 extern interrupt_handler
 
-;; Switch the CPU context
-;; void switch_context(interrupt_context_t *ctx);
-global switch_context
-switch_context:
+;; Restores the CPU context
+;; void restore_context(uintptr_t esp0);
+global restore_context
+restore_context:
     mov eax, [esp+4]
     mov esp, eax
     jmp _restore_context

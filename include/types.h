@@ -28,7 +28,7 @@ typedef int32_t ssize_t;
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 
-#define OFFSET(type, member) ((size_t)&((type *)0)->member)
+#define OFFSETOF(type, member) ((size_t)&((type *)0)->member)
 
 #define CONTAINER_OF(ptr, type, member) \
     ((type *)((char *)(ptr) - OFFSETOF(type, member)))
