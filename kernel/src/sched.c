@@ -36,15 +36,8 @@ void switch_context(thread_t *new)
     if (!current_thread || !new)
         return;
 
-    interrupt_context_t *ctx = sched_get_context(new->sp0 + KERNEL_STACK_SIZE);
-
-    if (!ctx)
-        return;
-
-    uintptr_t esp0 = (uintptr_t)ctx + sizeof(interrupt_context_t);
-
     current_thread = new;
-    restore_context(esp0);
+    restore_context(new->sp0);
 }
 
 // Sched handler
@@ -56,7 +49,7 @@ static void sched_handler(interrupt_context_t *ctx)
     if (queue_empty(&ready_queue))
         return;
 
-    interrupt_context_t *cur_ctx = sched_get_context(current_thread->sp0 + KERNEL_STACK_SIZE);
+    interrupt_context_t *cur_ctx = sched_get_context(current_thread->sp0);
     *cur_ctx = *ctx;
 
     queue_node_t *n = queue_pop(&ready_queue);
@@ -97,11 +90,11 @@ int sched_init(uint16_t frequency)
     queue_push(&ready_queue, &idle_process.threads[0].node);
     current_thread = &idle_process.threads[0];
 
-    uint8_t *sp0 = (uint8_t *)heap_alloc(KERNEL_STACK_SIZE);
-    if (!sp0)
+    uint8_t *stack0 = (uint8_t *)heap_alloc(KERNEL_STACK_SIZE);
+    if (!stack0)
         return -1;
-    uintptr_t sp0_top = (uintptr_t)(sp0 + KERNEL_STACK_SIZE);
-    current_thread->sp0 = sp0_top;
+    uintptr_t sp0 = (uintptr_t)(stack0 + KERNEL_STACK_SIZE);
+    current_thread->sp0 = sp0;
 
     return 0;
 }
