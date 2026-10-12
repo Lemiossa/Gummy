@@ -147,6 +147,10 @@ First version. Functional foundation of the system:
   - Queue (`queue.h`/`queue.c` in `lib/`) for task states.
   - Scheduler rewritten with ready queues; tasks with their own context.
 
+## v0.14.1 — 2026-10-12
+
+Changed some names in sched.*.
+
 ---
 
 Note: there are no commits after `v0.14.0`, so no `Unreleased` section was needed. `v0.9.2` was tagged out of order (after `v0.11.0`), but in the Git history it sits between `v0.9.1` and `v0.10.0` — this changelog follows the history order.
