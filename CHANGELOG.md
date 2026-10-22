@@ -151,6 +151,16 @@ First version. Functional foundation of the system:
 
 Changed some names in sched.*.
 
+## v0.15.0 — 2026-10-22
+
+- **Context switching consolidated**: the scheduler saves the current context directly in `current_thread->sp`, switches to the target process address space (`write_cr3`) and updates the TSS `esp0`/`ss0` on every switch (except for the idle thread).
+- `thread` now tracks both the stack base and the stack pointer (`stack`/`sp` and `stack0`/`sp0`).
+- TSS: `tss_flush()` now takes the selector as an argument instead of hardcoding `0x28`; added `tss_set_sp0()`.
+- Queue: internal `size` counter and new `queue_size()`.
+- Scheduler API: `sched_create_process()` no longer takes `is_kernel`; `sched_create_thread()` declared; idle process no longer allocates a separate kernel stack.
+- Build: `mkfs.fat` no longer uses `--mbr=y`, leaving the boot sector to the project's own bootloader.
+- README: section on editor support and the hand-maintained `compile_commands.json`.
+
 ---
 
-Note: there are no commits after `v0.14.0`, so no `Unreleased` section was needed. `v0.9.2` was tagged out of order (after `v0.11.0`), but in the Git history it sits between `v0.9.1` and `v0.10.0` — this changelog follows the history order.
+Note: `v0.9.2` was tagged out of order (after `v0.11.0`), but in the Git history it sits between `v0.9.1` and `v0.10.0` — this changelog follows the history order.

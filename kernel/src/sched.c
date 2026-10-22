@@ -1,7 +1,8 @@
 /*
  * sched.c
- * Created by Matheus Leme da Silva
+ * created by matheus leme da silva
  * */
+#include <tss.h>
 #include <pmm.h>
 #include <vmm.h>
 #include <types.h>
@@ -12,6 +13,7 @@
 #include <heap.h>
 #include <debug.h>
 #include <queue.h>
+#include <io.h>
 
 volatile uint32_t ticks = 0;
 uint16_t timer_frequency = 0;
@@ -24,23 +26,32 @@ static queue_t ready_queue;
 static queue_t blocked_queue;
 static queue_t zombie_queue;
 
-// Return the context pointer in a stack
-static inline interrupt_context_t *sched_get_context(uintptr_t stack_top)
-{
-    return (interrupt_context_t *)(stack_top - sizeof(interrupt_context_t));
-}
-
-// Switches the context of CPU
+// switches the context of cpu
 void switch_context(thread_t *new)
 {
     if (!current_thread || !new)
         return;
 
+    // critical failure
+    if (!new->process)
+    {
+        debug_log_string("sched", "switch_context: failed to switch context: new->process == null;\r\n");
+        debug_log_string("sched", "switch_context: system halted\r\n");
+        disable_interrupts();
+        halt_cpu();
+    }
+
     current_thread = new;
-    restore_context(new->sp0);
+
+    if (new != &idle_process.threads[0])
+        tss_set_sp0(new->stack0 + KERNEL_STACK_SIZE, 0x10);
+
+    write_cr3(new->process->cr3);
+
+    restore_context(current_thread->sp0);
 }
 
-// Sched handler
+// sched handler
 static void sched_handler(interrupt_context_t *ctx)
 {
     ticks++;
@@ -49,8 +60,7 @@ static void sched_handler(interrupt_context_t *ctx)
     if (queue_empty(&ready_queue))
         return;
 
-    interrupt_context_t *cur_ctx = sched_get_context(current_thread->sp0);
-    *cur_ctx = *ctx;
+    current_thread->sp0 = (uintptr_t)ctx;
 
     queue_node_t *n = queue_pop(&ready_queue);
     thread_t *new_thread = (thread_t *)CONTAINER_OF(n, thread_t, node);
@@ -61,14 +71,14 @@ static void sched_handler(interrupt_context_t *ctx)
     switch_context(new_thread);
 }
 
-// Return the sched ticks
+// return the sched ticks
 uint32_t sched_get_ticks(void)
 {
     return ticks;
 }
 
-// Initializes the scheduler with the given frequency in Hz
-// Return !0 if an error occours
+// initializes the scheduler with the given frequency in hz
+// return !0 if an error occours
 int sched_init(uint16_t frequency)
 {
     if (frequency <= 18)
@@ -87,14 +97,8 @@ int sched_init(uint16_t frequency)
     queue_init(&blocked_queue);
     queue_init(&zombie_queue);
 
-    queue_push(&ready_queue, &idle_process.threads[0].node);
     current_thread = &idle_process.threads[0];
-
-    uint8_t *stack0 = (uint8_t *)heap_alloc(KERNEL_STACK_SIZE);
-    if (!stack0)
-        return -1;
-    uintptr_t sp0 = (uintptr_t)(stack0 + KERNEL_STACK_SIZE);
-    current_thread->sp0 = sp0;
+    current_thread->process = &idle_process;
 
     return 0;
 }

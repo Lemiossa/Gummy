@@ -13,8 +13,8 @@ typedef struct process process_t;
 struct thread
 {
     queue_node_t node;
-    uintptr_t sp;
-    uintptr_t sp0;
+    uintptr_t stack, sp;
+    uintptr_t stack0, sp0;
     process_t *process;
 };
 
@@ -27,9 +27,12 @@ struct process
 };
 
 // Creates a new empty process
-process_t *sched_create_process(int is_kernel);
+process_t *sched_create_process(void);
 // Creates a new thread in the process
-// thread_t *sched
+// Returns an index of the thread in process
+thread_t *sched_create_thread(uintptr_t loc, process_t *process);
+
+// TODO: Spawns a new process
 
 // Initializes the scheduler with the given frequency in Hz
 // Return !0 if an error occours

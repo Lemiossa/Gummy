@@ -38,6 +38,20 @@ make qemu-ng
 ```bash
 make clean
 ```
+
+## Editor support
+
+`compile_commands.json` holds the exact flags used to compile every
+translation unit of the kernel, the library and the two bootloader stages.
+It is kept by hand in the repository root, so editors such as `clangd`
+resolve the includes, the `NAME`/`VERSION` macros and the target
+architecture without any extra tooling.
+
+The paths are absolute, so the file only matches the machine it was
+written on (it is git-ignored for that reason). When the project moves,
+or when a new source file is added to one of the `SRC` lists of the
+Makefiles, the entry has to be updated by hand as well.
+
 ## cross-compiler
 
 Dependencies for building the cross-compiler:

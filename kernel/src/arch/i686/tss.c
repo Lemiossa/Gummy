@@ -25,5 +25,11 @@ void tss_init(void)
         0b0000
     );
 
-    tss_flush();
+    tss_flush(0x28);
+}
+
+void tss_set_sp0(uintptr_t sp0, uintptr_t ss0)
+{
+    tss.esp0 = sp0;
+    tss.ss0 = ss0;
 }

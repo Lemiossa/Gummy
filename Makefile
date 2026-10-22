@@ -2,7 +2,7 @@
 # Created by Matheus Leme Da Silva
 
 ARCH     := i686
-VERSION  := 0.14.1
+VERSION  := 0.15.0
 NAME     := Gummy
 
 PROJ     := $(CURDIR)
@@ -81,7 +81,7 @@ $(IMAGE): $(BOOTLOADER) $(GLOBAL_LIB) $(KERNEL)
 	$(call echo_cmd,DD,$(IMAGE))
 	@dd if=/dev/zero of=$(IMAGE) bs=1K count=1440 status=none
 	$(call echo_cmd,MKFS,$(IMAGE))
-	@mkfs.fat --mbr=y -F 12 -n GUMMY -R 64 $(IMAGE)
+	@mkfs.fat -F 12 -n GUMMY -R 64 $(IMAGE)
 	$(call echo_cmd,MCOPY,$(IMGROOT)/* -> $(IMAGE))
 	@mcopy -i $(IMAGE) -s $(IMGROOT)/* ::
 	$(call echo_cmd,DD,bootloader -> $(IMAGE))

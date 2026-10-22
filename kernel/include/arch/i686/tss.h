@@ -36,7 +36,8 @@ struct tss_entry
 // Initializes the TSS
 void tss_init(void);
 // Loads the TSS into the task register
-void tss_flush(void);
-
+void tss_flush(uintptr_t sel);
+// Sets sp0 and ss0
+void tss_set_sp0(uintptr_t sp0, uintptr_t ss0);
 
 #endif // TSS_H

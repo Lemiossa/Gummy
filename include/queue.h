@@ -13,9 +13,10 @@ struct queue_node
 
 struct queue 
 {
-    queue_node_t head; // Sentinel
+    queue_node_t head;  // Sentinel
                         // head.prev = back
                         // head.next = front
+    size_t size;
 };
 
 // Initializes a queue
@@ -28,5 +29,7 @@ queue_node_t *queue_pop(queue_t *q);
 int queue_empty(queue_t *q);
 // Removes a specific node from the queue.
 void queue_remove(queue_t *q, queue_node_t *node);
+// Returns the size of queue
+size_t queue_size(queue_t *q);
 
 #endif // QUEUE_H

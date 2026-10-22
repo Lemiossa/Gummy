@@ -13,6 +13,7 @@ void queue_init(queue_t *q)
 
     q->head.prev = NULL;
     q->head.next = NULL;
+    q->size = 0;
 }
 
 // Adds a node to the back of the queue.
@@ -30,6 +31,7 @@ void queue_push(queue_t *q, queue_node_t *node)
         q->head.next = node;
 
     q->head.prev = node;
+    q->size++;
 }
 
 // Removes and returns the node at the front.
@@ -46,6 +48,7 @@ queue_node_t *queue_pop(queue_t *q)
     else
         q->head.prev = NULL;
 
+    q->size--;
     return node;
 }
 
@@ -76,4 +79,14 @@ void queue_remove(queue_t *q, queue_node_t *node)
 
     node->prev = NULL;
     node->next = NULL;
+    q->size--;
+}
+
+// Returns the size of queue
+size_t queue_size(queue_t *q)
+{
+    if (!q)
+        return 0;
+
+    return q->size;
 }
