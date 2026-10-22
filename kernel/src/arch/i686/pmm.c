@@ -1,6 +1,6 @@
 /*
  * pmm.c
- * Created by Matheus Leme da Silva
+ * Criado por Matheus Leme da Silva
  * */
 #include <types.h>
 #include <terminal.h>
@@ -10,54 +10,54 @@
 #include <debug.h>
 #include <string.h>
 
-extern uint8_t *__kernel_start; // Start of the kernel in memory
-extern uint8_t *__kernel_end; // End of the kernel in memory
-#define BITMAP_LOCATION ((uint32_t)&__kernel_end) // Location of the bitmap in memory
+extern uint8_t *__kernel_start; // Inicio do kernel na memoria
+extern uint8_t *__kernel_end; // Fim do kernel na memoria
+#define BITMAP_LOCATION ((uint32_t)&__kernel_end) // Localizacao do bitmap na memoria
 
-uint8_t *bitmap = NULL; // Pointer to the bitmap
-uint32_t bitmap_bits = 0; // size of bitmap in bits
-uint32_t bitmap_bytes = 0; // size of bitmap in bytes
+uint8_t *bitmap = NULL; // Ponteiro para o bitmap
+uint32_t bitmap_bits = 0; // tamanho do bitmap em bits
+uint32_t bitmap_bytes = 0; // tamanho do bitmap em bytes
 uint32_t phys_top = 0;
 uint32_t usable_mem = 0;
 
-// Alloc a page of physical memory
+// Aloca uma pagina de memoria fisica
 uintptr_t pmm_alloc_page(void)
 {
     if (bitmap == NULL || bitmap_bits == 0)
     {
-        debug_log_string("PMM", "Attempt to allocate a physical page without initializing PMM.\r\n");
+        debug_log_string("PMM", "Tentativa de alocar uma pagina fisica sem inicializar o PMM.\r\n");
         return 0;
     }
 
     uint32_t page = bitmap_find_free_bit(bitmap, bitmap_bits);
     if (page == 0)
     {
-        debug_log_string("PMM", "No free pages available.\r\n");
-        return 0; // No free pages available
+        debug_log_string("PMM", "Nao ha paginas livres disponiveis.\r\n");
+        return 0; // Nao ha paginas livres disponiveis
     }
 
-    bitmap_set_bit(bitmap, page); // Mark the page as used
+    bitmap_set_bit(bitmap, page); // Marca a pagina como usada
 
-    debug_log_string("PMM", "Allocated page 0x");
+    debug_log_string("PMM", "Pagina alocada 0x");
     debug_log_hex32(page);
     debug_print_string(".\r\n");
 
     return (uintptr_t)(page * PAGE_SIZE);
 }
 
-// Free a page of physical memory
+// Libera uma pagina de memoria fisica
 void pmm_free_page(uintptr_t page)
 {
     if (bitmap == NULL || bitmap_bits == 0)
     {
-        debug_log_string("PMM", "Attempt to free a physical page without initializing PMM.\r\n");
+        debug_log_string("PMM", "Tentativa de liberar uma pagina fisica sem inicializar o PMM.\r\n");
         return;
     }
 
     bitmap_clear_bit(bitmap, (page / PAGE_SIZE));
 }
 
-// Initialize the physical memory manager
+// Inicializa o gerenciador de memoria fisica
 void pmm_init(void)
 {
     bitmap = (uint8_t *)BITMAP_LOCATION;
@@ -65,13 +65,13 @@ void pmm_init(void)
     for (int i = 0; i < E820_entry_count; i++)
     {
         e820_entry_t entry = E820_entries[i];
-        if (entry.base >= 0xFFFFFFFF) // Skip entries above 4GB
+        if (entry.base >= 0xFFFFFFFF) // Ignora entradas acima de 4GB
             continue;
 
         uint32_t end = MIN(entry.base + entry.length, 0xFFFFFFFF);
         phys_top = (uint32_t)MAX(phys_top, end);
 
-        if (entry.type == 1) // Usable memory
+        if (entry.type == 1) // Memoria utilizavel
             usable_mem += end - entry.base;
     }
 
@@ -87,7 +87,7 @@ void pmm_init(void)
         if (entry->type != 1)
             continue;
 
-        if (entry->base >= 0xFFFFFFFF) // Skip entries above 4GB
+        if (entry->base >= 0xFFFFFFFF) // Ignora entradas acima de 4GB
             continue;
 
         uint32_t end = MIN(entry->base + entry->length, 0xFFFFFFFF);
@@ -95,12 +95,12 @@ void pmm_init(void)
         uint32_t end_page = ALIGN_DOWN(end, PAGE_SIZE) / PAGE_SIZE;
 
         for (uint32_t page = start_page; page < end_page; page++)
-            bitmap_clear_bit(bitmap, page); // Mark as free
+            bitmap_clear_bit(bitmap, page); // Marca como livre
     }
 
-    // Mark the kernel memory as used
-    // NOTE: kernel symbols are higher-half virtual addresses (0xC0xxxxxx).
-    // The bitmap tracks *physical* pages, so convert virt -> phys.
+    // Marca a memoria do kernel como usada
+    // NOTA: os simbolos do kernel sao enderecos virtuais da metade superior (0xC0xxxxxx).
+    // O bitmap rastreia paginas *fisicas*, entao converte virt -> phys.
     uint32_t kstart_virt = (uint32_t)&__kernel_start;
     uint32_t kend_virt = (uint32_t)&__kernel_end + bitmap_bytes;
     uint32_t kernel_start_phys = kstart_virt - 0xC0000000;
@@ -110,13 +110,13 @@ void pmm_init(void)
     for (uint32_t page = kernel_start_page; page < kernel_end_page && page < bitmap_bits; page++)
         bitmap_set_bit(bitmap, page);
 
-    // Mark E820 table as used
-    // E820 table is located at < 0x10000 always
-    // 64K / 4K = 16 pages
+    // Marca a tabela E820 como usada
+    // A tabela E820 fica sempre em < 0x10000
+    // 64K / 4K = 16 paginas
     for (uint32_t page = 0; page < 16; page++)
         bitmap_set_bit(bitmap, page);
     
-    debug_log_string("PMM", "Usable memory: 0x");
+    debug_log_string("PMM", "Memoria utilizavel: 0x");
     debug_log_hex32(usable_mem);
     debug_print_string("\r\n");
 }

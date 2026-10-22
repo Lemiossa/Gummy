@@ -2,7 +2,7 @@
 %define CONFIG_ASM
 
 %macro gdt_entry 4
-    ;; base limit access flags
+    ;; base limite acesso flags
     dw (%2 & 0xffff)
     dw (%1 & 0xffff)
     db ((%1 >> 16) & 0xff)

@@ -1,166 +1,166 @@
 # Changelog
 
-All notable changes to Gummy are documented here. Entries follow the Git tags in chronological order.
+Todas as mudanças notáveis do Gummy são documentadas aqui. As entradas seguem as tags do Git em ordem cronológica.
 
 ## v0.1.0 — 2026-07-27
 
-First version. Functional foundation of the system:
+Primeira versão. Base funcional do sistema:
 
-- **Two-stage bootloader** (stage1/stage2) in assembly: boot sector with disk reads via INT 13h, and stage2 with disk driver, its own console, and a complete FAT driver (FAT table reading, directories, `fat_read_file`).
-- **Kernel loading**: stage2 detects the FAT type, loads the kernel image and jumps to it.
-- **Initial i686 kernel**: reloaded GDT, zeroed BSS, VGA text-mode terminal driver.
-- **GNU Make build system**: FAT16 image generated automatically, QEMU target and silent mode.
+- **Bootloader em dois estágios** (stage1/stage2) em assembly: setor de boot com leituras de disco via INT 13h, e stage2 com driver de disco, console próprio e um driver FAT completo (leitura da tabela FAT, diretórios, `fat_read_file`).
+- **Carregamento do kernel**: o stage2 detecta o tipo de FAT, carrega a imagem do kernel e salta para ela.
+- **Kernel i686 inicial**: GDT recarregada, BSS zerada, driver de terminal em modo texto VGA.
+- **Sistema de build com GNU Make**: imagem FAT16 gerada automaticamente, alvo QEMU e modo silencioso.
 
 ## v0.2.0 — 2026-08-04
 
-- Kernel: cleaned-up assembly entry (direction flag cleared, BSS zeroed), GDT naming fix and lowercase syntax.
-- Kernel: added the IDT with basic exception handlers.
+- Kernel: entrada em assembly organizada (flag de direção limpa, BSS zerada), correção da nomenclatura da GDT e sintaxe em minúsculas.
+- Kernel: IDT adicionada com tratadores básicos de exceções.
 
 ## v0.3.0 — 2026-08-21
 
-- Kernel: parsing of the E820 memory map collected by the bootloader and total memory printout.
-- Kernel: PIC remapped to the correct vectors (0x20+).
-- Build: kernel compiled with the i686-elf GCC cross-compiler; versioned image names (`NAME`/`VERSION` macros); `source/` renamed to `src/`.
+- Kernel: análise do mapa de memória E820 coletado pelo bootloader e impressão da memória total.
+- Kernel: PIC remapeado para os vetores corretos (0x20+).
+- Build: kernel compilado com o compilador cruzado GCC i686-elf; nomes de imagem versionados (macros `NAME`/`VERSION`); `source/` renomeado para `src/`.
 
 ## v0.4.0 — 2026-08-22
 
-- **PMM (Physical Memory Manager)**: physical page allocation based on a bitmap built from the E820 map.
-- `types.h`: added `ALIGN_UP`/`ALIGN_DOWN` macros.
-- README: cross-compiler build guide.
+- **PMM (Gerenciador de Memória Física)**: alocação de páginas físicas baseada em um bitmap construído a partir do mapa E820.
+- `types.h`: adicionadas as macros `ALIGN_UP`/`ALIGN_DOWN`.
+- README: guia de compilação do compilador cruzado.
 
 ## v0.5.1 — 2026-08-26
 
-- Added `bitmap_find_free_bit`; PMM now uses free-bit search for page allocation.
-- VMM groundwork: initial structures and page directory (`vmm.c`), starting higher-half kernel support.
+- Adicionado `bitmap_find_free_bit`; o PMM agora usa busca por bit livre para a alocação de páginas.
+- Base do VMM: estruturas iniciais e diretório de páginas (`vmm.c`), iniciando o suporte a kernel em higher-half.
 
 ## v0.5.2 — 2026-08-26
 
-- PMM improvements (more robust bitmap initialization) and VMM progress.
+- Melhorias no PMM (inicialização de bitmap mais robusta) e avanços no VMM.
 
 ## v0.5.3 — 2026-08-26
 
-- More complete VMM: `vmm_map`/`vmm_unmap`, page mapping with flags.
+- VMM mais completo: `vmm_map`/`vmm_unmap`, mapeamento de páginas com flags.
 
 ## v0.5.4 — 2026-08-29
 
-- **Interrupt handling rewrite**: new IDT model with `exception.c`, centralized handlers and I/O fixes (carriage return in error messages).
-- `SOURCE` renamed to `SRC` in the Makefiles.
+- **Reescrita do tratamento de interrupções**: novo modelo de IDT com `exception.c`, tratadores centralizados e correções de I/O (retorno de carro nas mensagens de erro).
+- `SOURCE` renomeado para `SRC` nos Makefiles.
 
 ## v0.5.5 — 2026-08-29
 
-- Fixed formatting (`\r`) in `exception_handler` messages.
+- Correção da formatação (`\r`) nas mensagens de `exception_handler`.
 
 ## v0.5.6 — 2026-08-29
 
-- VMM: unmapped the first MiB of memory (low memory area released).
+- VMM: desmapeado o primeiro MiB de memória (área de memória baixa liberada).
 
 ## v0.5.7 — 2026-08-29
 
-- VMM made more generic (unified signatures and flags).
+- VMM tornado mais genérico (assinaturas e flags unificadas).
 
 ## v0.5.8 — 2026-08-29
 
-- Type renaming for consistency (`u8`/`u16`/`u32`…) across the kernel.
+- Renomeação de tipos para consistência (`u8`/`u16`/`u32`…) em todo o kernel.
 
 ## v0.6.0 — 2026-08-29
 
-- **Timer (PIT)**: PIT driver and tick counter; page fault handler registered (initially only logged).
+- **Timer (PIT)**: driver do PIT e contador de ticks; tratador de page fault registrado (inicialmente apenas registrado em log).
 
 ## v0.6.1 — 2026-08-29
 
-- Timer fix: send EOI to the PIC on every tick.
+- Correção do timer: enviar EOI ao PIC a cada tick.
 
 ## v0.6.2 — 2026-08-29
 
-- Fixed page fault when unmapping the first MiB; VMM reorganized (more helpers, fewer messages).
+- Corrigido page fault ao desmapear o primeiro MiB; VMM reorganizado (mais auxiliares, menos mensagens).
 
 ## v0.6.3 — 2026-08-30
 
-- Removed PMM/VMM debug messages.
+- Removidas as mensagens de depuração do PMM/VMM.
 
 ## v0.7.0 — 2026-09-01
 
-- VMM: added `vmm_alloc_pages` and `vmm_free_pages` (contiguous virtual page allocation).
+- VMM: adicionados `vmm_alloc_pages` e `vmm_free_pages` (alocação contígua de páginas virtuais).
 
 ## v0.8.0 — 2026-09-14
 
-- VMM: added `vmm_clone()` (address space cloning).
+- VMM: adicionado `vmm_clone()` (clonagem de espaço de endereçamento).
 
 ## v0.8.1 — 2026-09-18
 
-- Scheduler groundwork: `timer.c` turned into `sched.c` with counters/scheduling basis.
+- Base do escalonador: `timer.c` transformado em `sched.c` com contadores/base de escalonamento.
 
 ## v0.9.0 — 2026-09-22
 
-- **Kernel heap** (`heap.c`) with its own allocator.
-- Major PMM/VMM revision: e820 cleanup, revised types, adjusted `vmm.h`/`pmm.h`.
-- GDB debugging support (Makefile + README).
+- **Heap do kernel** (`heap.c`) com alocador próprio.
+- Revisão importante do PMM/VMM: limpeza do e820, tipos revisados, `vmm.h`/`pmm.h` ajustados.
+- Suporte a depuração com GDB (Makefile + README).
 
 ## v0.9.1 — 2026-09-24
 
-- Removed the PMM initialization message; simplified `kmain`.
+- Removida a mensagem de inicialização do PMM; `kmain` simplificado.
 
 ## v0.9.2 — 2026-09-25
 
-- Fixed text terminal scrolling.
+- Corrigida a rolagem do terminal de texto.
 
 ## v0.10.0 — 2026-09-24
 
-- Heap: block splitting and merge (coalescing) on free. *(tagged later, but historically belongs here)*
+- Heap: divisão e fusão (coalescência) de blocos na liberação. *(marcado depois, mas historicamente pertence aqui)*
 
 ## v0.10.1 — 2026-09-25
 
-- Fixed declarations (prototypes) in `pmm.h`/`vmm.h`.
+- Corrigidas as declarações (protótipos) em `pmm.h`/`vmm.h`.
 
 ## v0.11.0 — 2026-09-25
 
-- **Serial (COM)**: basic serial write functions and `debug.c` module; `kmain` and terminal adjusted to use serial as debug output.
+- **Serial (COM)**: funções básicas de escrita serial e módulo `debug.c`; `kmain` e terminal ajustados para usar a serial como saída de depuração.
 
 ## v0.11.1 — 2026-09-25
 
-- Added logs across subsystems (e820, exceptions, GDT/IDT, PMM, VMM, heap, PIC, PIT).
+- Adicionados logs em todos os subsistemas (e820, exceções, GDT/IDT, PMM, VMM, heap, PIC, PIT).
 
 ## v0.11.2 — 2026-09-26
 
-- More logs in the PMM and VMM.
+- Mais logs no PMM e no VMM.
 
 ## v0.12.0 — 2026-09-26
 
-- **Experimental scheduler**: task structures and context switch groundwork started, IDT/timer hooks.
+- **Escalonador experimental**: estruturas de tarefas e base da troca de contexto iniciadas, ganchos na IDT/timer.
 
 ## v0.12.1 — 2026-09-30
 
-- Scheduler temporarily simplified/removed ("returning to simplicity").
+- Escalonador simplificado/removido temporariamente ("retornando à simplicidade").
 
 ## v0.13.0 — 2026-10-01
 
-- Build with detailed compilation messages; new `lib/` directory with `string.c` alongside the kernel.
+- Build com mensagens de compilação detalhadas; novo diretório `lib/` com `string.c` junto ao kernel.
 
 ## v0.13.1 — 2026-10-02
 
-- More logs in `heap.c`.
+- Mais logs em `heap.c`.
 
 ## v0.14.0 — 2026-10-03
 
-- **Initial multitasking!**
-  - TSS (Task State Segment) set up in the GDT with stack switch support.
-  - Queue (`queue.h`/`queue.c` in `lib/`) for task states.
-  - Scheduler rewritten with ready queues; tasks with their own context.
+- **Multitarefa inicial!**
+  - TSS (Task State Segment) configurado na GDT com suporte a troca de pilha.
+  - Fila (`queue.h`/`queue.c` em `lib/`) para estados de tarefa.
+  - Escalonador reescrito com filas de prontos; tarefas com contexto próprio.
 
 ## v0.14.1 — 2026-10-12
 
-Changed some names in sched.*.
+Alterados alguns nomes em sched.*.
 
 ## v0.15.0 — 2026-10-22
 
-- **Context switching consolidated**: the scheduler saves the current context directly in `current_thread->sp`, switches to the target process address space (`write_cr3`) and updates the TSS `esp0`/`ss0` on every switch (except for the idle thread).
-- `thread` now tracks both the stack base and the stack pointer (`stack`/`sp` and `stack0`/`sp0`).
-- TSS: `tss_flush()` now takes the selector as an argument instead of hardcoding `0x28`; added `tss_set_sp0()`.
-- Queue: internal `size` counter and new `queue_size()`.
-- Scheduler API: `sched_create_process()` no longer takes `is_kernel`; `sched_create_thread()` declared; idle process no longer allocates a separate kernel stack.
-- Build: `mkfs.fat` no longer uses `--mbr=y`, leaving the boot sector to the project's own bootloader.
-- README: section on editor support and the hand-maintained `compile_commands.json`.
+- **Troca de contexto consolidada**: o escalonador salva o contexto atual diretamente em `current_thread->sp`, muda para o espaço de endereçamento do processo alvo (`write_cr3`) e atualiza `esp0`/`ss0` da TSS a cada troca (exceto para a thread idle).
+- `thread` agora rastreia tanto a base da pilha quanto o ponteiro de pilha (`stack`/`sp` e `stack0`/`sp0`).
+- TSS: `tss_flush()` agora recebe o seletor como argumento em vez de fixar `0x28`; adicionado `tss_set_sp0()`.
+- Fila: contador interno `size` e novo `queue_size()`.
+- API do escalonador: `sched_create_process()` não recebe mais `is_kernel`; `sched_create_thread()` declarada; o processo idle não aloca mais uma pilha de kernel separada.
+- Build: `mkfs.fat` não usa mais `--mbr=y`, deixando o setor de boot para o bootloader do próprio projeto.
+- README: seção sobre suporte a editores e o `compile_commands.json` mantido manualmente.
 
 ---
 
-Note: `v0.9.2` was tagged out of order (after `v0.11.0`), but in the Git history it sits between `v0.9.1` and `v0.10.0` — this changelog follows the history order.
+Nota: `v0.9.2` foi marcado fora de ordem (depois de `v0.11.0`), mas no histórico do Git ele fica entre `v0.9.1` e `v0.10.0` — este changelog segue a ordem do histórico.

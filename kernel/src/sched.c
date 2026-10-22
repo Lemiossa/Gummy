@@ -1,6 +1,6 @@
 /*
  * sched.c
- * created by matheus leme da silva
+ * criado por matheus leme da silva
  * */
 #include <tss.h>
 #include <pmm.h>
@@ -26,17 +26,17 @@ static queue_t ready_queue;
 static queue_t blocked_queue;
 static queue_t zombie_queue;
 
-// switches the context of cpu
+// troca o contexto da CPU
 void switch_context(thread_t *new)
 {
     if (!current_thread || !new)
         return;
 
-    // critical failure
+    // falha critica
     if (!new->process)
     {
-        debug_log_string("sched", "switch_context: failed to switch context: new->process == null;\r\n");
-        debug_log_string("sched", "switch_context: system halted\r\n");
+        debug_log_string("sched", "switch_context: falha ao trocar o contexto: new->process == null;\r\n");
+        debug_log_string("sched", "switch_context: sistema parado\r\n");
         disable_interrupts();
         halt_cpu();
     }
@@ -51,7 +51,7 @@ void switch_context(thread_t *new)
     restore_context(current_thread->sp0);
 }
 
-// sched handler
+// rotina do escalonador
 static void sched_handler(interrupt_context_t *ctx)
 {
     ticks++;
@@ -71,14 +71,14 @@ static void sched_handler(interrupt_context_t *ctx)
     switch_context(new_thread);
 }
 
-// return the sched ticks
+// retorna os ticks do escalonador
 uint32_t sched_get_ticks(void)
 {
     return ticks;
 }
 
-// initializes the scheduler with the given frequency in hz
-// return !0 if an error occours
+// inicializa o escalonador com a frequencia informada em hz
+// retorna !0 se ocorrer um erro
 int sched_init(uint16_t frequency)
 {
     if (frequency <= 18)

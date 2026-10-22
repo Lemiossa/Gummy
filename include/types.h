@@ -20,7 +20,7 @@ typedef int32_t ssize_t;
     typedef unsigned int uintptr_t;
     typedef int intptr_t;
 #else
-    #error "Unsupported architecture"
+    #error "Arquitetura nao suportada"
 #endif
 
 #define NULL ((void *)0)

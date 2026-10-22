@@ -1,13 +1,13 @@
 ;; disk.asm
-;; Created by Matheus Leme da Silva
+;; Criado por Matheus Leme da Silva
 %ifndef disk_asm
 %define disk_asm
 bits 16
 
-;; Initialize disk system
-;; DL: Disk Drive
-;; Returns:
-;; CF=1 if an error occours
+;; Inicializa o sistema de disco
+;; DL: Unidade de disco
+;; Retorna:
+;; CF=1 se ocorrer um erro
 disk_init:
     push cx
     push dx
@@ -30,12 +30,12 @@ disk_init:
     pop cx
     ret
 
-;; Gets disk paramenters
-;; DL: Disk drive
-;; Returns:
-;; CL: Sectors per track
-;; DH: Heads
-;; CF=1 if an error occours
+;; Obtem os parametros do disco
+;; DL: Unidade de disco
+;; Retorna:
+;; CL: Setores por trilha
+;; DH: Cabecas
+;; CF=1 se ocorrer um erro
 disk_get_parameters:
     push ax
     mov ah, 0x08
@@ -52,32 +52,32 @@ disk_get_parameters:
     pop ax
     ret
 
-;; Converts LBA to CHS
+;; Converte LBA para CHS
 ;; DX:AX: LBA
-;; Returns:
-;; int13h ah=02h format:
-;;  CX = Cylinder and Sector
-;;  DH = Head
+;; Retorna:
+;; formato int13h ah=02h:
+;;  CX = Cilindro e setor
+;;  DH = Cabeca
 disk_lba_to_chs:
     push bp
     push ax
     ;; https://wiki.osdev.org/Disk_access_using_the_BIOS_(INT_13h)
-    ;; Temp = LBA / (Sectors per Track)
-    ;; Sector = (LBA % (Sectors per Track)) + 1
-    ;; Head = Temp % (Number of Heads)
-    ;; Cylinder = Temp / (Number of Heads)
+    ;; Temp = LBA / (Setores por trilha)
+    ;; Setor = (LBA % (Setores por trilha)) + 1
+    ;; Cabeca = Temp % (Numero de cabecas)
+    ;; Cilindro = Temp / (Numero de cabecas)
 
     ;; Temp
     div word [sectors_per_track]
     ;; AX = Temp
-    ;; DX = Sector - 1
+    ;; DX = Setor - 1
     inc dx
     mov bp, dx
 
     xor dx, dx
     div word [heads]
-    ;; AX = Cylinder
-    ;; DX = Head
+    ;; AX = Cilindro
+    ;; DX = Cabeca
     mov dh, dl
     xor dl, dl
 
@@ -91,11 +91,11 @@ disk_lba_to_chs:
     pop bp
     ret
 
-;; Reads disk sector
-;; DX:AX: Sector
+;; Le um setor do disco
+;; DX:AX: Setor
 ;; ES:BX: Buffer
-;; Returns:
-;; CF=1 if an error occours
+;; Retorna:
+;; CF=1 se ocorrer um erro
 disk_read_sector:
     push ax
     push bx

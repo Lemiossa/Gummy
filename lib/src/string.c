@@ -1,11 +1,11 @@
 /*
  * string.c
- * Created by Matheus Leme da Silva
+ * Criado por Matheus Leme da Silva
  * */
 #include <types.h>
 #include <string.h>
 
-// He copies n bytes from src to dst
+// Copia n bytes de src para dst
 void memcpy(void *dst, const void *src, size_t n)
 {
     if (!dst || !src)
@@ -18,7 +18,7 @@ void memcpy(void *dst, const void *src, size_t n)
         to[i] = from[i];
 }
 
-// Sets n bytes with c value in dst
+// Preenche n bytes com o valor c em dst
 void memset(void *dst, int c, size_t n)
 {
     if (!dst)

@@ -12,7 +12,7 @@
 
 #define PIT_BASE_FREQUENCY 1193182
 
-// Set pit frequency
+// Define a frequencia do PIT
 void pit_set_frequency(uint16_t channel, uint16_t frequency, uint8_t mode);
 
 #endif // PIT_H

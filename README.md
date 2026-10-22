@@ -1,60 +1,60 @@
 # Gummy
 
-A simple hobby operating system for x86 architecture.
+Um sistema operacional hobby simples para a arquitetura x86.
 
-## Requirements
+## Requisitos
 
 - NASM
-- QEMU(optional, for tests)
+- QEMU (opcional, para testes)
 - dosfstools
 - mtools
-- GCC 15.2.0 cross-compiler for the specified architecture(with libgcc and binutils 2.45)
-- GDB 17.2(optional, for debugging)
+- GCC 15.2.0 (compilador cruzado) para a arquitetura especificada (com libgcc e binutils 2.45)
+- GDB 17.2 (opcional, para depuração)
 
-## Building
+## Compilação
 
 ```bash
 make
 ```
 
-This produces `build/images/Gummy-<version>.img`, where the version comes
-from the `VERSION` variable in the root `Makefile`. Both the kernel and the
-bootloader receive the `NAME` and `VERSION` macros at compile time.
+Isso produz `build/images/Gummy-<version>.img`, em que a versão vem da variável
+`VERSION` no `Makefile` da raiz. Tanto o kernel quanto o bootloader recebem as
+macros `NAME` e `VERSION` em tempo de compilação.
 
-## Running
+## Execução
 
 ```bash
 make qemu
 ```
 
-For QEMU without GUI:
+Para o QEMU sem interface gráfica:
 
 ```bash
 make qemu-ng
 ```
 
-## Cleaning
+## Limpeza
 
 ```bash
 make clean
 ```
 
-## Editor support
+## Suporte a editores
 
-`compile_commands.json` holds the exact flags used to compile every
-translation unit of the kernel, the library and the two bootloader stages.
-It is kept by hand in the repository root, so editors such as `clangd`
-resolve the includes, the `NAME`/`VERSION` macros and the target
-architecture without any extra tooling.
+O `compile_commands.json` contém as flags exatas usadas para compilar cada
+unidade de tradução do kernel, da biblioteca e dos dois estágios do bootloader.
+Ele é mantido manualmente na raiz do repositório, para que editores como o
+`clangd` resolvam os includes, as macros `NAME`/`VERSION` e a arquitetura
+alvo sem nenhuma ferramenta extra.
 
-The paths are absolute, so the file only matches the machine it was
-written on (it is git-ignored for that reason). When the project moves,
-or when a new source file is added to one of the `SRC` lists of the
-Makefiles, the entry has to be updated by hand as well.
+Os caminhos são absolutos, então o arquivo só corresponde à máquina em que foi
+escrito (por isso ele está no git-ignore). Quando o projeto é movido, ou quando
+um novo arquivo-fonte é adicionado a uma das listas `SRC` dos Makefiles, a
+entrada também precisa ser atualizada manualmente.
 
-## cross-compiler
+## Compilador cruzado
 
-Dependencies for building the cross-compiler:
+Dependências para compilar o compilador cruzado:
 - make
 - bison
 - flex
@@ -62,11 +62,11 @@ Dependencies for building the cross-compiler:
 - mpc
 - mpfr
 - texinfo
-- isl (optional)
+- isl (opcional)
 
-For more information, please refer to the [GCC Installation Guide](https://gcc.gnu.org/install/).
+Para mais informações, consulte o [Guia de Instalação do GCC](https://gcc.gnu.org/install/).
 
-You can build the cross-compiler using the following commands:
+Você pode compilar o compilador cruzado usando os seguintes comandos:
 
 ### binutils
 ```bash
@@ -126,6 +126,6 @@ make -j$(nproc)
 sudo make install
 ```
 
-## License
+## Licença
 
 MIT

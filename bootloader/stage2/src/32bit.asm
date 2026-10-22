@@ -34,7 +34,7 @@ _32bit_entry:
     add esi, 255 * 4
     mov [esi], eax ;; PD[1023] = PD | 0x003
 
-    ;; Enable Paging
+    ;; Habilita a paginacao
     mov eax, pd
     mov cr3, eax
 

@@ -33,11 +33,11 @@ struct tss_entry
     uint16_t iomap_base;
 } __attribute__((packed));
 
-// Initializes the TSS
+// Inicializa a TSS
 void tss_init(void);
-// Loads the TSS into the task register
+// Carrega a TSS no registrador de tarefas
 void tss_flush(uintptr_t sel);
-// Sets sp0 and ss0
+// Define sp0 e ss0
 void tss_set_sp0(uintptr_t sp0, uintptr_t ss0);
 
 #endif // TSS_H

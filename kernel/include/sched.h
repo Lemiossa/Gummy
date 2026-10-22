@@ -26,18 +26,18 @@ struct process
     uint8_t num_threads;
 };
 
-// Creates a new empty process
+// Cria um novo processo vazio
 process_t *sched_create_process(void);
-// Creates a new thread in the process
-// Returns an index of the thread in process
+// Cria uma nova thread no processo
+// Retorna um indice da thread no processo
 thread_t *sched_create_thread(uintptr_t loc, process_t *process);
 
-// TODO: Spawns a new process
+// TODO: Cria um novo processo
 
-// Initializes the scheduler with the given frequency in Hz
-// Return !0 if an error occours
+// Inicializa o escalonador com a frequencia informada em Hz
+// Retorna !0 se ocorrer um erro
 int sched_init(uint16_t frequency);
-// Return the sched ticks
+// Retorna os ticks do escalonador
 uint32_t sched_get_ticks(void);
 
 #endif // SCHED_H

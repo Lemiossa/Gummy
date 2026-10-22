@@ -13,23 +13,23 @@ struct queue_node
 
 struct queue 
 {
-    queue_node_t head;  // Sentinel
-                        // head.prev = back
-                        // head.next = front
+    queue_node_t head;  // Sentinela
+                        // head.prev = final
+                        // head.next = inicio
     size_t size;
 };
 
-// Initializes a queue
+// Inicializa uma fila
 void queue_init(queue_t *q);
-// Adds a node to the back of the queue.
+// Adiciona um no ao final da fila.
 void queue_push(queue_t *q, queue_node_t *node);
-// Removes and returns the node at the front.
+// Remove e retorna o no na frente da fila.
 queue_node_t *queue_pop(queue_t *q);
-// Returns non-zero if the queue is empty.
+// Retorna diferente de zero se a fila estiver vazia.
 int queue_empty(queue_t *q);
-// Removes a specific node from the queue.
+// Remove um no especifico da fila.
 void queue_remove(queue_t *q, queue_node_t *node);
-// Returns the size of queue
+// Retorna o tamanho da fila
 size_t queue_size(queue_t *q);
 
 #endif // QUEUE_H

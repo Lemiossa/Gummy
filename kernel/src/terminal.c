@@ -1,6 +1,6 @@
 /*
  * terminal.c
- * Created by Matheus Leme da Silva
+ * Criado por Matheus Leme da Silva
  * */
 #include <types.h>
 #include <vga.h>
@@ -11,7 +11,7 @@ uint16_t cursor_x, cursor_y;
 uint8_t current_color = 0x07;
 static int initialized = 0;
 
-// Scrolls up one line in the terminal
+// Rola uma linha para cima no terminal
 void terminal_scroll_up(void)
 {
     for (uint16_t y = 1; y < TERMINAL_HEIGHT; y++)
@@ -28,7 +28,7 @@ void terminal_scroll_up(void)
         vga_draw_cell(space_cell, x, TERMINAL_HEIGHT - 1);
 }
 
-// Prints a char in the terminal and updates cursor position.
+// Imprime um caractere no terminal e atualiza a posicao do cursor.
 void terminal_putchar(char c)
 {
     if (c == '\n')
@@ -57,7 +57,7 @@ void terminal_putchar(char c)
     vga_update_cursor(cursor_x, cursor_y);
 }
 
-// Prints a string on the terminal
+// Imprime uma string no terminal
 void terminal_print_string(const char *s)
 {
     if (!initialized)
@@ -67,7 +67,7 @@ void terminal_print_string(const char *s)
         terminal_putchar(*s++);
 }
 
-// Initializes the terminal system
+// Inicializa o sistema de terminal
 void terminal_init(void)
 {
     cursor_x = 0;
@@ -82,7 +82,7 @@ void terminal_init(void)
     initialized = 1;
 }
 
-// Prints a hex byte
+// Imprime um byte em hexadecimal
 void terminal_print_hex8(uint8_t b)
 {
     char str[3];
@@ -90,21 +90,21 @@ void terminal_print_hex8(uint8_t b)
     terminal_print_string(str);
 }
 
-// Prints a hex word
+// Imprime uma word em hexadecimal
 void terminal_print_hex16(uint16_t w)
 {
     terminal_print_hex8((w >> 8) & 0xFF);
     terminal_print_hex8(w & 0xFF);
 }
 
-// Prints a hex dword
+// Imprime uma dword em hexadecimal
 void terminal_print_hex32(uint32_t dw)
 {
     terminal_print_hex16((dw >> 16) & 0xFFFF);
     terminal_print_hex16(dw & 0xFFFF);
 }
 
-// Prints a hex qword
+// Imprime uma qword em hexadecimal
 void terminal_print_hex64(uint64_t qw)
 {
     terminal_print_hex32((qw >> 32) & 0xFFFFFFFF);

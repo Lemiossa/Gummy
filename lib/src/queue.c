@@ -1,11 +1,11 @@
 /*
  * queue.c
- * Created by Matheus Leme da Silva
+ * Criado por Matheus Leme da Silva
  * */
 #include <types.h>
 #include <queue.h>
 
-// Initializes a queue
+// Inicializa uma fila
 void queue_init(queue_t *q)
 {
     if (!q)
@@ -16,7 +16,7 @@ void queue_init(queue_t *q)
     q->size = 0;
 }
 
-// Adds a node to the back of the queue.
+// Adiciona um no ao final da fila.
 void queue_push(queue_t *q, queue_node_t *node)
 {
     if (!q || !node)
@@ -34,7 +34,7 @@ void queue_push(queue_t *q, queue_node_t *node)
     q->size++;
 }
 
-// Removes and returns the node at the front.
+// Remove e retorna o no na frente da fila.
 queue_node_t *queue_pop(queue_t *q)
 {
     if (!q || !q->head.next)
@@ -52,7 +52,7 @@ queue_node_t *queue_pop(queue_t *q)
     return node;
 }
 
-// Returns non-zero if the queue is empty.
+// Retorna diferente de zero se a fila estiver vazia.
 int queue_empty(queue_t *q)
 {
     if (!q)
@@ -61,7 +61,7 @@ int queue_empty(queue_t *q)
     return q->head.next == NULL;
 }
 
-// Removes a specific node from the queue.
+// Remove um no especifico da fila.
 void queue_remove(queue_t *q, queue_node_t *node)
 {
     if (!q || !node)
@@ -82,7 +82,7 @@ void queue_remove(queue_t *q, queue_node_t *node)
     q->size--;
 }
 
-// Returns the size of queue
+// Retorna o tamanho da fila
 size_t queue_size(queue_t *q)
 {
     if (!q)

@@ -2,28 +2,28 @@
 #define BITMAP_H
 #include <types.h>
 
-// Set a bit
+// Define um bit
 static inline void bitmap_set_bit(uint8_t *bmp, uint64_t bit)
 {
     if (!bmp) return;
     bmp[bit / 8] |= (uint8_t)(1 << (bit % 8));
 }
 
-// Return a bit state
+// Retorna o estado de um bit
 static inline int bitmap_test_bit(const uint8_t *bmp, uint64_t bit)
 {
     if (!bmp) return 0;
     return (bmp[bit / 8] & (uint8_t)(1 << (bit % 8))) != 0;
 }
 
-// Clears a bit
+// Limpa um bit
 static inline void bitmap_clear_bit(uint8_t *bmp, uint64_t bit)
 {
     if (!bmp) return;
     bmp[bit / 8] &= ~(uint8_t)(1 << (bit % 8));
 }
 
-// Find a free bit in a bitmap
+// Encontra um bit livre em um bitmap
 static inline uint64_t bitmap_find_free_bit(const uint8_t *bmp, uint64_t bits)
 {
     if (!bmp || bits == 0)

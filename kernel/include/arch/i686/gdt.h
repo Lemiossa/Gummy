@@ -20,9 +20,9 @@ typedef struct
 
 #define GDT_ENTRIES 8
 
-// Sets a GDT entry
+// Define uma entrada da GDT
 void gdt_set_entry(uint16_t index, uint32_t base, uint32_t limit, uint8_t access, uint8_t flags);
-// Initializes the basic GDT
+// Inicializa a GDT basica
 void gdt_init(void);
 
 #endif // GDT_H

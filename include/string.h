@@ -2,9 +2,9 @@
 #define STRING_H
 #include <types.h>
 
-// He copies n bytes from src to dst
+// Copia n bytes de src para dst
 void memcpy(void *dst, const void *src, size_t n);
-// Sets n bytes with c value in dst
+// Preenche n bytes com o valor c em dst
 void memset(void *dst, int c, size_t n);
 
 #endif // STRING_H

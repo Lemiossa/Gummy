@@ -1,6 +1,6 @@
 /*
  * vmm.c
- * Created by Matheus Leme da Silva
+ * Criado por Matheus Leme da Silva
  * */
 #include <io.h>
 #include <string.h>
@@ -20,118 +20,118 @@ static inline void invlpg(uintptr_t addr)
     __asm__ volatile("invlpg (%0)" ::"r"(addr) : "memory");
 }
 
-// Return the page directory entry for a given virtual address
+// Retorna a entrada do diretorio de paginas para um endereco virtual
 static inline uint32_t get_pde_index(uintptr_t virt)
 {
-    // According to OSDev wiki:
-    // "the most significant 10 bits (bits 22-31) specify the index of the page directory entry"
-    return virt >> 22; // Get the PDE index from the virtual address
+    // De acordo com a wiki do OSDev:
+    // "os 10 bits mais significativos (bits 22-31) especificam o indice da entrada do diretorio de paginas"
+    return virt >> 22; // Obtem o indice da PDE a partir do endereco virtual
 }
 
-// Return the page table entry for a given virtual address
+// Retorna a entrada da tabela de paginas para um endereco virtual
 static inline uint32_t get_pte_index(uintptr_t virt)
 {
-    // According to OSDev wiki:
-    // "the next 10 bits (bits 12-21) specify the index of the page table entry"
+    // De acordo com a wiki do OSDev:
+    // "os 10 bits seguintes (bits 12-21) especificam o indice da entrada da tabela de paginas"
     return (virt >> 12) & 0x3FF;
 }
 
-// Return the page directory entry for a given virtual address
+// Retorna a entrada do diretorio de paginas para um endereco virtual
 static inline uint32_t *get_pde(uintptr_t virt)
 {
-    return &((uint32_t *)0xFFFFF000)[get_pde_index(virt)]; // Get the PDE for the virtual address
+    return &((uint32_t *)0xFFFFF000)[get_pde_index(virt)]; // Obtem a PDE para o endereco virtual
 }
 
-// Return the page table
+// Retorna a tabela de paginas
 static inline uint32_t *get_pt(uintptr_t virt)
 {
     uint32_t *pde = get_pde(virt);
     if (!(*pde & VMM_FLAGS_PRESENT)) 
-        return NULL; // Page directory entry not present
+        return NULL; // Entrada do diretorio de paginas nao presente
     
-    return (uint32_t *)(0xFFC00000 + (get_pde_index(virt) * 0x1000)); // Get the page table address
+    return (uint32_t *)(0xFFC00000 + (get_pde_index(virt) * 0x1000)); // Obtem o endereco da tabela de paginas
 }
 
-// Return the page table entry for a given virtual address
+// Retorna a entrada da tabela de paginas para um endereco virtual
 static inline uint32_t *get_pte(uintptr_t virt)
 {
     uint32_t *pde = get_pde(virt);
     if (!(*pde & VMM_FLAGS_PRESENT)) 
-        return NULL; // Page directory entry not present
+        return NULL; // Entrada do diretorio de paginas nao presente
     
     uint32_t *pt = get_pt(virt);
-    return &pt[get_pte_index(virt)]; // Get the PTE for the virtual address
+    return &pt[get_pte_index(virt)]; // Obtem a PTE para o endereco virtual
 }
 
-// Get the physical address of an address
+// Obtem o endereco fisico de um endereco
 static inline uint32_t get_physical_address(uintptr_t virt)
 {
     uint32_t *pte = get_pte(virt);
     if (!pte || !(*pte & VMM_FLAGS_PRESENT)) 
-        return 0; // Page table entry not present
+        return 0; // Entrada da tabela de paginas nao presente
 
-    return (*pte & 0xFFFFF000) | (virt & 0xFFF); // Get the physical address
+    return (*pte & 0xFFFFF000) | (virt & 0xFFF); // Obtem o endereco fisico
 }
 
 
-// Map a virtual address to a physical address
-// Return !0 if an error occours
+// Mapeia um endereco virtual para um endereco fisico
+// Retorna !0 se ocorrer um erro
 int vmm_map(uintptr_t virt, uintptr_t phys, uint32_t flags)
 {
     uint32_t *pde = get_pde(virt);
     if (!(*pde & VMM_FLAGS_PRESENT)) 
     {
-        debug_log_string("VMM", "Creating a new Page Table.\r\n");
+        debug_log_string("VMM", "Criando uma nova tabela de paginas.\r\n");
 
-        // Allocate a new page table
+        // Aloca uma nova tabela de paginas
         uintptr_t pt_phys = pmm_alloc_page();
         if (!pt_phys)
-            return -1; // Failed to allocate a new page table
+            return -1; // Falha ao alocar uma nova tabela de paginas
 
-        *pde = pt_phys | flags | VMM_FLAGS_PRESENT; // Set the PDE to point to the new page table
+        *pde = pt_phys | flags | VMM_FLAGS_PRESENT; // Define a PDE para apontar para a nova tabela de paginas
 
-        // Zero PT
+        // Zera a PT
         uint32_t *pt = get_pt(virt);
         for (int i = 0; i < 1024; i++) 
-            pt[i] = 0; // Clear the PTE
+            pt[i] = 0; // Limpa a PTE
     }
 
     uint32_t *pte = get_pte(virt);
     if (pte) 
-        *pte = phys | flags | VMM_FLAGS_PRESENT; // Set the PTE to point to the physical address
+        *pte = phys | flags | VMM_FLAGS_PRESENT; // Define a PTE para apontar para o endereco fisico
 
-    invlpg(virt); // Invalidate the TLB entry for the virtual address
-    debug_log_string("VMM", "Mapped 0x");
+    invlpg(virt); // Invalida a entrada da TLB para o endereco virtual
+    debug_log_string("VMM", "Mapeado 0x");
     debug_log_hex32(phys);
-    debug_print_string(" to 0x");
+    debug_print_string(" para 0x");
     debug_log_hex32(virt);
     debug_print_string(".\r\n");
     return 0;
 }
 
-// Unmap a virtual address
-// Return !0 if an error occours
+// Desmapeia um endereco virtual
+// Retorna !0 se ocorrer um erro
 int vmm_unmap(uintptr_t virt)
 {
     uint32_t *pte = get_pte(virt);
     if (!pte || !(*pte & VMM_FLAGS_PRESENT))
-        return -1; // PTE not present
+        return -1; // PTE nao presente
 
-    debug_log_string("VMM", "Ummapped 0x");
+    debug_log_string("VMM", "Desmapeado 0x");
     debug_log_hex32(virt & ~0xFFF);
     debug_print_string(".\r\n");
-    *pte = 0; // Clear the PTE
-    invlpg(virt); // Invalidate the TLB entry for the virtual address
+    *pte = 0; // Limpa a PTE
+    invlpg(virt); // Invalida a entrada da TLB para o endereco virtual
     return 0;
 }
 
-// Alloc n pages in specific region
-// Return NULL if an error occours
-// Map all the pages and return the first virtual address
+// Aloca n paginas em uma regiao especifica
+// Retorna NULL se ocorrer um erro
+// Mapeia todas as paginas e retorna o primeiro endereco virtual
 void *vmm_alloc_pages_region(uint32_t n, uint32_t flags, uintptr_t region_start)
 {
     if (n == 0)
-        return NULL; // Invalid number of pages
+        return NULL; // Numero de paginas invalido
 
     region_start = ALIGN_UP(region_start, PAGE_SIZE);
 
@@ -142,7 +142,7 @@ void *vmm_alloc_pages_region(uint32_t n, uint32_t flags, uintptr_t region_start)
     {
         uint32_t *pte = get_pte(page);
 
-        if (!pte || !(*pte & VMM_FLAGS_PRESENT)) // Free page found
+        if (!pte || !(*pte & VMM_FLAGS_PRESENT)) // Pagina livre encontrada
         {
             if (consecutive_pages == 0)
                 first_page = page;
@@ -150,14 +150,14 @@ void *vmm_alloc_pages_region(uint32_t n, uint32_t flags, uintptr_t region_start)
             consecutive_pages++;
         }
         else
-            consecutive_pages = 0; // Reset if a used page is found
+            consecutive_pages = 0; // Zera se uma pagina usada for encontrada
 
         if (consecutive_pages == n)
             goto found;
     }
 
-    debug_log_string("VMM", "No suitable region found.\r\n");
-    return NULL; // No suitable region found
+    debug_log_string("VMM", "Nenhuma regiao adequada encontrada.\r\n");
+    return NULL; // Nenhuma regiao adequada encontrada
 
 found:
     for (uintptr_t page = first_page; page < first_page + n * PAGE_SIZE; page += PAGE_SIZE)
@@ -165,8 +165,8 @@ found:
         uintptr_t phys = pmm_alloc_page();
         if (phys == 0) 
         {
-            debug_log_string("VMM", "Failed to alloc physical page.\r\n");
-            // Rollback if allocation fails
+            debug_log_string("VMM", "Falha ao alocar pagina fisica.\r\n");
+            // Desfaz se a alocacao falhar
             for (uintptr_t rollback_page = first_page; rollback_page < page; rollback_page += PAGE_SIZE)
                 vmm_unmap(rollback_page);
             return NULL;
@@ -174,8 +174,8 @@ found:
 
         if (vmm_map(page, phys, flags) != 0)
         {
-            debug_log_string("VMM", "Failed to map phys -> virt.\r\n");
-            // Rollback if mapping fails
+            debug_log_string("VMM", "Falha ao mapear phys -> virt.\r\n");
+            // Desfaz se o mapeamento falhar
             pmm_free_page(phys);
             for (uintptr_t rollback_page = first_page; rollback_page < page; rollback_page += PAGE_SIZE)
                 vmm_unmap(rollback_page);
@@ -183,22 +183,22 @@ found:
         }
     }
 
-    debug_log_string("VMM", "Allocated 0x");
+    debug_log_string("VMM", "Alocadas 0x");
     debug_log_hex32(n);
-    debug_print_string(" pages.\r\n");
+    debug_print_string(" paginas.\r\n");
 
-    return (void *)first_page; // Return the first virtual address of the allocated pages
+    return (void *)first_page; // Retorna o primeiro endereco virtual das paginas alocadas
 }
 
-// Alloc n pages in the entire virtual address space
-// Return NULL if an error occours
+// Aloca n paginas em todo o espaco de enderecos virtuais
+// Retorna NULL se ocorrer um erro
 void *vmm_alloc_pages(uint32_t n, uint32_t flags)
 {
-    return vmm_alloc_pages_region(n, flags, 0x00000000); // Search the entire virtual address space
+    return vmm_alloc_pages_region(n, flags, 0x00000000); // Pesquisa todo o espaco de enderecos virtuais
 }
 
-// free n pages starting from a virtual address
-// return !0 if an error occours
+// Libera n paginas a partir de um endereco virtual
+// Retorna !0 se ocorrer um erro
 int vmm_free_pages(uint32_t n, void *virt)
 {
     if (n == 0)
@@ -225,15 +225,15 @@ int vmm_free_pages(uint32_t n, void *virt)
     return 0;
 }
 
-// Clone the current page directory and return the new CR3 value
+// Clona o diretorio de paginas atual e retorna o novo valor de CR3
 uintptr_t vmm_clone(void)
 {
-    uint32_t new_cr3 = (uint32_t)vmm_alloc_pages(1, VMM_FLAGS_PRESENT | VMM_FLAGS_RW); // Allocate a new page directory
+    uint32_t new_cr3 = (uint32_t)vmm_alloc_pages(1, VMM_FLAGS_PRESENT | VMM_FLAGS_RW); // Aloca um novo diretorio de paginas
     if (!new_cr3)
-        return 0; // Failed to allocate a new page directory
+        return 0; // Falha ao alocar um novo diretorio de paginas
     uint32_t new_cr3_phys = get_physical_address(new_cr3);
 
-    // Copy the kernel space mappings (higher half)
+    // Copia os mapeamentos do espaco do kernel (metade superior)
     uint32_t *new_pd = (uint32_t *)new_cr3;
     uint32_t *old_pd = (uint32_t *)0xFFFFF000;
     memset(new_pd, 0, 1024 * sizeof(uint32_t));
@@ -248,16 +248,16 @@ uintptr_t vmm_clone(void)
     return new_cr3_phys;
 }
 
-// Initialize the virtual memory manager
+// Inicializa o gerenciador de memoria virtual
 void vmm_init(void) 
 {
     kernel_cr3 = read_cr3();
 
-    // Unmap the first MiB
+    // Desmapeia o primeiro MiB
     uint32_t *pde = get_pde(0);
     *pde = 0;
 
-    debug_log_string("VMM", "Kernel CR3: 0x");
+    debug_log_string("VMM", "CR3 do kernel: 0x");
     debug_log_hex32(kernel_cr3);
     debug_print_string("\r\n");
 

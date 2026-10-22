@@ -1,6 +1,6 @@
 /*
  * debug.c
- * Created by Matheus Leme da Silva
+ * Criado por Matheus Leme da Silva
  * */
 #include <terminal.h>
 #include <serial.h>
@@ -8,14 +8,14 @@
 
 #define DEBUG_SERIAL_PORT COM1
 
-// Initialize the debug
+// Inicializa o debug
 void debug_init(void)
 {
     if (serial_init(DEBUG_SERIAL_PORT, 9600))
-        terminal_print_string("Failed to initialize debug serial port\r\n");
+        terminal_print_string("Falha ao inicializar a porta serial de debug\r\n");
 }
 
-// Prints a string on debug
+// Imprime uma string no debug
 void debug_print_string(const char *s)
 {
     terminal_print_string(s);
@@ -23,7 +23,7 @@ void debug_print_string(const char *s)
         write_serial(DEBUG_SERIAL_PORT, *s++);
 }
 
-// Prints a log string
+// Imprime uma string de log
 void debug_log_string(const char *section, const char *s)
 {
     debug_print_string("[");
@@ -32,7 +32,7 @@ void debug_log_string(const char *section, const char *s)
     debug_print_string(s);
 }
 
-// Prints a hex byte
+// Imprime um byte em hexadecimal
 void debug_log_hex8(uint8_t b)
 {
     char str[3];
@@ -40,21 +40,21 @@ void debug_log_hex8(uint8_t b)
     debug_print_string(str);
 }
 
-// Prints a hex word
+// Imprime uma word em hexadecimal
 void debug_log_hex16(uint16_t w)
 {
     debug_log_hex8((w >> 8) & 0xFF);
     debug_log_hex8(w & 0xFF);
 }
 
-// Prints a hex dword
+// Imprime uma dword em hexadecimal
 void debug_log_hex32(uint32_t dw)
 {
     debug_log_hex16((dw >> 16) & 0xFFFF);
     debug_log_hex16(dw & 0xFFFF);
 }
 
-// Prints a hex qword
+// Imprime uma qword em hexadecimal
 void debug_log_hex64(uint64_t qw)
 {
     debug_log_hex32((qw >> 32) & 0xFFFFFFFF);

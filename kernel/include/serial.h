@@ -8,10 +8,10 @@
 #define COM4          0x2E8
 #define COM_BASE_FREQ 115200
 
-// Initialize the serial port
-// Return 0 on success, 1 on failure
+// Inicializa a porta serial
+// Retorna 0 em caso de sucesso, 1 em caso de falha
 int serial_init(uint16_t port, int baudrate);
-// Write a byte to the serial port
+// Escreve um byte na porta serial
 void write_serial(uint16_t port, char a);
 
 #endif // SERIAL_H

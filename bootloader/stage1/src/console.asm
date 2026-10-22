@@ -1,10 +1,10 @@
 ;; console.asm
-;; Created by Matheus Leme Da Silva
+;; Criado por Matheus Leme Da Silva
 %ifndef _console_asm_
 %define _console_asm_
 
-;; Prints a string ending with zero on the screen
-;; DS:SI: pointer to string
+;; Imprime uma string terminada em zero na tela
+;; DS:SI: ponteiro para a string
 print_string:
 	push ax
 	push si

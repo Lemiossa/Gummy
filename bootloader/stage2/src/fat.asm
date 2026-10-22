@@ -1,5 +1,5 @@
 ;; fat.asm
-;; Created by Matheus Leme da Silva
+;; Criado por Matheus Leme da Silva
 %ifndef fat_asm
 %define fat_asm
 
@@ -40,9 +40,9 @@ struc fat_entry
     .file_size_hi:        resw 1
 endstruc
 
-;; Initializes FAT system
-;; Returns: 
-;; CF=1 if an error occours
+;; Inicializa o sistema FAT
+;; Retorna:
+;; CF=1 se ocorrer um erro
 fat_init:
     push ax
     push bx
@@ -68,14 +68,14 @@ fat_init:
     mov cx, fat_bpb_size
     rep movsb
     pop ds
-    ;; Reject FAT32
+    ;; Rejeita FAT32
     cmp word[fat_bpb_data+fat_bpb.sectors_per_fat], 0
     je .error
-    ;; Verify if bytes per sector is 512
+    ;; Verifica se bytes por setor e 512
     mov ax, word[fat_bpb_data+fat_bpb.bytes_per_sector]
     cmp ax, 512
     jne .error
-    ;; All informations in: https://wiki.osdev.org/FAT#Programming_Guide
+    ;; Todas as informacoes em: https://wiki.osdev.org/FAT#Programming_Guide
     ;; root_dir_sectors = ((fat_bpb.root_dir_entries * 32) + 511) / 512;
     mov ax, word[fat_bpb_data+fat_bpb.root_dir_entries]
     mov bx, 32
@@ -85,7 +85,7 @@ fat_init:
     adc dx, 0
     ;; DX:AX = (fat_bpb.root_dir_entries * 32) + 511
     mov bx, 512
-    div bx 
+    div bx
     ;; AX = ((fat_bpb.root_dir_entries * 32) + 511) / 512
     mov word[fat_root_dir_sectors], ax
     ;; first_data_sector = fat_bpb.reserved_sectors + (fat_bpb.num_fat_tables * fat_bpb.sectors_per_fat) + root_dir_sectors
@@ -148,11 +148,11 @@ fat_init:
     pop ax
     ret
 
-;; Get next cluster in FAT12
+;; Obtem o proximo cluster na FAT12
 ;; AX: Cluster
-;; Return:
+;; Retorna:
 ;; AX: Cluster
-;; CF=1 if an error occours
+;; CF=1 se ocorrer um erro
 fat12_next_cluster:
     push bx
     push cx
@@ -164,7 +164,7 @@ fat12_next_cluster:
     ;; ent_offset = fat_offset % 512
     mov bx, ax
     mov di, ax
-    shr ax, 1 ;; Divide by 2
+    shr ax, 1 ;; Divide por 2
     ;; AX = cluster / 2
     add ax, bx
     ;; AX = fat_offset
@@ -210,11 +210,11 @@ fat12_next_cluster:
     pop bx
     ret
 
-;; Get next cluster in FAT16
+;; Obtem o proximo cluster na FAT16
 ;; AX: Cluster
-;; Return:
+;; Retorna:
 ;; AX: Cluster
-;; CF=1 if an error occours
+;; CF=1 se ocorrer um erro
 fat16_next_cluster:
     push bx
     push cx
@@ -254,11 +254,11 @@ fat16_next_cluster:
     pop bx
     ret
 
-;; Get next cluster
+;; Obtem o proximo cluster
 ;; AX: Cluster
-;; Return:
+;; Retorna:
 ;; AX: Cluster
-;; CF=1 if an error occours
+;; CF=1 se ocorrer um erro
 fat_next_cluster:
     cmp byte[fat_type], 12
     je .fat12
@@ -270,7 +270,7 @@ fat_next_cluster:
     jc .error
     jmp .end
 .fat16:
-    call fat16_next_cluster 
+    call fat16_next_cluster
     jc .error
 .end:
     clc
@@ -280,11 +280,11 @@ fat_next_cluster:
 .ret:
     ret
 
-;; Read an root dir entry
-;; AX: entry index
-;; ES:DI: Pointer to data
-;; Returns:
-;; CF=1 If an error occours
+;; Le uma entrada do diretorio raiz
+;; AX: indice da entrada
+;; ES:DI: Ponteiro para os dados
+;; Retorna:
+;; CF=1 se ocorrer um erro
 fat_read_root_dir:
     push ax
     push bx
@@ -295,7 +295,7 @@ fat_read_root_dir:
     push ds
     push es
     ;; byte_pos = index * 32
-    ;; sector = root_dir_sector + (byte_pos / 512)
+    ;; setor = root_dir_sector + (byte_pos / 512)
     ;; offset = byte_pos % 512
     mov bx, 32
     mul bx
@@ -305,7 +305,7 @@ fat_read_root_dir:
     ;; AX = byte_pos / 512
     ;; DX = offset
     add ax, word[fat_first_root_dir_sector]
-    ;; AX = sector
+    ;; AX = setor
     ;; DX = offset
     mov si, dx
     ;; DX:AX LBA
@@ -321,13 +321,13 @@ fat_read_root_dir:
     ;; SI = offset
     mov bx, (temp_sector_buffer >> 4)
     mov ds, bx
-    ;; DS:SI = source
-    ;; ES:DI = output
+    ;; DS:SI = origem
+    ;; ES:DI = destino
     cld
     mov cx, 32
     rep movsb
 .end:
-    clc 
+    clc
     jmp .ret
 .error:
     stc
@@ -342,11 +342,11 @@ fat_read_root_dir:
     pop ax
     ret
 
-;; Finds a fat file in a root directory
-;; DS:SI: Filename
-;; Returns:
-;; AX: Index
-;; CF=1 if an error occours
+;; Encontra um arquivo FAT no diretorio raiz
+;; DS:SI: Nome do arquivo
+;; Retorna:
+;; AX: Indice
+;; CF=1 se ocorrer um erro
 fat_find_in_root_dir:
     push bx
     push cx
@@ -392,9 +392,9 @@ fat_find_in_root_dir:
     ret
 .entry: times 32 db 0
 
-;; Converts Cluster to LBA
+;; Converte cluster para LBA
 ;; AX: Cluster
-;; Returns:
+;; Retorna:
 ;; DX:AX: LBA
 fat_cluster_to_lba:
     push bx
@@ -411,9 +411,9 @@ fat_cluster_to_lba:
     pop bx
     ret
 
-;; Return CF=1 if cluster is EOF
+;; Retorna CF=1 se o cluster for EOF
 ;; AX: Cluster
-fat_cluster_is_eof: 
+fat_cluster_is_eof:
     cmp byte[fat_type], 12
     je .fat12
     cmp byte[fat_type], 16
@@ -432,11 +432,11 @@ fat_cluster_is_eof:
 .ret:
     ret
 
-;; Reads a fat file
-;; DS:SI: Entry
-;; ES:BX: Output
-;; Returns:
-;; CF=1 if an error occours
+;; Le um arquivo FAT
+;; DS:SI: Entrada
+;; ES:BX: Destino
+;; Retorna:
+;; CF=1 se ocorrer um erro
 fat_read_file:
     push ax
     push bx
@@ -452,13 +452,13 @@ fat_read_file:
     jc .end
     ;; AX = cluster
     mov di, ax
-    call fat_cluster_to_lba 
+    call fat_cluster_to_lba
     mov cl, byte[fat_bpb_data+fat_bpb.sectors_per_cluster]
     xor ch, ch
 .read:
     cmp bx, 0x8000
     jb .no_inc_seg
-    ;; If (bx >= 0x8000) 
+    ;; Se (bx >= 0x8000)
     ;; {
     ;;   bx -= 0x8000;
     ;;   es += 0x800;

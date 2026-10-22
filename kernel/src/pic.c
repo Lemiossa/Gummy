@@ -1,6 +1,6 @@
 /*
  * pic.c
- * Created by Matheus Leme da Silva
+ * Criado por Matheus Leme da Silva
  * https://wiki.osdev.org/8259_PIC
  * */
 #include <types.h>
@@ -18,7 +18,7 @@
 #define ICW1_ICW4    0x01
 #define ICW4_8086    0x01
 
-// Remaps de PIC
+// Remapeia o PIC
 void pic_remap(void)
 {
     outb(PIC1_CMD, ICW1 | ICW1_ICW4);
@@ -42,14 +42,14 @@ void pic_remap(void)
     outb(PIC1_DATA, 0xFF);
     outb(PIC2_DATA, 0xFF);
 
-    debug_log_string("PIC", "PIC Remapped to 0x");
+    debug_log_string("PIC", "PIC remapeado para 0x");
     debug_log_hex8(PIC_VECTOR_START);
     debug_print_string("-0x");
     debug_log_hex8(PIC_VECTOR_START+8);
     debug_print_string("\r\n");
 }
 
-// Send End Of Interrupt to PIC
+// Envia o fim de interrupcao (EOI) para o PIC
 void pic_send_eoi(uint8_t irq)
 {
     if (irq >= 8)
@@ -57,10 +57,10 @@ void pic_send_eoi(uint8_t irq)
     outb(PIC1_CMD, PIC_EOI);
 }
 
-// Set IRQ mask
+// Define a mascara da IRQ
 void pic_irq_set_mask(uint8_t irq)
 {
-    debug_log_string("PIC", "Set IRQ 0x");
+    debug_log_string("PIC", "Definindo mascara da IRQ 0x");
     debug_log_hex8(irq);
     debug_print_string("\r\n");
 
@@ -70,10 +70,10 @@ void pic_irq_set_mask(uint8_t irq)
         outb(PIC2_DATA, inb(PIC2_DATA) | (1 << (irq - 8)));
 }
 
-// Clear IRQ mask
+// Limpa a mascara da IRQ
 void pic_irq_clear_mask(uint8_t irq)
 {
-    debug_log_string("PIC", "Clear IRQ 0x");
+    debug_log_string("PIC", "Limpando mascara da IRQ 0x");
     debug_log_hex8(irq);
     debug_print_string("\r\n");
 

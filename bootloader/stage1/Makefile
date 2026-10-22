@@ -15,7 +15,7 @@ DEP         := $(BUILDDIR)/dep/stage1.d
 SRC      := $(SRCDIR)/main.asm
 INCLUDES    := $(wildcard $(CURDIR)/$(SRCDIR)/*.asm)
 
-# Colors
+# Cores
 BLUE   := \033[1;34m
 GREEN  := \033[1;32m
 YELLOW := \033[1;33m
@@ -30,7 +30,7 @@ endef
 all: check $(TARGET_BIN)
 
 check:
-	@command -v nasm >/dev/null 2>&1 || { echo "nasm not found"; exit 1; }
+	@command -v nasm >/dev/null 2>&1 || { echo "nasm nao encontrado"; exit 1; }
 
 $(TARGET_BIN): $(INCLUDES) | dirs
 	$(call echo_cmd,AS,$@)

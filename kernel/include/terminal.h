@@ -5,19 +5,19 @@
 #define TERMINAL_WIDTH 80
 #define TERMINAL_HEIGHT 25
 
-// Initializes the terminal system
+// Inicializa o sistema de terminal
 void terminal_init(void);
-// Prints a char in the terminal and updates cursor position.
+// Imprime um caractere no terminal e atualiza a posicao do cursor.
 void terminal_putchar(char c);
-// Prints a string on the terminal
+// Imprime uma string no terminal
 void terminal_print_string(const char *s);
-// Print a hex byte
+// Imprime um byte em hexadecimal
 void terminal_print_hex8(uint8_t b);
-// Print a hex word
+// Imprime uma word em hexadecimal
 void terminal_print_hex16(uint16_t w);
-// Print a hex dword
+// Imprime uma dword em hexadecimal
 void terminal_print_hex32(uint32_t dw);
-// Print a hex qword
+// Imprime uma qword em hexadecimal
 void terminal_print_hex64(uint64_t qw);
 
 #endif // TERMINAL_H

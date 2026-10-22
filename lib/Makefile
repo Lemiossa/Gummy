@@ -35,7 +35,7 @@ LDFLAGS  := -T $(LINKER_FILE) -static -nostdlib -Wl,--gc-sections
 LDLIBS   := -lgcc
 ARFLAGS  := rcs
 
-# Colors
+# Cores
 BLUE   := \033[1;34m
 GREEN  := \033[1;32m
 YELLOW := \033[1;33m
@@ -55,7 +55,7 @@ else
 		LDFLAGS += -m64
 		CFLAGS += -m64
 	else
-		$(error Unsupported architecture)
+		$(error Arquitetura nao suportada)
 	endif
 endif
 

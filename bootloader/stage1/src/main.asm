@@ -1,5 +1,5 @@
 ;; main.asm
-;; Created by Matheus Leme Da Silva
+;; Criado por Matheus Leme Da Silva
 bits 16
 org 0x7c00
 
@@ -10,10 +10,10 @@ sector_count: equ 62
 jmp short main
 nop
 
-;; Space for BPB
+;; Espaco para a BPB
 times 62 - ($ - $$) db 0
 
-;; Main function
+;; Funcao principal
 main:
 	cli
 	xor ax, ax
@@ -25,40 +25,40 @@ main:
 
 	mov [drive], dl
 
-	;; Get sectors per track AND heads from disk
+	;; Obtem os setores por trilha E as cabecas do disco
 	mov ah, 0x08
 	xor di, di
 	int 0x13
 	jc int13_failed
 
 	;; AH = status
-	;; CL[BITS 0-5] = sectors per track
-	;; DH = heads - 1
+	;; CL[BITS 0-5] = setores por trilha
+	;; DH = cabecas - 1
 	and cl, 0x3f
 	inc dh
 	mov [sectors_per_track], cl
 	mov [heads], dh
 
-	;; Setup
-	;; Set ES:BX to start_addr
-	;; Set DX:AX to start_sector
-	;; Set CX to count
+	;; Preparacao
+	;; Define ES:BX como start_addr
+	;; Define DX:AX como start_sector
+	;; Define CX como a contagem
 	;; LOOP:
-	;; If CX == 0: far jump
-	;; If BX >= 0x8000:
+	;; Se CX == 0: salto distante
+	;; Se BX >= 0x8000:
 	;;     BX -= 0x8000
 	;;     ES += 0x800
-	;; read
+	;; le
 	;; BX += 512
-	;; increment DX:AX
-	;; back to LOOP
+	;; incrementa DX:AX
+	;; volta para LOOP
 
-	;; Address
+	;; Endereco
 	mov bx, (start_addr >> 4)
 	mov es, bx
 	mov bx, (start_addr & 0x0f)
 
-	;; Sector
+	;; Setor
 	mov ax, (start_sector & 0xffff)
 	mov dx, ((start_sector >> 8) & 0xffff)
 	
@@ -97,8 +97,8 @@ main:
 .end:
 	mov dl, [drive]
 
-	;; Far jump
-	push word (start_addr >> 4)   ;; SEGMENT
+	;; Salto distante
+	push word (start_addr >> 4)   ;; SEGMENTO
 	push word (start_addr & 0x0f) ;; offset
 	retf
 
@@ -107,7 +107,7 @@ main:
 %include "console.asm"
 %include "disk.asm"
 
-;; Display halt message AND halt the computer
+;; Exibe a mensagem de parada E para o computador
 halt:
 	mov si, halted_message
 	call print_string
@@ -115,14 +115,14 @@ halt:
 	cli
 	hlt
 
-halted_message: db "System halted. Please restart.", 0x0d, 0x0a, 0
+halted_message: db "Sistema parado. Reinicie.", 0x0d, 0x0a, 0
 
 drive: db 0
 sectors_per_track: dw 0
 heads: dw 0
 
 times 440 - ($ - $$) db 0
-;; Boot signature
+;; Assinatura de boot
 dd __TIME__
 
 times 510 - ($ - $$) db 0

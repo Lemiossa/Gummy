@@ -2,7 +2,7 @@
 #define VMM_H
 #include <types.h>
 
-// Flags Bits
+// Bits das flags
 #define VMM_FLAGS_PRESENT   (1 << 0)
 #define VMM_FLAGS_RW        (1 << 1)
 #define VMM_FLAGS_USER      (1 << 2)
@@ -15,25 +15,25 @@
 
 extern uintptr_t kernel_cr3;
 
-// Map a virtual address to a physical address
-// Return !0 if an error occours
+// Mapeia um endereco virtual para um endereco fisico
+// Retorna !0 se ocorrer um erro
 int vmm_map(uintptr_t virt, uintptr_t phys, uint32_t flags);
-// Unmap a virtual address
-// Return !0 if an error occours
+// Desmapeia um endereco virtual
+// Retorna !0 se ocorrer um erro
 int vmm_unmap(uintptr_t virt);
-// Alloc n pages in specific region
-// Return NULL if an error occours
-// Map all the pages and return the first virtual address
+// Aloca n paginas em uma regiao especifica
+// Retorna NULL se ocorrer um erro
+// Mapeia todas as paginas e retorna o primeiro endereco virtual
 void *vmm_alloc_pages_region(uint32_t n, uint32_t flags, uintptr_t region_start);
-// Alloc n pages in the entire virtual address space
-// Return NULL if an error occours
+// Aloca n paginas em todo o espaco de enderecos virtuais
+// Retorna NULL se ocorrer um erro
 void *vmm_alloc_pages(uint32_t n, uint32_t flags);
-// free n pages starting from a virtual address
-// return !0 if an error occours
+// Libera n paginas a partir de um endereco virtual
+// Retorna !0 se ocorrer um erro
 int vmm_free_pages(uint32_t n, void *virt);
-// Clone the current page directory and return the new CR3 value
+// Clona o diretorio de paginas atual e retorna o novo valor de CR3
 uintptr_t vmm_clone(void);
-// Initialize the virtual memory manager
+// Inicializa o gerenciador de memoria virtual
 void vmm_init(void);
 
 #endif // VMM_H

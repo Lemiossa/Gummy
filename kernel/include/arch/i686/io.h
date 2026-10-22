@@ -10,25 +10,25 @@ void outl(uint16_t port, uint32_t value);
 uint32_t inl(uint16_t port);
 void io_wait(void);
 
-// Disable interrupts (cli)
+// Desabilita as interrupcoes (cli)
 static inline void disable_interrupts(void)
 {
     __asm__ volatile ("cli");
 }
 
-// Enable interrupts (sti)
+// Habilita as interrupcoes (sti)
 static inline void enable_interrupts(void)
 {
     __asm__ volatile ("sti");
 }
 
-// Halts the CPU
+// Para a CPU
 static inline void halt_cpu(void)
 {
     __asm__ volatile ("hlt");
 }
 
-// Read the value of control register CR0
+// Le o valor do registrador de controle CR0
 static inline uint32_t read_cr0(void) 
 {
     uint32_t value;
@@ -41,7 +41,7 @@ static inline uint32_t read_cr0(void)
     return value;
 }
 
-// Write a value to control register CR0
+// Escreve um valor no registrador de controle CR0
 static inline void write_cr0(uint32_t value)
 {
     __asm__ volatile (
@@ -51,7 +51,7 @@ static inline void write_cr0(uint32_t value)
     );
 }
 
-// Read the value of control register CR2
+// Le o valor do registrador de controle CR2
 static inline uint32_t read_cr2(void) 
 {
     uint32_t value;
@@ -64,7 +64,7 @@ static inline uint32_t read_cr2(void)
     return value;
 }
 
-// Write a value to control register CR2
+// Escreve um valor no registrador de controle CR2
 static inline void write_cr2(uint32_t value)
 {
     __asm__ volatile (
@@ -74,7 +74,7 @@ static inline void write_cr2(uint32_t value)
     );
 }
 
-// Read the value of control register CR3
+// Le o valor do registrador de controle CR3
 static inline uint32_t read_cr3(void) 
 {
     uint32_t value;
@@ -87,7 +87,7 @@ static inline uint32_t read_cr3(void)
     return value;
 }
 
-// Write a value to control register CR3
+// Escreve um valor no registrador de controle CR3
 static inline void write_cr3(uint32_t value)
 {
     __asm__ volatile (

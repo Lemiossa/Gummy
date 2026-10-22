@@ -1,17 +1,17 @@
 ;; e820.asm
-;; Created by Matheus Leme da Silva
+;; Criado por Matheus Leme da Silva
 %ifndef E820_ASM
 %define E820_ASM
 bits 16
 
-;; Reads de E820 table to 0x500
-;; Structure:
-;; word: Num of entries
-;; ...: entries
-;; Returns:
-;; CF=1 if an error occours
-;; Entries are stored using 24 bytes each.
-;; In this code, I assume there won't be enough entries to exceed at least 0x5000 (a reasonable distance from 0x7C00, where the stack is located).
+;; Le a tabela E820 para 0x500
+;; Estrutura:
+;; word: Numero de entradas
+;; ...: entradas
+;; Retorna:
+;; CF=1 se ocorrer um erro
+;; Cada entrada e armazenada usando 24 bytes.
+;; Neste codigo, assumo que nao havera entradas suficientes para passar de 0x5000 (uma distancia razoavel de 0x7C00, onde a pilha fica).
 e820_init:
     push ax
     push bx
@@ -29,12 +29,12 @@ e820_init:
     mov edx, 0x534D4150
     mov ecx, 24
     int 0x15
-    ;; Error
+    ;; Erro
     jc .error
     cmp eax, 0x534D4150
     jne .error
     inc word[es:0x500]
-    ;; End
+    ;; Fim
     test ebx, ebx
     jz .end
     add di, 24

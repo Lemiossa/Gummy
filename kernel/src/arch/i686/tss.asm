@@ -1,9 +1,9 @@
 ;; tss.asm
-;; Created by Matheus Leme da Silva
+;; Criado por Matheus Leme da Silva
 bits 32
 section .text
 
-;; Loads the TSS into the task register
+;; Carrega a TSS no registrador de tarefas
 ;; void tss_flush(uintptr_t sel);
 global tss_flush
 tss_flush:

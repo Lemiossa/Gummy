@@ -25,14 +25,14 @@ KERNEL     := $(BINDIR)/kernel.bin
 endif
 PATH       := /sbin:/usr/sbin:$(PATH)
 
-# Colors
+# Cores
 BLUE   := \033[1;34m
 GREEN  := \033[1;32m
 YELLOW := \033[1;33m
 RESET  := \033[0m
 
 define check_tool
-	@command -v $(1) >/dev/null 2>&1 || { echo "$(1) not found"; exit 1; }
+	@command -v $(1) >/dev/null 2>&1 || { echo "$(1) nao encontrado"; exit 1; }
 endef
 
 define echo_cmd

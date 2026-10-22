@@ -1,6 +1,6 @@
 /*
  * gdt.c
- * Created by Matheus Leme da Silva
+ * Criado por Matheus Leme da Silva
  * */
 #include <types.h>
 #include <gdt.h>
@@ -11,7 +11,7 @@ extern void gdt_flush(gdtr_t *);
 gdt_entry_t gdt[GDT_ENTRIES] = {0};
 gdtr_t gdtr = {0};
 
-// Sets a GDT entry
+// Define uma entrada da GDT
 void gdt_set_entry(uint16_t index, uint32_t base, uint32_t limit, uint8_t access, uint8_t flags)
 {
     if (index >= GDT_ENTRIES)
@@ -25,7 +25,7 @@ void gdt_set_entry(uint16_t index, uint32_t base, uint32_t limit, uint8_t access
     gdt[index].base_high = (base >> 24) & 0xFF;
 }
 
-// Initializes the basic GDT
+// Inicializa a GDT basica
 void gdt_init(void)
 {
     gdtr.size = GDT_ENTRIES * sizeof(gdt_entry_t) - 1;

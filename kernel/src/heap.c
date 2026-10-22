@@ -1,6 +1,6 @@
 /*
  * heap.c
- * Created by Matheus Leme da Silva
+ * Criado por Matheus Leme da Silva
  * */
 #include <terminal.h>
 #include <types.h>
@@ -11,35 +11,35 @@
 
 typedef struct heap_block
 {
-    size_t size; // in bytes
-    uint8_t used; // 1 if used, 0 if free
+    size_t size; // em bytes
+    uint8_t used; // 1 se usado, 0 se livre
     struct heap_block *prev;
     struct heap_block *next;
 } heap_block_t;
 
 heap_block_t *heap_start = NULL;
 
-// Initializes the heap
+// Inicializa o heap
 void heap_init(void)
 {
     uintptr_t region_start =  HEAP_VIRTUAL_ADDRESS;
     uintptr_t region_end = HEAP_VIRTUAL_ADDRESS + HEAP_INITIAL_PAGES * PAGE_SIZE;
     if ((uintptr_t)region_end >= 0xFFC00000)
     {
-        debug_log_string("HEAP", "Initialization failed: region_end exceeds 0xFFC00000\r\n");
+        debug_log_string("HEAP", "Falha na inicializacao: region_end excede 0xFFC00000\r\n");
         return;
     }
 
     heap_start = (heap_block_t *)vmm_alloc_pages_region(HEAP_INITIAL_PAGES, VMM_FLAGS_RW | VMM_FLAGS_PRESENT, region_start);
     if (!heap_start)
     {
-        debug_log_string("HEAP", "Initialization failed: vmm_alloc_pages returned NULL\r\n");
+        debug_log_string("HEAP", "Falha na inicializacao: vmm_alloc_pages retornou NULL\r\n");
         return;
     }
 
     debug_log_string("HEAP", "vaddr: 0x");
     debug_log_hex64((uint64_t)HEAP_VIRTUAL_ADDRESS);
-    debug_print_string(", initial pages: 0x");
+    debug_print_string(", paginas iniciais: 0x");
     debug_log_hex32((uint32_t)HEAP_INITIAL_PAGES);
     debug_print_string("\r\n");
 
@@ -50,8 +50,8 @@ void heap_init(void)
     heap_start->next = NULL;
 }
 
-// Expands the heap n pages
-// Return the new block if successful, NULL otherwise
+// Expande o heap em n paginas
+// Retorna o novo bloco em caso de sucesso, NULL caso contrario
 void *heap_expand(size_t n)
 {
     if (!heap_start || n == 0)
@@ -75,23 +75,23 @@ void *heap_expand(size_t n)
     new_block->next = NULL;
     b->next = new_block;
 
-    debug_log_string("HEAP", "Expanded heap by 0x");
+    debug_log_string("HEAP", "Heap expandido em 0x");
     debug_log_hex32((uint32_t)n);
-    debug_print_string(" pages, new block at 0x");
+    debug_print_string(" paginas, novo bloco em 0x");
     debug_log_hex64((uint64_t)(uintptr_t)new_block);
     debug_print_string("\r\n");
 
     return new_block;
 }
 
-// Merge adjacent free blocks
-// The current block must be free
+// Mescla blocos livres adjacentes
+// O bloco atual deve estar livre
 void heap_merge_free_blocks(heap_block_t *b)
 {
     if (!b || b->used)
         return;
 
-    // Merge previous block
+    // Mescla o bloco anterior
     if (b->prev && !b->prev->used)
     {
         b->prev->size += b->size + sizeof(heap_block_t);
@@ -101,7 +101,7 @@ void heap_merge_free_blocks(heap_block_t *b)
         b = b->prev;
     }
 
-    // Merge next block
+    // Mescla o proximo bloco
     if (b->next && !b->next->used)
     {
         b->size += b->next->size + sizeof(heap_block_t);
@@ -111,8 +111,8 @@ void heap_merge_free_blocks(heap_block_t *b)
     }
 }
 
-// Split heap block to specified size
-// The current block must be free
+// Divide o bloco do heap para o tamanho especificado
+// O bloco atual deve estar livre
 void heap_split_block(heap_block_t *b, size_t size)
 {
     if (!b || b->used || b->size <= size)
@@ -136,7 +136,7 @@ void heap_split_block(heap_block_t *b, size_t size)
     b->next = new;
 }
 
-// Allocates a block of memory of the given size
+// Aloca um bloco de memoria com o tamanho informado
 void *heap_alloc(size_t size)
 {
     if (size == 0)
@@ -144,7 +144,7 @@ void *heap_alloc(size_t size)
 
     size = ALIGN_UP(size, sizeof(uintptr_t));
 
-    debug_log_string("HEAP", "Allocating 0x");
+    debug_log_string("HEAP", "Alocando 0x");
     debug_log_hex64((uint64_t)size);
     debug_print_string(" bytes\r\n");
 
@@ -174,7 +174,7 @@ void *heap_alloc(size_t size)
     return (void *)((uintptr_t)new + sizeof(heap_block_t));
 }
 
-// Frees a previously allocated block of memory
+// Libera um bloco de memoria alocado anteriormente
 void heap_free(void *ptr)
 {
     if (!ptr)
@@ -191,19 +191,19 @@ void heap_free(void *ptr)
         b = b->next;
     }
 
-    debug_log_string("HEAP", "Freed block at 0x");
+    debug_log_string("HEAP", "Bloco liberado em 0x");
     debug_log_hex64((uint64_t)(uintptr_t)b);
     debug_print_string("\r\n");
 
     heap_merge_free_blocks(b);
 }
 
-// Prints the current state of the heap (for debugging purposes)
+// Imprime o estado atual do heap (para fins de debug)
 void heap_print(void)
 {
     if (!heap_start)
     {
-        terminal_print_string("Heap not initialized\r\n");
+        terminal_print_string("Heap nao inicializado\r\n");
         return;
     }
     
@@ -212,9 +212,9 @@ void heap_print(void)
     while (b)
     {
         terminal_print_hex64((uint64_t)(uintptr_t)b);
-        terminal_print_string("\r\n    Sz: ");
+        terminal_print_string("\r\n    Tam: ");
         terminal_print_hex64((uint64_t)b->size);
-        terminal_print_string("\r\n    Us: ");
+        terminal_print_string("\r\n    Uso: ");
         terminal_print_hex8(b->used);
         terminal_print_string("\r\n");
         b = b->next;

@@ -1,5 +1,5 @@
 ;; io.asm
-;; Created by Matheus Leme da Silva
+;; Criado por Matheus Leme da Silva
 
 ;; void io_wait(void);
 global io_wait
@@ -10,7 +10,7 @@ io_wait:
     pop ax
     ret
 
-;; Out byte to IO port
+;; Envia um byte para a porta de IO
 ;; void outb(unsigned short port, unsigned char value);
 global outb
 outb:
@@ -26,7 +26,7 @@ outb:
     pop ebp
     ret
 
-;; Out word to IO port
+;; Envia uma word para a porta de IO
 ;; void outw(unsigned short port, unsigned short value);
 global outw
 outw:
@@ -42,7 +42,7 @@ outw:
     pop ebp
     ret
 
-;; Out dword to IO port
+;; Envia um dword para a porta de IO
 ;; void outl(unsigned short port, unsigned int value);
 global outl
 outl:
@@ -58,7 +58,7 @@ outl:
     pop ebp
     ret
 
-;; In byte to IO port
+;; Le um byte da porta de IO
 ;; unsigned char inb(unsigned short port);
 global inb
 inb:
@@ -71,7 +71,7 @@ inb:
     pop ebp
     ret
 
-;; In word to IO port
+;; Le uma word da porta de IO
 ;; unsigned short inw(unsigned short port);
 global inw
 inw:
@@ -84,7 +84,7 @@ inw:
     pop ebp
     ret
 
-;; In dword to IO port
+;; Le um dword da porta de IO
 ;; unsigned int inl(unsigned short port);
 global inl
 inl:

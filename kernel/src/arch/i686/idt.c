@@ -1,6 +1,6 @@
 /*
  * idt.c
- * Created by Matheus Leme da Silva
+ * Criado por Matheus Leme da Silva
  * */
 #include <io.h>
 #include <terminal.h>
@@ -15,7 +15,7 @@ interrupt_handler_t handlers[IDT_ENTRIES] = {0};
 extern void load_idt(idtr_t *);
 extern uint32_t isr_table[IDT_ENTRIES];
 
-// Sets a IDT entry
+// Define uma entrada da IDT
 static void idt_set_entry(uint16_t index, uint32_t offset, uint16_t selector, uint8_t attr)
 {
     if (index >= IDT_ENTRIES)
@@ -28,7 +28,7 @@ static void idt_set_entry(uint16_t index, uint32_t offset, uint16_t selector, ui
     idt[index].offset_high = (offset >> 16) & 0xFFFF;
 }
 
-// Interrupt handler
+// Tratador de interrupcao
 void interrupt_handler(interrupt_context_t *ctx)
 {
     if (ctx->int_num >= IDT_ENTRIES)
@@ -40,7 +40,7 @@ void interrupt_handler(interrupt_context_t *ctx)
         handler(ctx);
 }
 
-// set a idt handler
+// Define um tratador da IDT
 void idt_set_handler(uint16_t index, interrupt_handler_t handler)
 {
     if (index > IDT_ENTRIES)
@@ -49,7 +49,7 @@ void idt_set_handler(uint16_t index, interrupt_handler_t handler)
     handlers[index] = handler;
 }
 
-// Initializes IDT
+// Inicializa a IDT
 void idt_init(void)
 {
     idtr.offset = (uint32_t)idt;

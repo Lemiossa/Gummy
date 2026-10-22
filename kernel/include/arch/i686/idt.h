@@ -35,11 +35,11 @@ typedef void (*interrupt_handler_t)(interrupt_context_t *ctx);
 #define IDT_TRAP_GATE 0x8F
 #define IDT_TASK_GATE 0x85
 
-// Initializes IDT
+// Inicializa a IDT
 void idt_init(void);
-// Sets a IDT handler
+// Define um tratador da IDT
 void idt_set_handler(uint16_t index, interrupt_handler_t handler);
-// Restores the CPU context
+// Restaura o contexto da CPU
 void restore_context(uintptr_t esp0);
 
 

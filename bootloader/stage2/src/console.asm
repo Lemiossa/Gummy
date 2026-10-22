@@ -1,13 +1,13 @@
 ;; console.asm
-;; Created by Matheus Leme da Silva
+;; Criado por Matheus Leme da Silva
 %ifndef console_asm
 %define console_asm
 
 bits 16
 
-;; Prints a string on the screen
-;; DS:SI: String pointer
-;; Returns: None
+;; Imprime uma string na tela
+;; DS:SI: Ponteiro para a string
+;; Retorna: Nada
 console_print_string:
     push ax
     push si
@@ -23,14 +23,14 @@ console_print_string:
     pop ax
     ret
 
-;; Prints a nibble(4-bit)
+;; Imprime um nibble (4 bits)
 ;; AL: Nibble
-;; Returns: None
+;; Retorna: Nada
 console_print_nibble:
     push ax
     and al, 0x0f
-    ;; If AL < 10: print AL + '0'
-    ;; else: print AL + 'A' - 10
+    ;; Se AL < 10: imprime AL + '0'
+    ;; senao: imprime AL + 'A' - 10
     mov ah, 0x0e
     cmp al, 10
     jae .else
@@ -46,9 +46,9 @@ console_print_nibble:
     pop ax
     ret
 
-;; Prints a byte(8-bit)
+;; Imprime um byte (8 bits)
 ;; AL: Byte
-;; Returns: None
+;; Retorna: Nada
 console_print_byte:
     push ax
     shr al, 4

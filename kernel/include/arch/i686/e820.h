@@ -16,7 +16,7 @@ extern uint32_t total_memory;
 extern uint16_t E820_entry_count;
 extern e820_entry_t *E820_entries;
 
-// Get memory map
+// Obtem o mapa de memoria
 void E820_init(void);
 
 #endif // E820_H

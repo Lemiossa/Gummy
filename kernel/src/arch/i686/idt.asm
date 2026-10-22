@@ -1,8 +1,8 @@
 ;; idt.asm
-;; Created by Matheus Leme da Silva
+;; Criado por Matheus Leme da Silva
 bits 32
 
-;; Loads the idt
+;; Carrega a IDT
 ;; void load_idt(idtr_t *);
 global load_idt
 load_idt:
@@ -13,7 +13,7 @@ load_idt:
 
 extern interrupt_handler
 
-;; Restores the CPU context
+;; Restaura o contexto da CPU
 ;; void restore_context(uintptr_t esp0);
 global restore_context
 restore_context:

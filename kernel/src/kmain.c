@@ -1,6 +1,6 @@
 /*
  * kmain.c
- * Created by Matheus Leme Da Silva
+ * Criado por Matheus Leme Da Silva
  */
 #include <io.h>
 #include <types.h>
@@ -22,54 +22,54 @@ void kmain(void)
     disable_interrupts();
     debug_init();
 
-    debug_log_string("KMAIN", "Initializing GDT...\r\n");
+    debug_log_string("KMAIN", "Inicializando GDT...\r\n");
     gdt_init();
-    debug_log_string("KMAIN", "GDT Initialized!\r\n");
+    debug_log_string("KMAIN", "GDT inicializado!\r\n");
 
-    debug_log_string("KMAIN", "Initializing TSS...\r\n");
+    debug_log_string("KMAIN", "Inicializando TSS...\r\n");
     tss_init();
-    debug_log_string("KMAIN", "TSS Initialized!\r\n");
+    debug_log_string("KMAIN", "TSS inicializado!\r\n");
 
 
-    debug_log_string("KMAIN", "Initializing terminal...\r\n");
+    debug_log_string("KMAIN", "Inicializando terminal...\r\n");
     terminal_init();
-    debug_log_string("KMAIN", "Terminal initialized!\r\n");
+    debug_log_string("KMAIN", "Terminal inicializado!\r\n");
 
-    debug_log_string("KMAIN", "Initializing IDT...\r\n");
+    debug_log_string("KMAIN", "Inicializando IDT...\r\n");
     idt_init();
-    debug_log_string("KMAIN", "IDT initialized!\r\n");
+    debug_log_string("KMAIN", "IDT inicializado!\r\n");
 
-    debug_log_string("KMAIN", "Remapping PIC...\r\n");
+    debug_log_string("KMAIN", "Remapeando PIC...\r\n");
     pic_remap();
-    debug_log_string("KMAIN", "PIC remapped!\r\n");
+    debug_log_string("KMAIN", "PIC remapeado!\r\n");
 
-    debug_log_string("KMAIN", "Initializing exceptions...\r\n");
+    debug_log_string("KMAIN", "Inicializando excecoes...\r\n");
     exception_init();
-    debug_log_string("KMAIN", "Exceptions initialized!\r\n");
+    debug_log_string("KMAIN", "Excecoes inicializadas!\r\n");
 
-    debug_log_string("KMAIN", "Initializing E820...\r\n");
+    debug_log_string("KMAIN", "Inicializando E820...\r\n");
     E820_init();
-    debug_log_string("KMAIN", "E820 initialized!\r\n");
+    debug_log_string("KMAIN", "E820 inicializado!\r\n");
 
-    debug_log_string("KMAIN", "Initializing PMM...\r\n");
+    debug_log_string("KMAIN", "Inicializando PMM...\r\n");
     pmm_init();
-    debug_log_string("KMAIN", "PMM initialized!\r\n");
+    debug_log_string("KMAIN", "PMM inicializado!\r\n");
 
-    debug_log_string("KMAIN", "Initializing VMM...\r\n");
+    debug_log_string("KMAIN", "Inicializando VMM...\r\n");
     vmm_init();
-    debug_log_string("KMAIN", "VMM initialized!\r\n");
+    debug_log_string("KMAIN", "VMM inicializado!\r\n");
 
-    debug_log_string("KMAIN", "Initializing heap...\r\n");
+    debug_log_string("KMAIN", "Inicializando heap...\r\n");
     heap_init();
-    debug_log_string("KMAIN", "Heap initialized!\r\n");
+    debug_log_string("KMAIN", "Heap inicializado!\r\n");
 
-    debug_log_string("KMAIN", "Initializing scheduler...\r\n");
+    debug_log_string("KMAIN", "Inicializando escalonador...\r\n");
     if (sched_init(100))
     {
-        debug_log_string("KMAIN", "Failed to initialize scheduler!\r\n");
+        debug_log_string("KMAIN", "Falha ao inicializar o escalonador!\r\n");
         goto halt;
     }
-    debug_log_string("KMAIN", "Scheduler initialized!\r\n");
+    debug_log_string("KMAIN", "Escalonador inicializado!\r\n");
     enable_interrupts();
 
     terminal_print_string(NAME);
@@ -78,7 +78,7 @@ void kmain(void)
     terminal_print_string("\r\n");
 
 halt:
-    debug_log_string("KMAIN", "System Halted\r\n");
+    debug_log_string("KMAIN", "Sistema parado\r\n");
     disable_interrupts();
     halt_cpu();
 }

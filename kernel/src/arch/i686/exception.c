@@ -1,6 +1,6 @@
 /*
  * exception.c
- * Created by Matheus Leme da Silva
+ * Criado por Matheus Leme da Silva
  * */
 #include "debug.h"
 #include "io.h"
@@ -43,12 +43,12 @@ static const char *exception_names[32] = {
     [31] = "Reserved",
 };
 
-// Handles exceptions
+// Trata excecoes
 static void exception_handler(interrupt_context_t *ctx)
 {
-    debug_log_string("CPU EXCEPTION", "*** CPU EXCEPTION ***\r\n");
+    debug_log_string("CPU EXCEPTION", "*** EXCECAO DE CPU ***\r\n");
 
-    debug_log_string("CPU EXCEPTION", "Exception: ");
+    debug_log_string("CPU EXCEPTION", "Excecao: ");
     debug_print_string(exception_names[ctx->int_num]);
     debug_print_string("\r\n");
     debug_log_string("CPU EXCEPTION", "INT: 0x");
@@ -58,7 +58,7 @@ static void exception_handler(interrupt_context_t *ctx)
     debug_log_hex32(ctx->eip);
     debug_print_string("\r\n");
 
-    if (ctx->int_num == 14 ) // Page Fault
+    if (ctx->int_num == 14 ) // Page fault
     {
         uint32_t cr2 = read_cr2();
         debug_log_string("CPU EXCEPTION", "CR2: 0x");
@@ -66,7 +66,7 @@ static void exception_handler(interrupt_context_t *ctx)
         debug_print_string("\r\n");
     }
 
-    debug_log_string("CPU EXCEPTION", "System halted.\r\n");
+    debug_log_string("CPU EXCEPTION", "Sistema parado.\r\n");
 
     for (;;)
     {
@@ -75,7 +75,7 @@ static void exception_handler(interrupt_context_t *ctx)
     }
 }
 
-// Initializes exceptions
+// Inicializa as excecoes
 void exception_init(void)
 {
     for (int i = 0; i < 32; i++)

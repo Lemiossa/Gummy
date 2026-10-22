@@ -1,65 +1,65 @@
 /*
  * serial.c
- * Created by Matheus Leme da Silva
+ * Criado por Matheus Leme da Silva
  * https://wiki.osdev.org/Serial_Ports
  * */
 #include <serial.h>
 #include <io.h>
 #include <types.h>
 
-// Initialize the serial port
-// Return 0 on success, 1 on failure
+// Inicializa a porta serial
+// Retorna 0 em caso de sucesso, 1 em caso de falha
 int serial_init(uint16_t port, int baudrate)
 {
     if (baudrate <= 0)
         return 1;
 
-    // Verify if the port is valid
+    // Verifica se a porta e valida
     if (port != COM1 && port != COM2 && port != COM3 && port != COM4)
         return 1;
 
-    // Enable DLAB 
+    // Habilita DLAB
     outb(port + 3, 0x80);
 
-    // Set baud rate
+    // Define a taxa de transmissao
     uint16_t divisor = COM_BASE_FREQ / baudrate;
 
-    outb(port + 0, divisor & 0xFF); // Set low byte of divisor
-    outb(port + 1, (divisor >> 8) & 0xFF); // Set high byte of divisor
+    outb(port + 0, divisor & 0xFF); // Define o byte baixo do divisor
+    outb(port + 1, (divisor >> 8) & 0xFF); // Define o byte alto do divisor
 
-    // Disable DLAB and set data format (8 bits, no parity, 1 stop bit)
+    // Desabilita DLAB e define o formato de dados (8 bits, sem paridade, 1 bit de parada)
     outb(port + 3, 0x03);
 
-    // Enable FIFO, clear them, with 14-byte threshold
+    // Habilita a FIFO, limpa-a, com limiar de 14 bytes
     outb(port + 2, 0xC7);
 
-    // Enable IRQs, set RTS/DSR
+    // Habilita IRQs, define RTS/DSR
     outb(port + 4, 0x0B);
 
-    // Enable Loopback
+    // Habilita o loopback
     outb(port + 4, 0x1E);
 
-    // Send test byte
+    // Envia byte de teste
     outb(port + 0, 0xAE);
 
     if (inb(port + 0) != 0xAE)
         return 1;
 
-    // Normal operation
+    // Operacao normal
     outb(port + 4, 0x0F);
 
-    // If serial is not faulty, set it in normal operation mode
+    // Se a serial nao estiver com defeito, define o modo de operacao normal
     outb(port + 4, 0x0F);
     return 0;
 }
 
-// Check if the transmit FIFO queue is empty
+// Verifica se a fila FIFO de transmissao esta vazia
 int is_transmit_fifo_empty(uint16_t port)
 {
     return inb(port + 5) & 0x20;
 }
 
-// Write a byte to the serial port
+// Escreve um byte na porta serial
 void write_serial(uint16_t port, char a)
 {
     while (is_transmit_fifo_empty(port) == 0);

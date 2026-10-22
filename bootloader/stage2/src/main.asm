@@ -1,5 +1,5 @@
 ;; main.asm
-;; Created by Matheus Leme Da Silva
+;; Criado por Matheus Leme Da Silva
 org 0x7e00
 bits 16
 
@@ -22,16 +22,16 @@ main:
     call fat_init
     jc fat_error
 
-    ;; Find file
+    ;; Encontra o arquivo
     mov si, kernel_file
     call fat_find_in_root_dir
     jc fat_error
-    ;; AX = root directory index
-    ;; Peek entry
+    ;; AX = indice do diretorio raiz
+    ;; Le a entrada
     mov di, .entry
     call fat_read_root_dir
     jc fat_error
-    ;; Read kernel file
+    ;; Le o arquivo do kernel
     mov si, .entry
     mov bx, 0x1000
     mov es, bx
@@ -44,7 +44,7 @@ main:
     jmp halt
 .entry: times 32 db 0
 
-;; Halts the system
+;; Para o sistema
 halt:
     mov si, halted_message
     call console_print_string
@@ -67,10 +67,10 @@ mem_error:
 %include "e820.asm"
 
 start_message:      db `\r\n`, NAME, ` bootloader v`, VERSION, `\r\n`, 0
-disk_error_message: db `Disk error!\r\n`, 0
-fat_error_message:  db `FAT error!\r\n`, 0
-mem_error_message:  db `Mem error!\r\n`, 0
-halted_message:     db `System is halted! Please, reboot.\r\n`, 0
+disk_error_message: db `Erro de disco!\r\n`, 0
+fat_error_message:  db `Erro de FAT!\r\n`, 0
+mem_error_message:  db `Erro de memoria!\r\n`, 0
+halted_message:     db `Sistema parado! Reinicie.\r\n`, 0
 kernel_file:        db `KERNEL  SYS`
 
 %include "32bit.asm"

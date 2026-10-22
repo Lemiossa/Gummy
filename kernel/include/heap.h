@@ -6,13 +6,13 @@
 #define HEAP_INITIAL_PAGES        24
 #define HEAP_SPLIT_BLOCK_MIN_SIZE 32
 
-// Initializes the heap
+// Inicializa o heap
 void heap_init(void);
-// Allocates a block of memory of the given size
+// Aloca um bloco de memoria com o tamanho informado
 void *heap_alloc(size_t size);
-// Frees a previously allocated block of memory
+// Libera um bloco de memoria alocado anteriormente
 void heap_free(void *ptr);
-// Prints the current state of the heap (for debugging purposes)
+// Imprime o estado atual do heap (para fins de debug)
 void heap_print(void);
 
 #endif // HEAP_H

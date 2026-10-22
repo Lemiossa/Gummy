@@ -1,6 +1,6 @@
 /*
  * e820.c
- * Created by Matheus Leme da Silva
+ * Criado por Matheus Leme da Silva
  * */
 #include <types.h>
 #include <terminal.h>
@@ -11,7 +11,7 @@ uint16_t E820_entry_count;
 e820_entry_t *E820_entries;
 uint32_t total_memory;
 
-// Get memory map
+// Obtem o mapa de memoria
 void E820_init(void)
 {
     E820_entry_count = (*(uint16_t *)E820_ADDRESS);
@@ -20,7 +20,7 @@ void E820_init(void)
     {
         e820_entry_t entry = E820_entries[i];
 
-        debug_log_string("E820", "Entry 0x");
+        debug_log_string("E820", "Entrada 0x");
         debug_log_hex16(i);
         debug_print_string(": base: 0x");
         debug_log_hex64(entry.base);

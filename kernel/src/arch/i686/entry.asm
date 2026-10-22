@@ -1,5 +1,5 @@
 ;; entry.asm
-;; Created by Matheus Leme da Silva
+;; Criado por Matheus Leme da Silva
 bits 32
 
 section .text
@@ -11,7 +11,7 @@ _start:
     cli
     mov esp, stack_top
 
-    ;; Zero BSS
+    ;; Zera a BSS
     cld
     xor al, al
     mov edi, __bss_start

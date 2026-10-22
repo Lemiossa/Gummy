@@ -1,6 +1,6 @@
 /*
  * pit.c
- * Created by Matheus Leme da Silva
+ * Criado por Matheus Leme da Silva
  * */
 #include <io.h>
 #include <types.h>
@@ -10,17 +10,17 @@
 
 #define PIT_CMD 0x43
 
-// Set pit frequency
+// Define a frequencia do PIT
 void pit_set_frequency(uint16_t channel, uint16_t frequency, uint8_t mode)
 {
     if (channel > 2 || frequency == 0)
         return;
 
-    debug_log_string("PIT", "Set PIT[0x");
+    debug_log_string("PIT", "Definindo PIT[0x");
     debug_log_hex16(channel);
     debug_print_string("]: Freq=0x");
     debug_log_hex16(frequency);
-    debug_print_string(", Mode=0x");
+    debug_print_string(", Modo=0x");
     debug_log_hex8(mode);
     debug_print_string("\r\n");
 

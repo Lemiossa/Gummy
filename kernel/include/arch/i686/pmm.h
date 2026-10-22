@@ -4,11 +4,11 @@
 
 #define PAGE_SIZE 4096
 
-// Alloc a page of physical memory
+// Aloca uma pagina de memoria fisica
 uintptr_t pmm_alloc_page(void);
-// Free a page of physical memory
+// Libera uma pagina de memoria fisica
 void pmm_free_page(uintptr_t page);
-// Initialize the physical memory manager
+// Inicializa o gerenciador de memoria fisica
 void pmm_init(void);
 
 #endif // PMM_H
