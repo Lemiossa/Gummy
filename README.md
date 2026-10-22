@@ -126,6 +126,10 @@ make -j$(nproc)
 sudo make install
 ```
 
+## Tradução
+
+Este projeto foi traduzido para o português brasileiro com o auxílio de uma inteligência artificial, com o objetivo de agilizar o processo, que, se feito manualmente, demandaria muito mais tempo.
+
 ## Licença
 
 MIT
