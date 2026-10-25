@@ -30,6 +30,8 @@ void queue_push(queue_t *q, queue_node_t *node)
     else
         q->head.next = node;
 
+    node->q = q;
+
     q->head.prev = node;
     q->size++;
 }
@@ -41,6 +43,7 @@ queue_node_t *queue_pop(queue_t *q)
         return NULL;
 
     queue_node_t *node = q->head.next;
+    node->q = NULL;
     q->head.next = node->next;
 
     if (node->next)
@@ -62,24 +65,25 @@ int queue_empty(queue_t *q)
 }
 
 // Remove um no especifico da fila.
-void queue_remove(queue_t *q, queue_node_t *node)
+void queue_remove(queue_node_t *node)
 {
-    if (!q || !node)
+    if (!node->q || !node)
         return;
 
     if (node->prev)
         node->prev->next = node->next;
     else
-        q->head.next = node->next;
+        node->q->head.next = node->next;
 
     if (node->next)
         node->next->prev = node->prev;
     else
-        q->head.prev = node->prev;
+        node->q->head.prev = node->prev;
 
     node->prev = NULL;
     node->next = NULL;
-    q->size--;
+    node->q->size--;
+    node->q = NULL;
 }
 
 // Retorna o tamanho da fila

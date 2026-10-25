@@ -2,6 +2,11 @@
 
 Todas as mudanças notáveis do Gummy são documentadas aqui. As entradas seguem as tags do Git em ordem cronológica.
 
+## v0.15.1 — 2026-10-25
+
+- **Fila**: nó da fila agora armazena ponteiro para a fila (`queue_node_t.q`); `queue_remove()` passa a receber apenas o nó e atualiza o contador da fila.
+
+
 ## v0.1.0 — 2026-07-27
 
 Primeira versão. Base funcional do sistema:
