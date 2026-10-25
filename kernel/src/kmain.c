@@ -70,13 +70,15 @@ void kmain(void)
         goto halt;
     }
     debug_log_string("KMAIN", "Escalonador inicializado!\r\n");
-    enable_interrupts();
 
     terminal_print_string(NAME);
     terminal_print_string(" v");
     terminal_print_string(VERSION);
     terminal_print_string("\r\n");
 
+    enable_interrupts();
+    for (;;)
+        halt_cpu(); 
 halt:
     debug_log_string("KMAIN", "Sistema parado\r\n");
     disable_interrupts();

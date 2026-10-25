@@ -6,6 +6,14 @@ Todas as mudanças notáveis do Gummy são documentadas aqui. As entradas seguem
 
 - **Fila**: nó da fila agora armazena ponteiro para a fila (`queue_node_t.q`); `queue_remove()` passa a receber apenas o nó e atualiza o contador da fila.
 
+## v0.15.2 — 2026-10-25
+
+- **IDT/Tratamento de interrupções**: novos tratadores e ajustes em `idt.asm`/`idt.h`; adicionado suporte a chamadas de sistema via interrupção (estrutura para `syscall`).
+- **I/O**: adicionado `io.h` com funções para ler/escrever portas (in/out) em assembly.
+- **VMM**: adicionado mapeamento de heap do kernel, melhorias em mapeamento/unmapeamento e tratamento de page fault mais completo.
+- **Heap**: pequenos ajustes.
+- **Escalonador**: reescrita significativa do escalonador com tarefas/threads, filas, troca de contexto aprimorada e suporte a syscall; `kmain` atualizado para inicializar multitarefa.
+
 
 ## v0.1.0 — 2026-07-27
 

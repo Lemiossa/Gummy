@@ -97,4 +97,32 @@ static inline void write_cr3(uint32_t value)
     );
 }
 
+// Lê o valor do EFLAGS
+static inline uint32_t read_eflags(void)
+{
+    uint32_t flags;
+
+    __asm__ volatile (
+        "pushfl\n\t"
+        "popl %0"
+        : "=r"(flags)
+        :
+        : "memory"
+    );
+
+    return flags;
+}
+
+// Escreve no EFLAGS
+static inline void write_eflags(uint32_t flags)
+{
+    __asm__ volatile (
+        "pushl %0\n\t"
+        "popfl"
+        :
+        : "r"(flags)
+        : "memory", "cc"
+    );
+}
+
 #endif // IO_H

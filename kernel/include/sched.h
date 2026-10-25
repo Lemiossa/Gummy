@@ -4,8 +4,10 @@
 #include <types.h>
 #include <queue.h>
 
-#define KERNEL_STACK_SIZE 4096
+#define USER_STACK_PAGES   16
+#define KERNEL_STACK_PAGES 1
 #define THREAD_PER_PROCESS 8
+#define USER_STACK_TOP     0xBFFFF000
 
 typedef struct thread thread_t;
 typedef struct process process_t;
@@ -28,12 +30,18 @@ struct process
 
 // Cria um novo processo vazio
 process_t *sched_create_process(void);
+// destroi um processo e suas threads
+void sched_destroy_process(process_t *proc);
 // Cria uma nova thread no processo
-// Retorna um indice da thread no processo
+// Retorna o ponteiro pra thread(não aloca)
 thread_t *sched_create_thread(uintptr_t loc, process_t *process);
-
-// TODO: Cria um novo processo
-
+// cria um novo processo
+// retorna um ponteiro para o processo
+process_t *sched_create_process(void);
+// seta uma thread como ready
+void sched_ready(thread_t *thread);
+// destroi um processo e suas threads
+void sched_destroy_process(process_t *proc);
 // Inicializa o escalonador com a frequencia informada em Hz
 // Retorna !0 se ocorrer um erro
 int sched_init(uint16_t frequency);

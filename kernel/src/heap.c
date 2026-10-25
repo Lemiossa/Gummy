@@ -30,7 +30,7 @@ void heap_init(void)
         return;
     }
 
-    heap_start = (heap_block_t *)vmm_alloc_pages_region(HEAP_INITIAL_PAGES, VMM_FLAGS_RW | VMM_FLAGS_PRESENT, region_start);
+    heap_start = (heap_block_t *)vmm_alloc_pages_region(HEAP_INITIAL_PAGES, VMM_FLAGS_RW | VMM_FLAGS_PRESENT, region_start, region_end);
     if (!heap_start)
     {
         debug_log_string("HEAP", "Falha na inicializacao: vmm_alloc_pages retornou NULL\r\n");
@@ -65,7 +65,7 @@ void *heap_expand(size_t n)
     if (region_end >= 0xFFC00000)
         return NULL;
 
-    heap_block_t *new_block = (heap_block_t *)vmm_alloc_pages_region(n, VMM_FLAGS_RW | VMM_FLAGS_PRESENT, region_start);
+    heap_block_t *new_block = (heap_block_t *)vmm_alloc_pages_region(n, VMM_FLAGS_RW | VMM_FLAGS_PRESENT, region_start, region_end);
     if (!new_block)
         return NULL;
 

@@ -35,6 +35,12 @@ isr_common:
     push fs
     push gs
 
+    mov ax, 0x10
+    mov ds, ax
+    mov es, ax
+    mov fs, ax
+    mov gs, ax
+
     push esp ;; *ctx
     call interrupt_handler
     add esp, 4 ;; esp -= sizeof(interrupt_context_t *)
