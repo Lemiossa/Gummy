@@ -14,6 +14,10 @@ Todas as mudanças notáveis do Gummy são documentadas aqui. As entradas seguem
 - **Heap**: pequenos ajustes.
 - **Escalonador**: reescrita significativa do escalonador com tarefas/threads, filas, troca de contexto aprimorada e suporte a syscall; `kmain` atualizado para inicializar multitarefa.
 
+## v0.15.3 — 2026-10-25
+
+- **README**: adicionado aviso sobre tradução assistida por IA e indicação de mudança para português a partir de 22/10/2026.
+
 
 ## v0.1.0 — 2026-07-27
 

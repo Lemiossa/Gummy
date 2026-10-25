@@ -130,6 +130,10 @@ sudo make install
 
 Este projeto foi traduzido para o português brasileiro com o auxílio de uma inteligência artificial, com o objetivo de agilizar o processo, que, se feito manualmente, demandaria muito mais tempo.
 
+Inicialmente em inglês, no entanto, sou brasileiro.
+
+A partir de **22/10/2026** esse projeto será escrito em português, com exceção de nomes de funções e variaveis.
+
 ## Licença
 
 MIT
