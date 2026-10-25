@@ -2,23 +2,6 @@
 
 Todas as mudanças notáveis do Gummy são documentadas aqui. As entradas seguem as tags do Git em ordem cronológica.
 
-## v0.15.1 — 2026-10-25
-
-- **Fila**: nó da fila agora armazena ponteiro para a fila (`queue_node_t.q`); `queue_remove()` passa a receber apenas o nó e atualiza o contador da fila.
-
-## v0.15.2 — 2026-10-25
-
-- **IDT/Tratamento de interrupções**: novos tratadores e ajustes em `idt.asm`/`idt.h`; adicionado suporte a chamadas de sistema via interrupção (estrutura para `syscall`).
-- **I/O**: adicionado `io.h` com funções para ler/escrever portas (in/out) em assembly.
-- **VMM**: adicionado mapeamento de heap do kernel, melhorias em mapeamento/unmapeamento e tratamento de page fault mais completo.
-- **Heap**: pequenos ajustes.
-- **Escalonador**: reescrita significativa do escalonador com tarefas/threads, filas, troca de contexto aprimorada e suporte a syscall; `kmain` atualizado para inicializar multitarefa.
-
-## v0.15.3 — 2026-10-25
-
-- **README**: adicionado aviso sobre tradução assistida por IA e indicação de mudança para português a partir de 22/10/2026.
-
-
 ## v0.1.0 — 2026-07-27
 
 Primeira versão. Base funcional do sistema:
@@ -177,6 +160,22 @@ Alterados alguns nomes em sched.*.
 - API do escalonador: `sched_create_process()` não recebe mais `is_kernel`; `sched_create_thread()` declarada; o processo idle não aloca mais uma pilha de kernel separada.
 - Build: `mkfs.fat` não usa mais `--mbr=y`, deixando o setor de boot para o bootloader do próprio projeto.
 - README: seção sobre suporte a editores e o `compile_commands.json` mantido manualmente.
+
+## v0.15.1 — 2026-10-25
+
+- **Fila**: nó da fila agora armazena ponteiro para a fila (`queue_node_t.q`); `queue_remove()` passa a receber apenas o nó e atualiza o contador da fila.
+
+## v0.15.2 — 2026-10-25
+
+- **IDT/Tratamento de interrupções**: novos tratadores e ajustes em `idt.asm`/`idt.h`; adicionado suporte a chamadas de sistema via interrupção (estrutura para `syscall`).
+- **I/O**: adicionado `io.h` com funções para ler/escrever portas (in/out) em assembly.
+- **VMM**: adicionado mapeamento de heap do kernel, melhorias em mapeamento/unmapeamento e tratamento de page fault mais completo.
+- **Heap**: pequenos ajustes.
+- **Escalonador**: reescrita significativa do escalonador com tarefas/threads, filas, troca de contexto aprimorada e suporte a syscall; `kmain` atualizado para inicializar multitarefa.
+
+## v0.15.3 — 2026-10-25
+
+- **README**: adicionado aviso sobre tradução assistida por IA e indicação de mudança para português a partir de 22/10/2026.
 
 ---
 
