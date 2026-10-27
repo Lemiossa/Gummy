@@ -2,7 +2,7 @@
 # Created by Matheus Leme Da Silva
 
 ARCH     := i686
-VERSION  := 0.16.3
+VERSION  := 0.17.0
 NAME     := Gummy
 
 PROJ     := $(CURDIR)
@@ -18,10 +18,12 @@ ifeq ($(DEBUG), 1)
 IMAGE      := $(IMGDIR)/$(NAME)_$(ARCH)-$(VERSION)_debug.img
 BOOTLOADER := $(BINDIR)/bootloader_debug.bin
 KERNEL     := $(BINDIR)/kernel_debug.bin
+INIT       := $(BINDIR)/init_debug.bin
 else
 IMAGE      := $(IMGDIR)/$(NAME)_$(ARCH)-$(VERSION).img
 BOOTLOADER := $(BINDIR)/bootloader.bin
 KERNEL     := $(BINDIR)/kernel.bin
+INIT       := $(BINDIR)/init.bin
 endif
 PATH       := /sbin:/usr/sbin:$(PATH)
 
@@ -65,12 +67,17 @@ $(KERNEL): FORCE
 
 kernel: $(KERNEL)
 
+$(INIT): FORCE
+	@$(MAKE) --no-print-directory -C init TARGET_BIN=$(INIT) TARGET_ELF=$(INIT).elf GLOBAL_LIB=$(GLOBAL_LIB)
+
+init: $(INIT)
+
 $(GLOBAL_LIB): FORCE
 	@$(MAKE) --no-print-directory -C lib TARGET=$(GLOBAL_LIB)
 
 global_lib:: $(GLOBAL_LIB)
 
-$(IMAGE): $(BOOTLOADER) $(GLOBAL_LIB) $(KERNEL)
+$(IMAGE): $(BOOTLOADER) $(GLOBAL_LIB) $(KERNEL) $(INIT)
 	$(call check_tool,mkfs.fat)
 	$(call check_tool,mcopy)
 	$(call check_tool,dd)
@@ -78,6 +85,8 @@ $(IMAGE): $(BOOTLOADER) $(GLOBAL_LIB) $(KERNEL)
 	@mkdir -p $(IMGROOT)
 	$(call echo_cmd,CP,$(KERNEL) -> $(IMGROOT)/kernel.sys)
 	@cp $(KERNEL) $(IMGROOT)/kernel.sys
+	$(call echo_cmd,CP,$(INIT) -> $(IMGROOT)/init.sys)
+	@cp $(INIT) $(IMGROOT)/init.sys
 	$(call echo_cmd,DD,$(IMAGE))
 	@dd if=/dev/zero of=$(IMAGE) bs=1K count=1440 status=none
 	$(call echo_cmd,MKFS,$(IMAGE))
@@ -92,6 +101,7 @@ $(IMAGE): $(BOOTLOADER) $(GLOBAL_LIB) $(KERNEL)
 clean:
 	@$(MAKE) --no-print-directory -C bootloader clean TARGET_BIN=$(BOOTLOADER)
 	@$(MAKE) --no-print-directory -C kernel     clean TARGET_BIN=$(KERNEL)
+	@$(MAKE) --no-print-directory -C init       clean TARGET_BIN=$(INIT)
 	$(call echo_cmd,CLEAN,$(BUILDDIR))
 	@rm -rf $(BUILDDIR)
 

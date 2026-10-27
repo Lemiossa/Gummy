@@ -204,6 +204,15 @@ Alterados alguns nomes em sched.*.
 - Corrigida a verificação de limite em `idt_set_handler()` (`>` para `>=`).
 - Formatação de `idt.c` e `idt.h`.
 
+## v0.17.0 — 2026-10-27
+
+- **Syscalls**: `int 0x80` com `SYS_EXIT` (0) e `SYS_GETPID` (1); adicionados `syscall_handler()`/`syscall_init()` no kernel e vetor `0x80` exposto ao usuário (DPL 3).
+- **Espaço de usuário**: novo programa `init/` linkado em `0x400000`, com `_start` que chama `main` e encerra pela syscall de exit.
+- Novo header `include/syscall.h` com `sys_exit()` e `sys_getpid()`.
+- **`kmain`**: `spawn()` cria processo e thread, copia o programa para o CR3 do processo em `0x400000` e o coloca na fila de prontos; o `init` é lançado após a inicialização das syscalls.
+- **Bootloader**: carrega `INIT.SYS` em `0x5000` junto do kernel.
+- **Build**: novo alvo `init`, compilação do programa de usuário e cópia de `init.sys` para a imagem FAT.
+
 ---
 
 Nota: `v0.9.2` foi marcado fora de ordem (depois de `v0.11.0`), mas no histórico do Git ele fica entre `v0.9.1` e `v0.10.0` — este changelog segue a ordem do histórico.

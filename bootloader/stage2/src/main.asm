@@ -22,6 +22,7 @@ main:
     call fat_init
     jc fat_error
 
+    ;; Carregar kernel
     ;; Encontra o arquivo
     mov si, kernel_file
     call fat_find_in_root_dir
@@ -38,6 +39,29 @@ main:
     xor bx, bx
     call fat_read_file
     jc fat_error
+
+    ;; Carregar init
+    ;; Encontra o arquivo
+    mov si, init_file
+    call fat_find_in_root_dir
+    jc fat_error
+
+    ;; AX = indice da entrada encontrada
+    push es
+    push ds
+    pop es
+    mov di, .entry
+    call fat_read_root_dir
+    jc fat_error
+    pop es
+
+    mov si, .entry
+    mov bx, 0x5000
+    mov es, bx
+    xor bx, bx
+    call fat_read_file
+    jc fat_error
+
     call e820_init
     jc mem_error
     jmp _to32bit
@@ -71,6 +95,7 @@ disk_error_message: db `Erro de disco!\r\n`, 0
 fat_error_message:  db `Erro de FAT!\r\n`, 0
 mem_error_message:  db `Erro de memoria!\r\n`, 0
 halted_message:     db `Sistema parado! Reinicie.\r\n`, 0
-kernel_file:        db `KERNEL  SYS`
+kernel_file:        db `KERNEL  SYS`, 0
+init_file:          db `INIT    SYS`, 0
 
 %include "32bit.asm"
