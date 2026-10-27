@@ -2,45 +2,42 @@
  * pit.c
  * Criado por Matheus Leme da Silva
  * */
-#include <io.h>
-#include <types.h>
-#include <pit.h>
-#include <pic.h>
 #include <debug.h>
+#include <io.h>
+#include <pic.h>
+#include <pit.h>
+#include <types.h>
 
 #define PIT_CMD 0x43
 
 // Define a frequencia do PIT
-void pit_set_frequency(uint16_t channel, uint16_t frequency, uint8_t mode)
-{
-    if (channel > 2 || frequency == 0)
-        return;
+void pit_set_frequency(uint16_t channel, uint16_t frequency, uint8_t mode) {
+	if (channel > 2 || frequency == 0)
+		return;
 
-    debug_log_string("PIT", "Definindo PIT[0x");
-    debug_log_hex16(channel);
-    debug_print_string("]: Freq=0x");
-    debug_log_hex16(frequency);
-    debug_print_string(", Modo=0x");
-    debug_log_hex8(mode);
-    debug_print_string("\r\n");
+	debug_log_string("PIT", "Definindo PIT[0x");
+	debug_log_hex16(channel);
+	debug_print_string("]: Freq=0x");
+	debug_log_hex16(frequency);
+	debug_print_string(", Modo=0x");
+	debug_log_hex8(mode);
+	debug_print_string("\r\n");
 
-    uint32_t divisor = (uint32_t)PIT_BASE_FREQUENCY / frequency;
+	uint32_t divisor = (uint32_t)PIT_BASE_FREQUENCY / frequency;
 
-    if (divisor == 0 || divisor > 0xFFFF)
-        return;
+	if (divisor == 0 || divisor > 0xFFFF)
+		return;
 
-    if (channel == 0)
-        pic_irq_set_mask(0);
+	if (channel == 0)
+		pic_irq_set_mask(0);
 
-    uint8_t command = (channel << 6) |
-                      0b00110000 |
-                      (mode & 0b00001110);
-    uint16_t port = channel + 0x40;
-    
-    outb(PIT_CMD, command);
-    outb(port, divisor & 0xFF);
-    outb(port, (divisor >> 8) & 0xFF);
+	uint8_t command = (channel << 6) | 0b00110000 | (mode & 0b00001110);
+	uint16_t port = channel + 0x40;
 
-    if (channel == 0)
-        pic_irq_clear_mask(0);
+	outb(PIT_CMD, command);
+	outb(port, divisor & 0xFF);
+	outb(port, (divisor >> 8) & 0xFF);
+
+	if (channel == 0)
+		pic_irq_clear_mask(0);
 }

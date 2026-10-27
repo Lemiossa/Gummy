@@ -5,19 +5,17 @@
 typedef struct queue_node queue_node_t;
 typedef struct queue queue_t;
 
-struct queue_node
-{
-    queue_node_t *prev;
-    queue_node_t *next;
-    queue_t *q;
+struct queue_node {
+	queue_node_t *prev;
+	queue_node_t *next;
+	queue_t *q;
 };
 
-struct queue 
-{
-    queue_node_t head;  // Sentinela
-                        // head.prev = final
-                        // head.next = inicio
-    size_t size;
+struct queue {
+	queue_node_t head; // Sentinela
+					   // head.prev = final
+					   // head.next = inicio
+	size_t size;
 };
 
 // Inicializa uma fila

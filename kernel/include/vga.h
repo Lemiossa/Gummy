@@ -3,10 +3,9 @@
 
 #include <types.h>
 
-typedef struct 
-{
-    uint8_t ch;
-    uint8_t attr;
+typedef struct {
+	uint8_t ch;
+	uint8_t attr;
 } __attribute__((packed)) vga_cell_t;
 
 // Desenha uma celula na posicao especificada

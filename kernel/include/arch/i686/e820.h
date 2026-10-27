@@ -2,14 +2,13 @@
 #define E820_H
 #include <types.h>
 
-#define E820_ADDRESS  0xC0000500
+#define E820_ADDRESS 0xC0000500
 
-typedef struct 
-{
-    uint64_t base;
-    uint64_t length;
-    uint32_t type;
-    uint32_t acpi_extended;
+typedef struct {
+	uint64_t base;
+	uint64_t length;
+	uint32_t type;
+	uint32_t acpi_extended;
 } __attribute__((packed)) e820_entry_t;
 
 extern uint32_t total_memory;

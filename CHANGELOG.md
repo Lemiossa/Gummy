@@ -177,6 +177,12 @@ Alterados alguns nomes em sched.*.
 
 - **README**: adicionado aviso sobre tradução assistida por IA e indicação de mudança para português a partir de 22/10/2026.
 
+## v0.16.0 — 2026-10-27
+
+- **Estilo**: reformatação dos módulos de base para o estilo K&R (chaves na mesma linha), indentação com tabs e quebra de linhas longas.
+- Ordenação alfabética dos `#include` em kernel, `lib/` e headers.
+- Sem mudanças de comportamento.
+
 ---
 
 Nota: `v0.9.2` foi marcado fora de ordem (depois de `v0.11.0`), mas no histórico do Git ele fica entre `v0.9.1` e `v0.10.0` — este changelog segue a ordem do histórico.
