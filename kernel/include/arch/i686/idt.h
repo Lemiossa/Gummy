@@ -1,33 +1,31 @@
 #ifndef idt_h
 #define idt_h
+
 #include <types.h>
 
-typedef struct 
-{
-    uint16_t size;
-    uint32_t offset;
+typedef struct {
+	uint16_t size;
+	uint32_t offset;
 } __attribute__((packed)) idtr_t;
 
-typedef struct 
-{
-    uint16_t offset_low;
-    uint16_t selector;
-    uint8_t reserved;
-    uint8_t attributes;
-    uint16_t offset_high;
+typedef struct {
+	uint16_t offset_low;
+	uint16_t selector;
+	uint8_t reserved;
+	uint8_t attributes;
+	uint16_t offset_high;
 } __attribute__((packed)) idt_entry_t;
 
-typedef struct 
-{
-    uint32_t gs, fs, es, ds;
-    uint32_t esi, edi, ebp, edx, ecx, ebx, eax;
-    uint32_t int_num;
-    uint32_t error_code;
-    uint32_t eip;
-    uint32_t cs;
-    uint32_t eflags;
-    uint32_t esp;
-    uint32_t ss;
+typedef struct {
+	uint32_t gs, fs, es, ds;
+	uint32_t esi, edi, ebp, edx, ecx, ebx, eax;
+	uint32_t int_num;
+	uint32_t error_code;
+	uint32_t eip;
+	uint32_t cs;
+	uint32_t eflags;
+	uint32_t esp;
+	uint32_t ss;
 } __attribute__((packed)) interrupt_context_t;
 
 typedef void (*interrupt_handler_t)(interrupt_context_t *ctx);
@@ -41,8 +39,9 @@ typedef void (*interrupt_handler_t)(interrupt_context_t *ctx);
 void idt_init(void);
 // Define um tratador da IDT
 void idt_set_handler(uint16_t index, interrupt_handler_t handler);
+// Define o DPL de um handler específico na IDT
+void idt_set_dpl(uint16_t index, uint8_t dpl);
 // Restaura o contexto da CPU
 void restore_context(uintptr_t esp0);
-
 
 #endif // IDT_H

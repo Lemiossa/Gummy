@@ -198,6 +198,12 @@ Alterados alguns nomes em sched.*.
 - Adicionados `sched_get_current_pid()` e `sched_exit_current_thread()`; a thread agora guarda `exit_code`.
 - Ao escalonar, a thread atual só volta para a fila de prontos se estiver no estado *running*.
 
+## v0.16.3 — 2026-10-27
+
+- **IDT**: adicionado `idt_set_dpl()` para alterar o DPL de uma entrada (preparação para interrupções de usuário).
+- Corrigida a verificação de limite em `idt_set_handler()` (`>` para `>=`).
+- Formatação de `idt.c` e `idt.h`.
+
 ---
 
 Nota: `v0.9.2` foi marcado fora de ordem (depois de `v0.11.0`), mas no histórico do Git ele fica entre `v0.9.1` e `v0.10.0` — este changelog segue a ordem do histórico.

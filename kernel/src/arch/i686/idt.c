@@ -2,11 +2,11 @@
  * idt.c
  * Criado por Matheus Leme da Silva
  * */
+#include <debug.h>
+#include <idt.h>
 #include <io.h>
 #include <terminal.h>
-#include <idt.h>
 #include <types.h>
-#include <debug.h>
 
 idtr_t idtr = {0};
 idt_entry_t idt[IDT_ENTRIES] = {0};
@@ -16,57 +16,70 @@ extern void load_idt(idtr_t *);
 extern uint32_t isr_table[IDT_ENTRIES];
 
 // Define uma entrada da IDT
-static void idt_set_entry(uint16_t index, uint32_t offset, uint16_t selector, uint8_t attr)
-{
-    if (index >= IDT_ENTRIES)
-        return;
+static void idt_set_entry(uint16_t index, uint32_t offset, uint16_t selector,
+						  uint8_t attr) {
+	if (index >= IDT_ENTRIES)
+		return;
 
-    idt[index].offset_low = offset & 0xFFFF;
-    idt[index].selector = selector;
-    idt[index].reserved = 0;
-    idt[index].attributes = attr;
-    idt[index].offset_high = (offset >> 16) & 0xFFFF;
+	idt[index].offset_low = offset & 0xFFFF;
+	idt[index].selector = selector;
+	idt[index].reserved = 0;
+	idt[index].attributes = attr;
+	idt[index].offset_high = (offset >> 16) & 0xFFFF;
 }
 
 // Tratador de interrupcao
-void interrupt_handler(interrupt_context_t *ctx)
-{
-    if (ctx->int_num >= IDT_ENTRIES)
-        return;
+void interrupt_handler(interrupt_context_t *ctx) {
+	if (ctx->int_num >= IDT_ENTRIES)
+		return;
 
-    interrupt_handler_t handler = handlers[ctx->int_num];
+	interrupt_handler_t handler = handlers[ctx->int_num];
 
-    if (handler)
-        handler(ctx);
+	if (handler)
+		handler(ctx);
 }
 
 // Define um tratador da IDT
-void idt_set_handler(uint16_t index, interrupt_handler_t handler)
-{
-    if (index > IDT_ENTRIES)
-        return;
+void idt_set_handler(uint16_t index, interrupt_handler_t handler) {
+	if (index >= IDT_ENTRIES)
+		return;
 
-    handlers[index] = handler;
+	handlers[index] = handler;
+}
+
+// Define o DPL de um handler específico na IDT
+void idt_set_dpl(uint16_t index, uint8_t dpl) {
+	if (index >= IDT_ENTRIES)
+		return;
+
+	uintptr_t flags = read_flags();
+	disable_interrupts();
+
+	dpl = dpl & 3;
+
+	uint8_t attributes = idt[index].attributes & ~0b01100000;
+
+	idt[index].attributes = attributes | (dpl << 5);
+	write_flags(flags);
 }
 
 // Inicializa a IDT
-void idt_init(void)
-{
-    idtr.offset = (uint32_t)idt;
-    idtr.size = IDT_ENTRIES * sizeof (idt_entry_t) - 1;
+void idt_init(void) {
+	idtr.offset = (uint32_t)idt;
+	idtr.size = IDT_ENTRIES * sizeof(idt_entry_t) - 1;
 
-    for (int i = 0; i < IDT_ENTRIES; i++)
-        idt_set_entry(i, isr_table[i], 0x08, IDT_INTERRUPT_GATE);
+	for (int i = 0; i < IDT_ENTRIES; i++)
+		idt_set_entry(i, isr_table[i], 0x08, IDT_INTERRUPT_GATE);
 
-    idt_set_entry(3, isr_table[3], 0x08, IDT_TRAP_GATE);
-    idt_set_entry(4, isr_table[4], 0x08, IDT_TRAP_GATE);
+	idt_set_entry(3, isr_table[3], 0x08, IDT_TRAP_GATE);
+	idt_set_entry(4, isr_table[4], 0x08, IDT_TRAP_GATE);
 
-    debug_log_string("IDT", "Size: 0x");
-    debug_log_hex16(idtr.size);
-    debug_print_string("\r\n");
-    debug_log_string("IDT", "Offset: 0x");
-    debug_log_hex32(idtr.offset);
-    debug_print_string("\r\n");
+	debug_log_string("IDT", "Size: 0x");
+	debug_log_hex16(idtr.size);
+	debug_print_string("\r\n");
+	debug_log_string("IDT", "Offset: 0x");
+	debug_log_hex32(idtr.offset);
+	debug_print_string("\r\n");
 
-    load_idt(&idtr);
+	load_idt(&idtr);
 }
