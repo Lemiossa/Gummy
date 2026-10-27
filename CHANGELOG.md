@@ -183,6 +183,13 @@ Alterados alguns nomes em sched.*.
 - Ordenação alfabética dos `#include` em kernel, `lib/` e headers.
 - Sem mudanças de comportamento.
 
+## v0.16.1 — 2026-10-27
+
+- **I/O**: `read_eflags`/`write_eflags` renomeadas para `read_flags`/`write_flags` e passam a usar `uintptr_t`.
+- **Debug**: adicionado `debug_dump_code()`; o tratador de exceções agora despeja os 16 bytes de código em `eip`.
+- **PMM/VMM**: removidas as mensagens de log de alocação, mapeamento e desmapeamento de páginas.
+- Formatação de `io.h`, `vmm.c`, `pmm.c`, `debug.c` e `exception.c`.
+
 ---
 
 Nota: `v0.9.2` foi marcado fora de ordem (depois de `v0.11.0`), mas no histórico do Git ele fica entre `v0.9.1` e `v0.10.0` — este changelog segue a ordem do histórico.

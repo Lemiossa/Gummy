@@ -16,5 +16,7 @@ void debug_log_hex16(uint16_t w);
 void debug_log_hex32(uint32_t dw);
 // Imprime uma qword em hexadecimal
 void debug_log_hex64(uint64_t qw);
+// Imprime codigo
+void debug_dump_code(uintptr_t eip, uint32_t count);
 
 #endif // DEBUG_H

@@ -11,118 +11,76 @@ uint32_t inl(uint16_t port);
 void io_wait(void);
 
 // Desabilita as interrupcoes (cli)
-static inline void disable_interrupts(void)
-{
-    __asm__ volatile ("cli");
-}
+static inline void disable_interrupts(void) { __asm__ volatile("cli"); }
 
 // Habilita as interrupcoes (sti)
-static inline void enable_interrupts(void)
-{
-    __asm__ volatile ("sti");
-}
+static inline void enable_interrupts(void) { __asm__ volatile("sti"); }
 
 // Para a CPU
-static inline void halt_cpu(void)
-{
-    __asm__ volatile ("hlt");
-}
+static inline void halt_cpu(void) { __asm__ volatile("hlt"); }
 
 // Le o valor do registrador de controle CR0
-static inline uint32_t read_cr0(void) 
-{
-    uint32_t value;
+static inline uint32_t read_cr0(void) {
+	uint32_t value;
 
-    __asm__ volatile (
-        "mov %%cr0, %0"
-        : "=r"(value)
-    );
+	__asm__ volatile("mov %%cr0, %0" : "=r"(value));
 
-    return value;
+	return value;
 }
 
 // Escreve um valor no registrador de controle CR0
-static inline void write_cr0(uint32_t value)
-{
-    __asm__ volatile (
-        "mov %0, %%cr0"
-        :
-        : "r"(value)
-    );
+static inline void write_cr0(uint32_t value) {
+	__asm__ volatile("mov %0, %%cr0" : : "r"(value));
 }
 
 // Le o valor do registrador de controle CR2
-static inline uint32_t read_cr2(void) 
-{
-    uint32_t value;
+static inline uint32_t read_cr2(void) {
+	uint32_t value;
 
-    __asm__ volatile (
-        "mov %%cr2, %0"
-        : "=r"(value)
-    );
+	__asm__ volatile("mov %%cr2, %0" : "=r"(value));
 
-    return value;
+	return value;
 }
 
 // Escreve um valor no registrador de controle CR2
-static inline void write_cr2(uint32_t value)
-{
-    __asm__ volatile (
-        "mov %0, %%cr2"
-        :
-        : "r"(value)
-    );
+static inline void write_cr2(uint32_t value) {
+	__asm__ volatile("mov %0, %%cr2" : : "r"(value));
 }
 
 // Le o valor do registrador de controle CR3
-static inline uint32_t read_cr3(void) 
-{
-    uint32_t value;
+static inline uint32_t read_cr3(void) {
+	uint32_t value;
 
-    __asm__ volatile (
-        "mov %%cr3, %0"
-        : "=r"(value)
-    );
+	__asm__ volatile("mov %%cr3, %0" : "=r"(value));
 
-    return value;
+	return value;
 }
 
 // Escreve um valor no registrador de controle CR3
-static inline void write_cr3(uint32_t value)
-{
-    __asm__ volatile (
-        "mov %0, %%cr3"
-        :
-        : "r"(value)
-    );
+static inline void write_cr3(uint32_t value) {
+	__asm__ volatile("mov %0, %%cr3" : : "r"(value));
 }
 
 // Lê o valor do EFLAGS
-static inline uint32_t read_eflags(void)
-{
-    uint32_t flags;
+static inline uintptr_t read_flags(void) {
+	uintptr_t flags;
 
-    __asm__ volatile (
-        "pushfl\n\t"
-        "popl %0"
-        : "=r"(flags)
-        :
-        : "memory"
-    );
+	__asm__ volatile("pushfl\n\t"
+					 "popl %0"
+					 : "=r"(flags)
+					 :
+					 : "memory");
 
-    return flags;
+	return flags;
 }
 
 // Escreve no EFLAGS
-static inline void write_eflags(uint32_t flags)
-{
-    __asm__ volatile (
-        "pushl %0\n\t"
-        "popfl"
-        :
-        : "r"(flags)
-        : "memory", "cc"
-    );
+static inline void write_flags(uintptr_t flags) {
+	__asm__ volatile("pushl %0\n\t"
+					 "popfl"
+					 :
+					 : "r"(flags)
+					 : "memory", "cc");
 }
 
 #endif // IO_H
