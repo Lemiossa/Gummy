@@ -190,6 +190,14 @@ Alterados alguns nomes em sched.*.
 - **PMM/VMM**: removidas as mensagens de log de alocação, mapeamento e desmapeamento de páginas.
 - Formatação de `io.h`, `vmm.c`, `pmm.c`, `debug.c` e `exception.c`.
 
+## v0.16.2 — 2026-10-27
+
+- **Escalonador**: adicionadas `sched_blocked()` e `sched_zombie()`; `sched_ready()` agora remove a thread de qualquer fila antes de enfileirá-la.
+- `sched_destroy_thread()` reorganizada: libera as pilhas, remove a thread da fila e zera a estrutura.
+- Separação entre `timer_handler()` (ticks e EOI) e `schedule()` (escolha da próxima thread); as filas `ready`, `blocked` e `zombie` deixaram de ser estáticas.
+- Adicionados `sched_get_current_pid()` e `sched_exit_current_thread()`; a thread agora guarda `exit_code`.
+- Ao escalonar, a thread atual só volta para a fila de prontos se estiver no estado *running*.
+
 ---
 
 Nota: `v0.9.2` foi marcado fora de ordem (depois de `v0.11.0`), mas no histórico do Git ele fica entre `v0.9.1` e `v0.10.0` — este changelog segue a ordem do histórico.
