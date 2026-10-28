@@ -9,6 +9,7 @@
 #include <heap.h>
 #include <idt.h>
 #include <io.h>
+#include <ipc.h>
 #include <pic.h>
 #include <pmm.h>
 #include <sched.h>
@@ -105,6 +106,25 @@ void syscall_handler(interrupt_context_t *ctx) {
 void syscall_init(void) {
 	idt_set_handler(0x80, syscall_handler);
 	idt_set_dpl(0x80, 3);
+}
+
+// Envia uma mensagem pra um processo
+// Retorna !0 se houver erro
+int ipc_send(uint32_t pid, const void *data, size_t size) {
+	if (!data || !size)
+		return 1;
+	
+	process_t *p = get_process(pid);
+	if (!p)
+		return 1;
+
+}
+
+// Recebe uma mensagem
+// Por enquanto, sempre bloqueia a thread que está esperando
+// Retorna !0 se houver erro
+int ipc_receive(uint32_t *sender_pid, void *buffer, size_t size) {
+
 }
 
 void kmain(void) {

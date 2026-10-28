@@ -5,4 +5,4 @@
 #include <syscall.h>
 #include <types.h>
 
-int main(void) { return sys_getpid(); }
+int main(void) { return 42; }

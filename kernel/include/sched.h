@@ -1,7 +1,9 @@
 #ifndef SCHED_H
 #define SCHED_H
 
+#include <ipc.h>
 #include <idt.h>
+#include <pmm.h>
 #include <queue.h>
 #include <types.h>
 
@@ -22,10 +24,13 @@ struct thread {
 };
 
 struct process {
+	mailbox_t mailbox;
 	thread_t threads[THREAD_PER_PROCESS];
 	uintptr_t cr3;
 	uint32_t pid;
 	uint8_t num_threads;
+	process_t *prev;
+	process_t *next;
 };
 
 // Threads ===
@@ -44,6 +49,14 @@ void sched_blocked(thread_t *thread);
 void sched_zombie(thread_t *thread);
 // Sai da thread atual e seta o exit code dela
 void sched_exit_current_thread(interrupt_context_t *ctx, int32_t status);
+// Retorna o estado de uma thread
+//     0: ready
+//     1: blocked
+//     2: zombie
+//     3: running
+//     4: free
+//     -1: Não possivel identificar
+int sched_thread_state(thread_t *t);
 
 // Process ===
 
@@ -56,6 +69,11 @@ void sched_destroy_process(process_t *proc);
 void sched_destroy_process(process_t *proc);
 // Retorna o PID da thread rodando atualmente
 uint32_t sched_get_current_pid(void);
+// Retorna o ponteiro pro processo atual rodando
+process_t *sched_get_current_process(void);
+// Procura um processo pelo PID.
+// Retorna o ponteiro para ele, nulo se erro.
+process_t *get_process(uint32_t pid);
 
 // Main ===
 
@@ -64,5 +82,8 @@ uint32_t sched_get_current_pid(void);
 int sched_init(uint16_t frequency);
 // Retorna os ticks do escalonador
 uint32_t sched_get_ticks(void);
+
+#define KERNEL_STACK_SIZE (KERNEL_STACK_PAGES * PAGE_SIZE)
+#define USER_STACK_SIZE (USER_STACK_PAGES * PAGE_SIZE)
 
 #endif // SCHED_H

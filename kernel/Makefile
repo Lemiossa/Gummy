@@ -78,6 +78,8 @@ SRC  := \
 			$(SRCDIR)/heap.c \
 			$(SRCDIR)/pit.c \
 			$(SRCDIR)/sched.c \
+			$(SRCDIR)/thread.c \
+			$(SRCDIR)/process.c \
 			$(SRCDIR)/pic.c \
 			$(SRCDIR)/vga.c \
 			$(SRCDIR)/terminal.c

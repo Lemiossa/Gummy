@@ -213,6 +213,12 @@ Alterados alguns nomes em sched.*.
 - **Bootloader**: carrega `INIT.SYS` em `0x5000` junto do kernel.
 - **Build**: novo alvo `init`, compilação do programa de usuário e cópia de `init.sys` para a imagem FAT.
 
+## v0.17.1 — 2026-10-27 (provisório)
+
+- **IPC/processos/threads**: estruturas iniciais para IPC, processos e threads; mudanças no escalonador para suportar processo/thread em andamento e organização de código.
+- **Init**: ajuste temporário em `init/src/main.c`.
+- **Build**: atualizações nos Makefiles relacionados.
+
 ---
 
 Nota: `v0.9.2` foi marcado fora de ordem (depois de `v0.11.0`), mas no histórico do Git ele fica entre `v0.9.1` e `v0.10.0` — este changelog segue a ordem do histórico.
