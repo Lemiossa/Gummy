@@ -5,6 +5,7 @@
 #include <heap.h>
 #include <idt.h>
 #include <io.h>
+#include <ipc.h>
 #include <sched.h>
 #include <string.h>
 #include <syscall.h>
@@ -19,6 +20,8 @@ uint32_t sys_getppid_impl(interrupt_context_t *ctx);
 uint32_t sys_sleep_impl(interrupt_context_t *ctx);
 uint32_t sys_nthread_impl(interrupt_context_t *ctx);
 uint32_t sys_nprocess_impl(interrupt_context_t *ctx);
+uint32_t sys_send_impl(interrupt_context_t *ctx);
+uint32_t sys_receive_impl(interrupt_context_t *ctx);
 
 void syscall_handler(interrupt_context_t *ctx) {
 	uint32_t ret = 0;
@@ -40,6 +43,12 @@ void syscall_handler(interrupt_context_t *ctx) {
 		break;
 	case SYS_NPROCESS:
 		ret = sys_nprocess_impl(ctx);
+		break;
+	case SYS_SEND: 
+		ret = sys_send_impl(ctx);
+		break;
+	case SYS_RECEIVE: 
+		ret = sys_receive_impl(ctx);
 		break;
 	default:
 		ret = -1;
@@ -142,4 +151,12 @@ uint32_t sys_nthread_impl(interrupt_context_t *ctx) {
 		return (uint32_t)-1;
 	sched_ready(t);
 	return 0;
+}
+uint32_t sys_send_impl(interrupt_context_t *ctx) {
+	return (uint32_t)ipc_send(ctx->ebx, ctx->ecx, (void *)ctx->esi, ctx->edx);
+}
+
+uint32_t sys_receive_impl(interrupt_context_t *ctx) {
+	return ipc_receive((uint32_t *)ctx->esi, (void *)ctx->edi,
+								  ctx->ebx);
 }

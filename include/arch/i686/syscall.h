@@ -9,6 +9,8 @@ enum {
 	SYS_NPROCESS,
 	SYS_NTHREAD,
 	SYS_SLEEP,
+	SYS_SEND,
+	SYS_RECEIVE,
 };
 
 #ifdef KERNEL
@@ -63,6 +65,33 @@ SYSCALL_INLINE uint32_t sys_nprocess(const void *entry, uint32_t n) {
 // Cede a CPU
 SYSCALL_INLINE void sys_yield(void) {
 	__asm__ volatile("int $0x81" : : );
+}
+
+// Syscall de send
+SYSCALL_INLINE int sys_send(uint32_t pid, uint32_t type, const void *data,
+						   size_t size) {
+	int ret;
+
+	__asm__ volatile("int $0x80"
+					 : "=a"(ret)
+					 : "a"(SYS_SEND), "b"(pid), "c"(type), "S"(data), "d"(size)
+					 : "memory");
+
+	return ret;
+}
+
+// Syscall de receive
+SYSCALL_INLINE int sys_receive(uint32_t *sender_pid, void *buffer, size_t size) {
+	int ret;
+
+	__asm__ volatile(
+
+		"int $0x80"
+		: "=a"(ret)
+		: "a"(SYS_RECEIVE), "b"(size), "S"(sender_pid), "D"(buffer)
+		: "memory");
+
+	return ret;
 }
 
 

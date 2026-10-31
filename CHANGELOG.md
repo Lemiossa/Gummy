@@ -237,6 +237,12 @@ Alterados alguns nomes em sched.*.
 - **VMM**: `vmm_map()` também atualiza as flags da PDE, permitindo mapear páginas de usuário corretamente.
 - **Build**: `init` e kernel passam a incluir `include/arch/$(ARCH)`; `init.sys` compila com o novo header.
 
+## v0.19.0 — 2026-10-31
+
+- **IPC**: mailbox por processo com ring buffer e fila de espera; `ipc_send()`/`ipc_receive()` e syscalls `SYS_SEND`/`SYS_RECEIVE`.
+- Header interno movido para `kernel/include/ipc.h`; mensagens com remetente, tipo, tamanho e até 64 bytes.
+- O receptor bloqueia na fila de espera do mailbox e é acordado quando chega uma mensagem.
+
 ---
 
 Nota: `v0.9.2` foi marcado fora de ordem (depois de `v0.11.0`), mas no histórico do Git ele fica entre `v0.9.1` e `v0.10.0` — este changelog segue a ordem do histórico.

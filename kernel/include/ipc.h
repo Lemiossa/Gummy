@@ -1,9 +1,10 @@
 #ifndef IPC_H
 #define IPC_H
 
+#include <idt.h>
 #include <queue.h>
-#include <types.h>
 #include <ring_buffer.h>
+#include <types.h>
 
 #define IPC_QUEUE_SIZE 16
 #define IPC_MSG_MAX 64
@@ -22,9 +23,10 @@ typedef struct mailbox {
 } mailbox_t;
 
 // Envia uma mensagem pra um processo
-int ipc_send(uint32_t pid, const void *data, size_t size);
+int ipc_send(uint32_t pid, uint32_t type, const void *data, uint32_t size);
 // Recebe uma mensagem
-// Pode bloquear ou não bloquear dependendo das flags IPC do processo
-int ipc_receive(uint32_t *sender_pid, void *buffer, size_t size);
+// Por enquanto, sempre bloqueia a thread que está esperando
+// Retorna !0 se houver erro
+int ipc_receive(uint32_t *sender_pid, void *buffer, uint32_t size);
 
 #endif // IPC_H
