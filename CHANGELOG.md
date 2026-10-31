@@ -243,6 +243,11 @@ Alterados alguns nomes em sched.*.
 - Header interno movido para `kernel/include/ipc.h`; mensagens com remetente, tipo, tamanho e até 64 bytes.
 - O receptor bloqueia na fila de espera do mailbox e é acordado quando chega uma mensagem.
 
+## v0.19.1 — 2026-10-31
+
+- **Build**: corrigido o alvo `global_lib` no Makefile principal (de `::` para `:`).
+- **Exceções**: includes de `debug.h` e `io.h` padronizados com `<...>`.
+
 ---
 
 Nota: `v0.9.2` foi marcado fora de ordem (depois de `v0.11.0`), mas no histórico do Git ele fica entre `v0.9.1` e `v0.10.0` — este changelog segue a ordem do histórico.

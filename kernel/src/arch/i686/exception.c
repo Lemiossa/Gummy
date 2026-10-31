@@ -2,8 +2,8 @@
  * exception.c
  * Criado por Matheus Leme da Silva
  * */
-#include "debug.h"
-#include "io.h"
+#include <debug.h>
+#include <io.h>
 #include <idt.h>
 #include <terminal.h>
 #include <types.h>

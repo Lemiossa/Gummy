@@ -2,7 +2,7 @@
 # Created by Matheus Leme Da Silva
 
 ARCH     := i686
-VERSION  := 0.19.0
+VERSION  := 0.19.1
 NAME     := Gummy
 
 PROJ     := $(CURDIR)
@@ -75,7 +75,7 @@ init: $(INIT)
 $(GLOBAL_LIB): FORCE
 	@$(MAKE) --no-print-directory -C lib TARGET=$(GLOBAL_LIB)
 
-global_lib:: $(GLOBAL_LIB)
+global_lib: $(GLOBAL_LIB)
 
 $(IMAGE): $(BOOTLOADER) $(GLOBAL_LIB) $(KERNEL) $(INIT)
 	$(call check_tool,mkfs.fat)
