@@ -2,12 +2,12 @@
  * process.c
  * Criado por Matheus Leme da Silva
  * */
-#include "ipc.h"
-#include "queue.h"
-#include "ring_buffer.h"
 #include <debug.h>
 #include <heap.h>
 #include <io.h>
+#include <ipc.h>
+#include <queue.h>
+#include <ring_buffer.h>
 #include <sched.h>
 #include <string.h>
 #include <types.h>
@@ -25,7 +25,6 @@ process_t *get_process(uint32_t pid) {
 	do {
 		if (process->pid == pid)
 			return process;
-
 		process = process->next;
 	} while (process->next);
 	return NULL;
@@ -59,12 +58,14 @@ process_t *sched_create_process(void) {
 
 	proc->num_threads = 0;
 	proc->pid = current_pid++;
+	proc->dad = current_thread->process;
 
 	debug_log_string("SCHED", "Processo criado com PID 0x");
 	debug_log_hex32(proc->pid);
 	debug_print_string("\r\n");
 
-	ring_buffer_init(&proc->mailbox.ring_buffer, (void *)proc->mailbox.data, sizeof(ipc_message_t), IPC_QUEUE_SIZE);
+	ring_buffer_init(&proc->mailbox.ring_buffer, (void *)proc->mailbox.data,
+					 sizeof(ipc_message_t), IPC_QUEUE_SIZE);
 	queue_init(&proc->mailbox.waiters);
 
 	proc->next = first_process;
@@ -114,4 +115,13 @@ uint32_t sched_get_current_pid(void) {
 		return 0;
 
 	return current_thread->process->pid;
+}
+
+// Retorna o PPID da thread rodando atualmente
+uint32_t sched_get_current_ppid(void) {
+	if (!current_thread || !current_thread->process || 
+			!current_thread->process->dad)
+		return 0;
+
+	return current_thread->process->dad->pid;
 }

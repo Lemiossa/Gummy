@@ -228,6 +228,15 @@ Alterados alguns nomes em sched.*.
 - Threads do processo idle agora usam contexto de kernel; `sched_destroy_thread()` marca a thread como `THREAD_FREE`.
 - `schedule()` só devolve a thread atual à fila de prontos quando ela está em execução e não sobrescreve o contexto quando `ctx` é nulo.
 
+## v0.18.1 — 2026-10-31
+
+- **Syscalls**: implementação movida para `kernel/src/arch/i686/syscall.c`, com `SYS_GETPPID`, `SYS_NTHREAD`, `SYS_NPROCESS` e `SYS_SLEEP`.
+- Novo header de usuário em `include/arch/i686/syscall.h` (declarações `static inline`) e macro `KERNEL` nos Makefiles.
+- **Processos**: campo `dad` e `sched_get_current_ppid()`; novos processos herdam o processo atual como pai.
+- **`kmain`**: `sys_nprocess()` substitui o `spawn()` interno; `init` cria um novo processo de demonstração com `sys_nprocess`.
+- **VMM**: `vmm_map()` também atualiza as flags da PDE, permitindo mapear páginas de usuário corretamente.
+- **Build**: `init` e kernel passam a incluir `include/arch/$(ARCH)`; `init.sys` compila com o novo header.
+
 ---
 
 Nota: `v0.9.2` foi marcado fora de ordem (depois de `v0.11.0`), mas no histórico do Git ele fica entre `v0.9.1` e `v0.10.0` — este changelog segue a ordem do histórico.

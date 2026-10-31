@@ -31,7 +31,8 @@ else
 endif
 CPPFLAGS := -I$(PROJ)/include -I$(CURDIR)/include \
 			-I$(CURDIR)/include/arch/$(ARCH) \
-			-DNAME=\"$(NAME)\" -DVERSION=\"$(VERSION)\"
+			-DNAME=\"$(NAME)\" -DVERSION=\"$(VERSION)\" \
+			-I$(PROJ)/include/arch/$(ARCH)
 LDFLAGS  := -T $(LINKER_FILE) -static -nostdlib -Wl,--gc-sections
 LDLIBS   := -lgcc
 

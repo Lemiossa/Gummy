@@ -31,7 +31,8 @@ else
 endif
 CPPFLAGS := -I$(PROJ)/include -I$(CURDIR)/include \
 			-I$(CURDIR)/include/arch/$(ARCH) \
-			-DNAME=\"$(NAME)\" -DVERSION=\"$(VERSION)\"
+			-DNAME=\"$(NAME)\" -DVERSION=\"$(VERSION)\" \
+			-DKERNEL -I$(PROJ)/include/arch/$(ARCH)
 LDFLAGS  := -T $(LINKER_FILE) -static -nostdlib -Wl,--gc-sections
 LDLIBS   := -lgcc
 
@@ -72,6 +73,7 @@ SRC  := \
 			$(ARCHDIR)/vmm.c \
 			$(ARCHDIR)/tss.c \
 			$(ARCHDIR)/tss.asm \
+			$(ARCHDIR)/syscall.c \
 			$(SRCDIR)/kmain.c \
 			$(SRCDIR)/serial.c \
 			$(SRCDIR)/debug.c \

@@ -39,6 +39,7 @@ struct process {
 	thread_t threads[THREAD_PER_PROCESS];
 	process_t *prev;
 	process_t *next;
+	process_t *dad;
 	uintptr_t cr3;
 	uint32_t pid;
 	uint8_t num_threads;
@@ -77,6 +78,8 @@ void sched_destroy_process(process_t *proc);
 void sched_destroy_process(process_t *proc);
 // Retorna o PID da thread rodando atualmente
 uint32_t sched_get_current_pid(void);
+// Retorna o PPID da thread rodando atualmente
+uint32_t sched_get_current_ppid(void);
 // Retorna o ponteiro pro processo atual rodando
 process_t *sched_get_current_process(void);
 // Procura um processo pelo PID.

@@ -131,12 +131,16 @@ int sched_init(uint16_t frequency) {
 
 	idle_process.prev = NULL;
 	idle_process.next = NULL;
+	idle_process.dad = NULL;
 	first_process = &idle_process;
 
 	debug_log_string("SCHED", "Processo idle criado com PID 0x");
 	debug_log_hex32(idle_process.pid);
 	debug_print_string("\r\n");
 	debug_log_string("SCHED", "Escalonador inicializado\r\n");
+
+	idt_set_handler(0x81, schedule);
+	idt_set_dpl(0x81, 3);
 
 	return 0;
 }

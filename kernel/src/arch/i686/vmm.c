@@ -93,6 +93,8 @@ int vmm_map(uintptr_t virt, uintptr_t phys, uint32_t flags) {
 			pt[i] = 0; // Limpa a PTE
 	}
 
+	*pde |= flags;
+
 	uint32_t *pte = get_pte(virt);
 	if (pte)
 		*pte = phys | flags | VMM_FLAGS_PRESENT; // Define a PTE para apontar
