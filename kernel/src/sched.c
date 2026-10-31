@@ -24,6 +24,7 @@ extern thread_t *current_thread;
 extern queue_t ready_queue;
 extern queue_t blocked_queue;
 extern queue_t zombie_queue;
+extern queue_t sleep_queue;
 extern uint32_t current_pid;
 extern process_t *first_process;
 
@@ -51,20 +52,25 @@ void switch_context(thread_t *new) {
 
 	write_cr3(new->process->cr3);
 
+	current_thread->state = THREAD_RUNNING;
+
 	restore_context(current_thread->sp0);
 }
 
 // Escalonador
+// Não define o contexto de ctx for nulo
 void schedule(interrupt_context_t *ctx) {
 	if (queue_empty(&ready_queue))
 		return;
 
-	current_thread->sp0 = (uintptr_t)ctx;
+	if (ctx)
+		current_thread->sp0 = (uintptr_t)ctx;
+
+	if (current_thread->state == THREAD_RUNNING)
+		queue_push(&ready_queue, &current_thread->node);
 
 	queue_node_t *n = queue_pop(&ready_queue);
 	thread_t *new_thread = (thread_t *)CONTAINER_OF(n, thread_t, node);
-	if (sched_thread_state(current_thread) == 3)
-		queue_push(&ready_queue, &current_thread->node);
 	if (new_thread == current_thread)
 		return;
 
@@ -75,11 +81,24 @@ void schedule(interrupt_context_t *ctx) {
 static void timer_handler(interrupt_context_t *ctx) {
 	ticks++;
 	pic_send_eoi(0);
+
+	queue_node_t *n = sleep_queue.head.next;
+	while (n) {
+		queue_node_t *next = n->next; // guarda antes de remover
+		thread_t *t = CONTAINER_OF(n, thread_t, node);
+		if (ticks >= t->wake_tick)
+			sched_ready(t);
+		n = next;
+	}
+
 	schedule(ctx);
 }
 
 // retorna os ticks do escalonador
 uint32_t sched_get_ticks(void) { return ticks; }
+
+// Retorna o número de milisegundos por tick
+uint32_t sched_get_ms_per_tick(void) { return ms_per_tick; }
 
 // inicializa o escalonador com a frequencia informada em hz
 // retorna !0 se ocorrer um erro
@@ -105,6 +124,7 @@ int sched_init(uint16_t frequency) {
 	queue_init(&ready_queue);
 	queue_init(&blocked_queue);
 	queue_init(&zombie_queue);
+	queue_init(&sleep_queue);
 
 	current_thread = &idle_process.threads[0];
 	current_thread->process = &idle_process;

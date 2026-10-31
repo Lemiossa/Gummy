@@ -20,6 +20,8 @@ void queue_push(queue_t *q, queue_node_t *node) {
 	if (!q || !node)
 		return;
 
+	queue_remove(node);
+
 	node->prev = q->head.prev;
 	node->next = NULL;
 
@@ -79,6 +81,21 @@ void queue_remove(queue_node_t *node) {
 	node->next = NULL;
 	node->q->size--;
 	node->q = NULL;
+}
+
+// Retorna o ponteiro para um elemento específo da fila sem remover
+queue_node_t *queue_get(queue_t *q, size_t index) {
+	if (!q || index >= queue_size(q))
+		return NULL;
+
+	queue_node_t *node = q->head.next;
+	for (size_t i = 0; i < index; i++) {
+		if (!node)
+			return NULL;
+		node = node->next;
+	}
+
+	return node;
 }
 
 // Retorna o tamanho da fila

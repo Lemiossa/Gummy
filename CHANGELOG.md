@@ -219,6 +219,15 @@ Alterados alguns nomes em sched.*.
 - **Init**: ajuste temporário em `init/src/main.c`.
 - **Build**: atualizações nos Makefiles relacionados.
 
+## v0.18.0 — 2026-10-31
+
+- **Fila**: `queue_push()` agora remove o nó de qualquer fila anterior antes de inseri-lo; adicionada `queue_get()` para acesso por índice.
+- **Escalonador**: estados de thread (`THREAD_RUNNING`, `THREAD_READY`, `THREAD_BLOCKED`, `THREAD_ZOMBIE`, `THREAD_SLEEPING`, `THREAD_FREE`) substituem `sched_thread_state()`.
+- Fila de threads dormindo (`sleep_queue`) e `sched_thread_sleep()`; o timer acorda as threads quando `wake_tick` é alcançado.
+- Adicionados `sched_get_current_thread()` e `sched_get_ms_per_tick()`.
+- Threads do processo idle agora usam contexto de kernel; `sched_destroy_thread()` marca a thread como `THREAD_FREE`.
+- `schedule()` só devolve a thread atual à fila de prontos quando ela está em execução e não sobrescreve o contexto quando `ctx` é nulo.
+
 ---
 
 Nota: `v0.9.2` foi marcado fora de ordem (depois de `v0.11.0`), mas no histórico do Git ele fica entre `v0.9.1` e `v0.10.0` — este changelog segue a ordem do histórico.

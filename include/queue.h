@@ -28,6 +28,8 @@ queue_node_t *queue_pop(queue_t *q);
 int queue_empty(queue_t *q);
 // Remove um no especifico da fila.
 void queue_remove(queue_node_t *node);
+// Retorna o ponteiro para um elemento específo da fila sem remover
+queue_node_t *queue_get(queue_t *q, size_t index);
 // Retorna o tamanho da fila
 size_t queue_size(queue_t *q);
 

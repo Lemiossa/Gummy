@@ -1,8 +1,8 @@
 #ifndef SCHED_H
 #define SCHED_H
 
-#include <ipc.h>
 #include <idt.h>
+#include <ipc.h>
 #include <pmm.h>
 #include <queue.h>
 #include <types.h>
@@ -15,22 +15,33 @@
 typedef struct thread thread_t;
 typedef struct process process_t;
 
+typedef enum {
+	THREAD_RUNNING = 0,
+	THREAD_READY = 1,
+	THREAD_BLOCKED = 2,
+	THREAD_ZOMBIE = 3,
+	THREAD_SLEEPING =4,
+	THREAD_FREE = 5
+} thread_state_t;
+
 struct thread {
 	queue_node_t node;
 	uintptr_t stack, sp;
 	uintptr_t stack0, sp0;
-	int32_t exit_code;
 	process_t *process;
+	thread_state_t state;
+	int32_t exit_code;
+	uint32_t wake_tick;
 };
 
 struct process {
 	mailbox_t mailbox;
 	thread_t threads[THREAD_PER_PROCESS];
+	process_t *prev;
+	process_t *next;
 	uintptr_t cr3;
 	uint32_t pid;
 	uint8_t num_threads;
-	process_t *prev;
-	process_t *next;
 };
 
 // Threads ===
@@ -47,16 +58,13 @@ void sched_ready(thread_t *thread);
 void sched_blocked(thread_t *thread);
 // seta uma thread como zombie
 void sched_zombie(thread_t *thread);
+void sched_sleep(thread_t *thread);
+// Retorna o ponteiro pra thread atual
+thread_t *sched_get_current_thread(void);
 // Sai da thread atual e seta o exit code dela
 void sched_exit_current_thread(interrupt_context_t *ctx, int32_t status);
-// Retorna o estado de uma thread
-//     0: ready
-//     1: blocked
-//     2: zombie
-//     3: running
-//     4: free
-//     -1: Não possivel identificar
-int sched_thread_state(thread_t *t);
+// Bota a thread atual em sleep
+void sched_thread_sleep(interrupt_context_t *ctx, uint32_t wake_tick);
 
 // Process ===
 
@@ -82,6 +90,8 @@ process_t *get_process(uint32_t pid);
 int sched_init(uint16_t frequency);
 // Retorna os ticks do escalonador
 uint32_t sched_get_ticks(void);
+// Retorna o número de milisegundos por tick
+uint32_t sched_get_ms_per_tick(void);
 
 #define KERNEL_STACK_SIZE (KERNEL_STACK_PAGES * PAGE_SIZE)
 #define USER_STACK_SIZE (USER_STACK_PAGES * PAGE_SIZE)
