@@ -2,7 +2,7 @@
 # Created by Matheus Leme Da Silva
 
 ARCH     := i686
-VERSION  := 0.19.1
+VERSION  := 0.20.0
 NAME     := Gummy
 
 PROJ     := $(CURDIR)
@@ -18,12 +18,10 @@ ifeq ($(DEBUG), 1)
 IMAGE      := $(IMGDIR)/$(NAME)_$(ARCH)-$(VERSION)_debug.img
 BOOTLOADER := $(BINDIR)/bootloader_debug.bin
 KERNEL     := $(BINDIR)/kernel_debug.bin
-INIT       := $(BINDIR)/init_debug.bin
 else
 IMAGE      := $(IMGDIR)/$(NAME)_$(ARCH)-$(VERSION).img
 BOOTLOADER := $(BINDIR)/bootloader.bin
 KERNEL     := $(BINDIR)/kernel.bin
-INIT       := $(BINDIR)/init.bin
 endif
 PATH       := /sbin:/usr/sbin:$(PATH)
 
@@ -67,11 +65,6 @@ $(KERNEL): FORCE
 
 kernel: $(KERNEL)
 
-$(INIT): FORCE
-	@$(MAKE) --no-print-directory -C init TARGET_BIN=$(INIT) TARGET_ELF=$(INIT).elf GLOBAL_LIB=$(GLOBAL_LIB)
-
-init: $(INIT)
-
 $(GLOBAL_LIB): FORCE
 	@$(MAKE) --no-print-directory -C lib TARGET=$(GLOBAL_LIB)
 
@@ -85,8 +78,6 @@ $(IMAGE): $(BOOTLOADER) $(GLOBAL_LIB) $(KERNEL) $(INIT)
 	@mkdir -p $(IMGROOT)
 	$(call echo_cmd,CP,$(KERNEL) -> $(IMGROOT)/kernel.sys)
 	@cp $(KERNEL) $(IMGROOT)/kernel.sys
-	$(call echo_cmd,CP,$(INIT) -> $(IMGROOT)/init.sys)
-	@cp $(INIT) $(IMGROOT)/init.sys
 	$(call echo_cmd,DD,$(IMAGE))
 	@dd if=/dev/zero of=$(IMAGE) bs=1K count=1440 status=none
 	$(call echo_cmd,MKFS,$(IMAGE))

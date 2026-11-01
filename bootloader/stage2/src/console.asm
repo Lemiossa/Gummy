@@ -4,6 +4,7 @@
 %define console_asm
 
 bits 16
+cpu 8086
 
 ;; Imprime uma string na tela
 ;; DS:SI: Ponteiro para a string
@@ -51,8 +52,11 @@ console_print_nibble:
 ;; Retorna: Nada
 console_print_byte:
     push ax
-    shr al, 4
+    push cx
+    mov cl, 4
+    shr al, cl
     call console_print_nibble
+    pop cx
     pop ax
     call console_print_nibble
     ret

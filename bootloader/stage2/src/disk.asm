@@ -3,135 +3,98 @@
 %ifndef disk_asm
 %define disk_asm
 bits 16
+cpu 386
+
+struc disk_address_packet
+    .size:     resb 1
+    .reserved: resb 1
+    .sectors:  resw 1
+    .offset:   resw 1
+    .segment:  resw 1
+    .lba_low:  resd 1
+    .lba_high: resd 1
+endstruc
 
 ;; Inicializa o sistema de disco
 ;; DL: Unidade de disco
-;; Retorna:
-;; CF=1 se ocorrer um erro
+;; Faz a verificação do int13h extensions, caso contrário, para o sistema
 disk_init:
+    push bx
     push cx
     push dx
     mov byte [drive], dl
-    call disk_get_parameters
-    jc .error
-    mov byte [sectors_per_track], cl
-    mov byte [heads], dh
-    test cl, cl
-    jz .error
-    test dh, dh
+    mov ah, 0x41
+    mov bx, 0x55AA
+    int 0x13
+    jc .error 
+
+    cmp bx, 0xAA55
+    jne .error
+
+    test cx, 1
     jz .error
 .end:
     clc
     jmp .ret
 .error:
-    stc
+    mov si, extdisk_error_message
+    call console_print_string
+    jmp halt
 .ret:
     pop dx
     pop cx
+    pop bx
     ret
 
-;; Obtem os parametros do disco
-;; DL: Unidade de disco
-;; Retorna:
-;; CL: Setores por trilha
-;; DH: Cabecas
-;; CF=1 se ocorrer um erro
-disk_get_parameters:
-    push ax
-    mov ah, 0x08
-    int 0x13
-    jc .error
-    inc dh
-    and cl, 0x3f
-.end:
-    clc
-    jmp .ret
-.error:
-    stc
-.ret:
-    pop ax
-    ret
-
-;; Converte LBA para CHS
-;; DX:AX: LBA
-;; Retorna:
-;; formato int13h ah=02h:
-;;  CX = Cilindro e setor
-;;  DH = Cabeca
-disk_lba_to_chs:
-    push bp
-    push ax
-    ;; https://wiki.osdev.org/Disk_access_using_the_BIOS_(INT_13h)
-    ;; Temp = LBA / (Setores por trilha)
-    ;; Setor = (LBA % (Setores por trilha)) + 1
-    ;; Cabeca = Temp % (Numero de cabecas)
-    ;; Cilindro = Temp / (Numero de cabecas)
-
-    ;; Temp
-    div word [sectors_per_track]
-    ;; AX = Temp
-    ;; DX = Setor - 1
-    inc dx
-    mov bp, dx
-
-    xor dx, dx
-    div word [heads]
-    ;; AX = Cilindro
-    ;; DX = Cabeca
-    mov dh, dl
-    xor dl, dl
-
-    mov cx, bp
-    mov ch, al
-    shr ax, 2
-    and ax, 0xc0
-    or cl, al
-
-    pop ax
-    pop bp
-    ret
 
 ;; Le um setor do disco
-;; DX:AX: Setor
+;; EAX: Setor
 ;; ES:BX: Buffer
 ;; Retorna:
 ;; CF=1 se ocorrer um erro
 disk_read_sector:
     push ax
-    push bx
     push cx
     push dx
     push si
     push es
-    call disk_lba_to_chs
-    mov si, 3
+    mov si, DAP
+    mov word [si+disk_address_packet.offset], bx
+    mov cx, es
+    mov word [si+disk_address_packet.segment], es
+    mov dword [si+disk_address_packet.lba_low], eax
+    mov cx, 3
 .read_loop:
-    mov dl, [drive]
-    mov ax, 0x0201
+    mov dl, byte [drive]
+    mov ah, 0x42
     int 0x13
     jnc .end
-    mov dl, [drive]
-    xor ah, ah
-    int 0x13
-    dec si
-    jnz .read_loop
+    loop .read_loop
     jc .error
 .end:
     clc
     jmp .ret
 .error:
-    stc
+    mov si, failed_to_read_message
+    call console_print_string
+    jmp halt
 .ret:
     pop es
     pop si
     pop dx
     pop cx
-    pop bx
     pop ax
     ret
 
+DAP:
+    db 0x10, 0 ;; Size, reserved
+    dw 1 ;; sectors
+    dw 0, 0 ;; offset, segment
+    dd 0, 0 ;; lba_low, lba_high
+
+extdisk_error_message:      db `Erro: int13h extensions nao suportado\r\n`, 0
+failed_to_read_message:     db `Erro: falha ao ler setor!\r\n`, 0
+
 drive:             db 0
-sectors_per_track: dw 0
-heads:             dw 0
 
 %endif ;; DISK_ASM

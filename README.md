@@ -2,14 +2,22 @@
 
 Um sistema operacional hobby simples para a arquitetura x86.
 
-## Requisitos
+## Requisitos para compilar
 
+### Obrigatório
 - NASM
-- QEMU (opcional, para testes)
 - dosfstools
 - mtools
 - GCC 15.2.0 (compilador cruzado) para a arquitetura especificada (com libgcc e binutils 2.45)
+
+### Opcional
+- QEMU (opcional, para testes)
 - GDB 17.2 (opcional, para depuração)
+
+## Requesitos para rodar
+
+- Uma CPU 386+ 
+- Uma BIOS com INT 13h extensions
 
 ## Compilação
 

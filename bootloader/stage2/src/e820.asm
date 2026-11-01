@@ -3,6 +3,7 @@
 %ifndef E820_ASM
 %define E820_ASM
 bits 16
+cpu 386
 
 ;; Le a tabela E820 para 0x500
 ;; Estrutura:

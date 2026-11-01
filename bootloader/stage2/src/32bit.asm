@@ -3,6 +3,8 @@
 
 %include "config.asm"
 
+cpu 386
+
 _to32bit:
     cli
     in al, 0x92
@@ -42,8 +44,7 @@ _32bit_entry:
     or eax, 0x80000001
     mov cr0, eax
 
-
-    jmp GDT_CODE32:KERNEL_LOAD_ADDRESS + 0xC0000000
+    jmp 0xC010000
     cli
     hlt
 

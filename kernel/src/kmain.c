@@ -21,6 +21,16 @@
 #include <types.h>
 #include <vmm.h>
 
+// Thread de debug do heap
+// Imprime um dump do heap a cada 15 segundos
+void heap_debug_thread(void) {
+	while (1) {
+		heap_print();
+		sys_sleep(15000);
+	}
+	sys_exit(0);
+}
+
 void kmain(void) {
 	disable_interrupts();
 	debug_init();
@@ -39,10 +49,9 @@ void kmain(void) {
 		goto halt;
 	}
 	syscall_init();
-
 	enable_interrupts();
 
-	sys_nprocess((void *)0xC0050000, 4096);
+	sys_nthread(heap_debug_thread);
 
 	for (;;)
 		halt_cpu();
