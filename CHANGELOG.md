@@ -1,155 +1,100 @@
 # Changelog
 
-Todas as mudanças notáveis do Gummy são documentadas aqui. As entradas seguem as tags do Git em ordem cronológica.
+Todas as mudanças notáveis do Gummy são documentadas aqui. As entradas seguem as tags do Git em ordem cronológica reversa (da mais nova para a mais velha).
 
-## v0.1.0 — 2026-07-27
+## v0.20.0 - 2026-11-01
 
-Primeira versão. Base funcional do sistema:
+- **Bootloader melhor**: Agora bootloader verificar se a CPU é 386+, varios bugs corrigidos e agora usa registradores de 32 bits para cálculos.
+- Init removido temporariamente da compilação
+- Reescrita de requesitos mínimos para a compilação e para rodar
+- Debug de heap adicionado no kernel
 
-- **Bootloader em dois estágios** (stage1/stage2) em assembly: setor de boot com leituras de disco via INT 13h, e stage2 com driver de disco, console próprio e um driver FAT completo (leitura da tabela FAT, diretórios, `fat_read_file`).
-- **Carregamento do kernel**: o stage2 detecta o tipo de FAT, carrega a imagem do kernel e salta para ela.
-- **Kernel i686 inicial**: GDT recarregada, BSS zerada, driver de terminal em modo texto VGA.
-- **Sistema de build com GNU Make**: imagem FAT16 gerada automaticamente, alvo QEMU e modo silencioso.
+## v0.19.1 — 2026-10-31
 
-## v0.2.0 — 2026-08-04
+- **Build**: corrigido o alvo `global_lib` no Makefile principal (de `::` para `:`).
+- **Exceções**: includes de `debug.h` e `io.h` padronizados com `<...>`.
 
-- Kernel: entrada em assembly organizada (flag de direção limpa, BSS zerada), correção da nomenclatura da GDT e sintaxe em minúsculas.
-- Kernel: IDT adicionada com tratadores básicos de exceções.
+## v0.19.0 — 2026-10-31
 
-## v0.3.0 — 2026-08-21
+- **IPC**: mailbox por processo com ring buffer e fila de espera; `ipc_send()`/`ipc_receive()` e syscalls `SYS_SEND`/`SYS_RECEIVE`.
+- Header interno movido para `kernel/include/ipc.h`; mensagens com remetente, tipo, tamanho e até 64 bytes.
+- O receptor bloqueia na fila de espera do mailbox e é acordado quando chega uma mensagem.
 
-- Kernel: análise do mapa de memória E820 coletado pelo bootloader e impressão da memória total.
-- Kernel: PIC remapeado para os vetores corretos (0x20+).
-- Build: kernel compilado com o compilador cruzado GCC i686-elf; nomes de imagem versionados (macros `NAME`/`VERSION`); `source/` renomeado para `src/`.
+## v0.18.1 — 2026-10-31
 
-## v0.4.0 — 2026-08-22
+- **Syscalls**: implementação movida para `kernel/src/arch/i686/syscall.c`, com `SYS_GETPPID`, `SYS_NTHREAD`, `SYS_NPROCESS` e `SYS_SLEEP`.
+- Novo header de usuário em `include/arch/i686/syscall.h` (declarações `static inline`) e macro `KERNEL` nos Makefiles.
+- **Processos**: campo `dad` e `sched_get_current_ppid()`; novos processos herdam o processo atual como pai.
+- **`kmain`**: `sys_nprocess()` substitui o `spawn()` interno; `init` cria um novo processo de demonstração com `sys_nprocess`.
+- **VMM**: `vmm_map()` também atualiza as flags da PDE, permitindo mapear páginas de usuário corretamente.
+- **Build**: `init` e kernel passam a incluir `include/arch/$(ARCH)`; `init.sys` compila com o novo header.
 
-- **PMM (Gerenciador de Memória Física)**: alocação de páginas físicas baseada em um bitmap construído a partir do mapa E820.
-- `types.h`: adicionadas as macros `ALIGN_UP`/`ALIGN_DOWN`.
-- README: guia de compilação do compilador cruzado.
+## v0.18.0 — 2026-10-31
 
-## v0.5.1 — 2026-08-26
+- **Fila**: `queue_push()` agora remove o nó de qualquer fila anterior antes de inseri-lo; adicionada `queue_get()` para acesso por índice.
+- **Escalonador**: estados de thread (`THREAD_RUNNING`, `THREAD_READY`, `THREAD_BLOCKED`, `THREAD_ZOMBIE`, `THREAD_SLEEPING`, `THREAD_FREE`) substituem `sched_thread_state()`.
+- Fila de threads dormindo (`sleep_queue`) e `sched_thread_sleep()`; o timer acorda as threads quando `wake_tick` é alcançado.
+- Adicionados `sched_get_current_thread()` e `sched_get_ms_per_tick()`.
+- Threads do processo idle agora usam contexto de kernel; `sched_destroy_thread()` marca a thread como `THREAD_FREE`.
+- `schedule()` só devolve a thread atual à fila de prontos quando ela está em execução e não sobrescreve o contexto quando `ctx` é nulo.
 
-- Adicionado `bitmap_find_free_bit`; o PMM agora usa busca por bit livre para a alocação de páginas.
-- Base do VMM: estruturas iniciais e diretório de páginas (`vmm.c`), iniciando o suporte a kernel em higher-half.
+## v0.17.1 — 2026-10-27 (provisório)
 
-## v0.5.2 — 2026-08-26
+- **IPC/processos/threads**: estruturas iniciais para IPC, processos e threads; mudanças no escalonador para suportar processo/thread em andamento e organização de código.
+- **Init**: ajuste temporário em `init/src/main.c`.
+- **Build**: atualizações nos Makefiles relacionados.
 
-- Melhorias no PMM (inicialização de bitmap mais robusta) e avanços no VMM.
+## v0.17.0 — 2026-10-27
 
-## v0.5.3 — 2026-08-26
+- **Syscalls**: `int 0x80` com `SYS_EXIT` (0) e `SYS_GETPID` (1); adicionados `syscall_handler()`/`syscall_init()` no kernel e vetor `0x80` exposto ao usuário (DPL 3).
+- **Espaço de usuário**: novo programa `init/` linkado em `0x400000`, com `_start` que chama `main` e encerra pela syscall de exit.
+- Novo header `include/syscall.h` com `sys_exit()` e `sys_getpid()`.
+- **`kmain`**: `spawn()` cria processo e thread, copia o programa para o CR3 do processo em `0x400000` e o coloca na fila de prontos; o `init` é lançado após a inicialização das syscalls.
+- **Bootloader**: carrega `INIT.SYS` em `0x5000` junto do kernel.
+- **Build**: novo alvo `init`, compilação do programa de usuário e cópia de `init.sys` para a imagem FAT.
 
-- VMM mais completo: `vmm_map`/`vmm_unmap`, mapeamento de páginas com flags.
+## v0.16.3 — 2026-10-27
 
-## v0.5.4 — 2026-08-29
+- **IDT**: adicionado `idt_set_dpl()` para alterar o DPL de uma entrada (preparação para interrupções de usuário).
+- Corrigida a verificação de limite em `idt_set_handler()` (`>` para `>=`).
+- Formatação de `idt.c` e `idt.h`.
 
-- **Reescrita do tratamento de interrupções**: novo modelo de IDT com `exception.c`, tratadores centralizados e correções de I/O (retorno de carro nas mensagens de erro).
-- `SOURCE` renomeado para `SRC` nos Makefiles.
+## v0.16.2 — 2026-10-27
 
-## v0.5.5 — 2026-08-29
+- **Escalonador**: adicionadas `sched_blocked()` e `sched_zombie()`; `sched_ready()` agora remove a thread de qualquer fila antes de enfileirá-la.
+- `sched_destroy_thread()` reorganizada: libera as pilhas, remove a thread da fila e zera a estrutura.
+- Separação entre `timer_handler()` (ticks e EOI) e `schedule()` (escolha da próxima thread); as filas `ready`, `blocked` e `zombie` deixaram de ser estáticas.
+- Adicionados `sched_get_current_pid()` e `sched_exit_current_thread()`; a thread agora guarda `exit_code`.
+- Ao escalonar, a thread atual só volta para a fila de prontos se estiver no estado *running*.
 
-- Correção da formatação (`\r`) nas mensagens de `exception_handler`.
+## v0.16.1 — 2026-10-27
 
-## v0.5.6 — 2026-08-29
+- **I/O**: `read_eflags`/`write_eflags` renomeadas para `read_flags`/`write_flags` e passam a usar `uintptr_t`.
+- **Debug**: adicionado `debug_dump_code()`; o tratador de exceções agora despeja os 16 bytes de código em `eip`.
+- **PMM/VMM**: removidas as mensagens de log de alocação, mapeamento e desmapeamento de páginas.
+- Formatação de `io.h`, `vmm.c`, `pmm.c`, `debug.c` e `exception.c`.
 
-- VMM: desmapeado o primeiro MiB de memória (área de memória baixa liberada).
+## v0.16.0 — 2026-10-27
 
-## v0.5.7 — 2026-08-29
+- **Estilo**: reformatação dos módulos de base para o estilo K&R (chaves na mesma linha), indentação com tabs e quebra de linhas longas.
+- Ordenação alfabética dos `#include` em kernel, `lib/` e headers.
+- Sem mudanças de comportamento.
 
-- VMM tornado mais genérico (assinaturas e flags unificadas).
+## v0.15.3 — 2026-10-25
 
-## v0.5.8 — 2026-08-29
+- **README**: adicionado aviso sobre tradução assistida por IA e indicação de mudança para português a partir de 22/10/2026.
 
-- Renomeação de tipos para consistência (`u8`/`u16`/`u32`…) em todo o kernel.
+## v0.15.2 — 2026-10-25
 
-## v0.6.0 — 2026-08-29
+- **IDT/Tratamento de interrupções**: novos tratadores e ajustes em `idt.asm`/`idt.h`; adicionado suporte a chamadas de sistema via interrupção (estrutura para `syscall`).
+- **I/O**: adicionado `io.h` com funções para ler/escrever portas (in/out) em assembly.
+- **VMM**: adicionado mapeamento de heap do kernel, melhorias em mapeamento/unmapeamento e tratamento de page fault mais completo.
+- **Heap**: pequenos ajustes.
+- **Escalonador**: reescrita significativa do escalonador com tarefas/threads, filas, troca de contexto aprimorada e suporte a syscall; `kmain` atualizado para inicializar multitarefa.
 
-- **Timer (PIT)**: driver do PIT e contador de ticks; tratador de page fault registrado (inicialmente apenas registrado em log).
+## v0.15.1 — 2026-10-25
 
-## v0.6.1 — 2026-08-29
-
-- Correção do timer: enviar EOI ao PIC a cada tick.
-
-## v0.6.2 — 2026-08-29
-
-- Corrigido page fault ao desmapear o primeiro MiB; VMM reorganizado (mais auxiliares, menos mensagens).
-
-## v0.6.3 — 2026-08-30
-
-- Removidas as mensagens de depuração do PMM/VMM.
-
-## v0.7.0 — 2026-09-01
-
-- VMM: adicionados `vmm_alloc_pages` e `vmm_free_pages` (alocação contígua de páginas virtuais).
-
-## v0.8.0 — 2026-09-14
-
-- VMM: adicionado `vmm_clone()` (clonagem de espaço de endereçamento).
-
-## v0.8.1 — 2026-09-18
-
-- Base do escalonador: `timer.c` transformado em `sched.c` com contadores/base de escalonamento.
-
-## v0.9.0 — 2026-09-22
-
-- **Heap do kernel** (`heap.c`) com alocador próprio.
-- Revisão importante do PMM/VMM: limpeza do e820, tipos revisados, `vmm.h`/`pmm.h` ajustados.
-- Suporte a depuração com GDB (Makefile + README).
-
-## v0.9.1 — 2026-09-24
-
-- Removida a mensagem de inicialização do PMM; `kmain` simplificado.
-
-## v0.9.2 — 2026-09-25
-
-- Corrigida a rolagem do terminal de texto.
-
-## v0.10.0 — 2026-09-24
-
-- Heap: divisão e fusão (coalescência) de blocos na liberação. *(marcado depois, mas historicamente pertence aqui)*
-
-## v0.10.1 — 2026-09-25
-
-- Corrigidas as declarações (protótipos) em `pmm.h`/`vmm.h`.
-
-## v0.11.0 — 2026-09-25
-
-- **Serial (COM)**: funções básicas de escrita serial e módulo `debug.c`; `kmain` e terminal ajustados para usar a serial como saída de depuração.
-
-## v0.11.1 — 2026-09-25
-
-- Adicionados logs em todos os subsistemas (e820, exceções, GDT/IDT, PMM, VMM, heap, PIC, PIT).
-
-## v0.11.2 — 2026-09-26
-
-- Mais logs no PMM e no VMM.
-
-## v0.12.0 — 2026-09-26
-
-- **Escalonador experimental**: estruturas de tarefas e base da troca de contexto iniciadas, ganchos na IDT/timer.
-
-## v0.12.1 — 2026-09-30
-
-- Escalonador simplificado/removido temporariamente ("retornando à simplicidade").
-
-## v0.13.0 — 2026-10-01
-
-- Build com mensagens de compilação detalhadas; novo diretório `lib/` com `string.c` junto ao kernel.
-
-## v0.13.1 — 2026-10-02
-
-- Mais logs em `heap.c`.
-
-## v0.14.0 — 2026-10-03
-
-- **Multitarefa inicial!**
-  - TSS (Task State Segment) configurado na GDT com suporte a troca de pilha.
-  - Fila (`queue.h`/`queue.c` em `lib/`) para estados de tarefa.
-  - Escalonador reescrito com filas de prontos; tarefas com contexto próprio.
-
-## v0.14.1 — 2026-10-12
-
-Alterados alguns nomes em sched.*.
+- **Fila**: nó da fila agora armazena ponteiro para a fila (`queue_node_t.q`); `queue_remove()` passa a receber apenas o nó e atualiza o contador da fila.
 
 ## v0.15.0 — 2026-10-22
 
@@ -161,99 +106,154 @@ Alterados alguns nomes em sched.*.
 - Build: `mkfs.fat` não usa mais `--mbr=y`, deixando o setor de boot para o bootloader do próprio projeto.
 - README: seção sobre suporte a editores e o `compile_commands.json` mantido manualmente.
 
-## v0.15.1 — 2026-10-25
+## v0.14.1 — 2026-10-12
 
-- **Fila**: nó da fila agora armazena ponteiro para a fila (`queue_node_t.q`); `queue_remove()` passa a receber apenas o nó e atualiza o contador da fila.
+Alterados alguns nomes em sched.*.
 
-## v0.15.2 — 2026-10-25
+## v0.14.0 — 2026-10-03
 
-- **IDT/Tratamento de interrupções**: novos tratadores e ajustes em `idt.asm`/`idt.h`; adicionado suporte a chamadas de sistema via interrupção (estrutura para `syscall`).
-- **I/O**: adicionado `io.h` com funções para ler/escrever portas (in/out) em assembly.
-- **VMM**: adicionado mapeamento de heap do kernel, melhorias em mapeamento/unmapeamento e tratamento de page fault mais completo.
-- **Heap**: pequenos ajustes.
-- **Escalonador**: reescrita significativa do escalonador com tarefas/threads, filas, troca de contexto aprimorada e suporte a syscall; `kmain` atualizado para inicializar multitarefa.
+- **Multitarefa inicial!**
+  - TSS (Task State Segment) configurado na GDT com suporte a troca de pilha.
+  - Fila (`queue.h`/`queue.c` em `lib/`) para estados de tarefa.
+  - Escalonador reescrito com filas de prontos; tarefas com contexto próprio.
 
-## v0.15.3 — 2026-10-25
+## v0.13.1 — 2026-10-02
 
-- **README**: adicionado aviso sobre tradução assistida por IA e indicação de mudança para português a partir de 22/10/2026.
+- Mais logs em `heap.c`.
 
-## v0.16.0 — 2026-10-27
+## v0.13.0 — 2026-10-01
 
-- **Estilo**: reformatação dos módulos de base para o estilo K&R (chaves na mesma linha), indentação com tabs e quebra de linhas longas.
-- Ordenação alfabética dos `#include` em kernel, `lib/` e headers.
-- Sem mudanças de comportamento.
+- Build com mensagens de compilação detalhadas; novo diretório `lib/` com `string.c` junto ao kernel.
 
-## v0.16.1 — 2026-10-27
+## v0.12.1 — 2026-09-30
 
-- **I/O**: `read_eflags`/`write_eflags` renomeadas para `read_flags`/`write_flags` e passam a usar `uintptr_t`.
-- **Debug**: adicionado `debug_dump_code()`; o tratador de exceções agora despeja os 16 bytes de código em `eip`.
-- **PMM/VMM**: removidas as mensagens de log de alocação, mapeamento e desmapeamento de páginas.
-- Formatação de `io.h`, `vmm.c`, `pmm.c`, `debug.c` e `exception.c`.
+- Escalonador simplificado/removido temporariamente ("retornando à simplicidade").
 
-## v0.16.2 — 2026-10-27
+## v0.12.0 — 2026-09-26
 
-- **Escalonador**: adicionadas `sched_blocked()` e `sched_zombie()`; `sched_ready()` agora remove a thread de qualquer fila antes de enfileirá-la.
-- `sched_destroy_thread()` reorganizada: libera as pilhas, remove a thread da fila e zera a estrutura.
-- Separação entre `timer_handler()` (ticks e EOI) e `schedule()` (escolha da próxima thread); as filas `ready`, `blocked` e `zombie` deixaram de ser estáticas.
-- Adicionados `sched_get_current_pid()` e `sched_exit_current_thread()`; a thread agora guarda `exit_code`.
-- Ao escalonar, a thread atual só volta para a fila de prontos se estiver no estado *running*.
+- **Escalonador experimental**: estruturas de tarefas e base da troca de contexto iniciadas, ganchos na IDT/timer.
 
-## v0.16.3 — 2026-10-27
+## v0.11.2 — 2026-09-26
 
-- **IDT**: adicionado `idt_set_dpl()` para alterar o DPL de uma entrada (preparação para interrupções de usuário).
-- Corrigida a verificação de limite em `idt_set_handler()` (`>` para `>=`).
-- Formatação de `idt.c` e `idt.h`.
+- Mais logs no PMM e no VMM.
 
-## v0.17.0 — 2026-10-27
+## v0.11.1 — 2026-09-25
 
-- **Syscalls**: `int 0x80` com `SYS_EXIT` (0) e `SYS_GETPID` (1); adicionados `syscall_handler()`/`syscall_init()` no kernel e vetor `0x80` exposto ao usuário (DPL 3).
-- **Espaço de usuário**: novo programa `init/` linkado em `0x400000`, com `_start` que chama `main` e encerra pela syscall de exit.
-- Novo header `include/syscall.h` com `sys_exit()` e `sys_getpid()`.
-- **`kmain`**: `spawn()` cria processo e thread, copia o programa para o CR3 do processo em `0x400000` e o coloca na fila de prontos; o `init` é lançado após a inicialização das syscalls.
-- **Bootloader**: carrega `INIT.SYS` em `0x5000` junto do kernel.
-- **Build**: novo alvo `init`, compilação do programa de usuário e cópia de `init.sys` para a imagem FAT.
+- Adicionados logs em todos os subsistemas (e820, exceções, GDT/IDT, PMM, VMM, heap, PIC, PIT).
 
-## v0.17.1 — 2026-10-27 (provisório)
+## v0.11.0 — 2026-09-25
 
-- **IPC/processos/threads**: estruturas iniciais para IPC, processos e threads; mudanças no escalonador para suportar processo/thread em andamento e organização de código.
-- **Init**: ajuste temporário em `init/src/main.c`.
-- **Build**: atualizações nos Makefiles relacionados.
+- **Serial (COM)**: funções básicas de escrita serial e módulo `debug.c`; `kmain` e terminal ajustados para usar a serial como saída de depuração.
 
-## v0.18.0 — 2026-10-31
+## v0.10.1 — 2026-09-25
 
-- **Fila**: `queue_push()` agora remove o nó de qualquer fila anterior antes de inseri-lo; adicionada `queue_get()` para acesso por índice.
-- **Escalonador**: estados de thread (`THREAD_RUNNING`, `THREAD_READY`, `THREAD_BLOCKED`, `THREAD_ZOMBIE`, `THREAD_SLEEPING`, `THREAD_FREE`) substituem `sched_thread_state()`.
-- Fila de threads dormindo (`sleep_queue`) e `sched_thread_sleep()`; o timer acorda as threads quando `wake_tick` é alcançado.
-- Adicionados `sched_get_current_thread()` e `sched_get_ms_per_tick()`.
-- Threads do processo idle agora usam contexto de kernel; `sched_destroy_thread()` marca a thread como `THREAD_FREE`.
-- `schedule()` só devolve a thread atual à fila de prontos quando ela está em execução e não sobrescreve o contexto quando `ctx` é nulo.
+- Corrigidas as declarações (protótipos) em `pmm.h`/`vmm.h`.
 
-## v0.18.1 — 2026-10-31
+## v0.10.0 — 2026-09-24
 
-- **Syscalls**: implementação movida para `kernel/src/arch/i686/syscall.c`, com `SYS_GETPPID`, `SYS_NTHREAD`, `SYS_NPROCESS` e `SYS_SLEEP`.
-- Novo header de usuário em `include/arch/i686/syscall.h` (declarações `static inline`) e macro `KERNEL` nos Makefiles.
-- **Processos**: campo `dad` e `sched_get_current_ppid()`; novos processos herdam o processo atual como pai.
-- **`kmain`**: `sys_nprocess()` substitui o `spawn()` interno; `init` cria um novo processo de demonstração com `sys_nprocess`.
-- **VMM**: `vmm_map()` também atualiza as flags da PDE, permitindo mapear páginas de usuário corretamente.
-- **Build**: `init` e kernel passam a incluir `include/arch/$(ARCH)`; `init.sys` compila com o novo header.
+- Heap: divisão e fusão (coalescência) de blocos na liberação. *(marcado depois, mas historicamente pertence aqui)*
 
-## v0.19.0 — 2026-10-31
+## v0.9.2 — 2026-09-25
 
-- **IPC**: mailbox por processo com ring buffer e fila de espera; `ipc_send()`/`ipc_receive()` e syscalls `SYS_SEND`/`SYS_RECEIVE`.
-- Header interno movido para `kernel/include/ipc.h`; mensagens com remetente, tipo, tamanho e até 64 bytes.
-- O receptor bloqueia na fila de espera do mailbox e é acordado quando chega uma mensagem.
+- Corrigida a rolagem do terminal de texto.
 
-## v0.19.1 — 2026-10-31
+## v0.9.1 — 2026-09-24
 
-- **Build**: corrigido o alvo `global_lib` no Makefile principal (de `::` para `:`).
-- **Exceções**: includes de `debug.h` e `io.h` padronizados com `<...>`.
+- Removida a mensagem de inicialização do PMM; `kmain` simplificado.
 
-## v0.20.0 - 2026-11-01
+## v0.9.0 — 2026-09-22
 
-- **Bootloader melhor**: Agora bootloader verificar se a CPU é 386+, varios bugs corrigidos e agora usa registradores de 32 bits para cálculos.
-- Init removido temporariamente da compilação
-- Reescrita de requesitos mínimos para a compilação e para rodar
-- Debug de heap adicionado no kernel
+- **Heap do kernel** (`heap.c`) com alocador próprio.
+- Revisão importante do PMM/VMM: limpeza do e820, tipos revisados, `vmm.h`/`pmm.h` ajustados.
+- Suporte a depuração com GDB (Makefile + README).
+
+## v0.8.1 — 2026-09-18
+
+- Base do escalonador: `timer.c` transformado em `sched.c` com contadores/base de escalonamento.
+
+## v0.8.0 — 2026-09-14
+
+- VMM: adicionado `vmm_clone()` (clonagem de espaço de endereçamento).
+
+## v0.7.0 — 2026-09-01
+
+- VMM: adicionados `vmm_alloc_pages` e `vmm_free_pages` (alocação contígua de páginas virtuais).
+
+## v0.6.3 — 2026-08-30
+
+- Removidas as mensagens de depuração do PMM/VMM.
+
+## v0.6.2 — 2026-08-29
+
+- Corrigido page fault ao desmapear o primeiro MiB; VMM reorganizado (mais auxiliares, menos mensagens).
+
+## v0.6.1 — 2026-08-29
+
+- Correção do timer: enviar EOI ao PIC a cada tick.
+
+## v0.6.0 — 2026-08-29
+
+- **Timer (PIT)**: driver do PIT e contador de ticks; tratador de page fault registrado (inicialmente apenas registrado em log).
+
+## v0.5.8 — 2026-08-29
+
+- Renomeação de tipos para consistência (`u8`/`u16`/`u32`…) em todo o kernel.
+
+## v0.5.7 — 2026-08-29
+
+- VMM tornado mais genérico (assinaturas e flags unificadas).
+
+## v0.5.6 — 2026-08-29
+
+- VMM: desmapeado o primeiro MiB de memória (área de memória baixa liberada).
+
+## v0.5.5 — 2026-08-29
+
+- Correção da formatação (`\r`) nas mensagens de `exception_handler`.
+
+## v0.5.4 — 2026-08-29
+
+- **Reescrita do tratamento de interrupções**: novo modelo de IDT com `exception.c`, tratadores centralizados e correções de I/O (retorno de carro nas mensagens de erro).
+- `SOURCE` renomeado para `SRC` nos Makefiles.
+
+## v0.5.3 — 2026-08-26
+
+- VMM mais completo: `vmm_map`/`vmm_unmap`, mapeamento de páginas com flags.
+
+## v0.5.2 — 2026-08-26
+
+- Melhorias no PMM (inicialização de bitmap mais robusta) e avanços no VMM.
+
+## v0.5.1 — 2026-08-26
+
+- Adicionado `bitmap_find_free_bit`; o PMM agora usa busca por bit livre para a alocação de páginas.
+- Base do VMM: estruturas iniciais e diretório de páginas (`vmm.c`), iniciando o suporte a kernel em higher-half.
+
+## v0.4.0 — 2026-08-22
+
+- **PMM (Gerenciador de Memória Física)**: alocação de páginas físicas baseada em um bitmap construído a partir do mapa E820.
+- `types.h`: adicionadas as macros `ALIGN_UP`/`ALIGN_DOWN`.
+- README: guia de compilação do compilador cruzado.
+
+## v0.3.0 — 2026-08-21
+
+- Kernel: análise do mapa de memória E820 coletado pelo bootloader e impressão da memória total.
+- Kernel: PIC remapeado para os vetores corretos (0x20+).
+- Build: kernel compilado com o compilador cruzado GCC i686-elf; nomes de imagem versionados (macros `NAME`/`VERSION`); `source/` renomeado para `src/`.
+
+## v0.2.0 — 2026-08-04
+
+- Kernel: entrada em assembly organizada (flag de direção limpa, BSS zerada), correção da nomenclatura da GDT e sintaxe em minúsculas.
+- Kernel: IDT adicionada com tratadores básicos de exceções.
+
+## v0.1.0 — 2026-07-27
+
+Primeira versão. Base funcional do sistema:
+
+- **Bootloader em dois estágios** (stage1/stage2) em assembly: setor de boot com leituras de disco via INT 13h, e stage2 com driver de disco, console próprio e um driver FAT completo (leitura da tabela FAT, diretórios, `fat_read_file`).
+- **Carregamento do kernel**: o stage2 detecta o tipo de FAT, carrega a imagem do kernel e salta para ela.
+- **Kernel i686 inicial**: GDT recarregada, BSS zerada, driver de terminal em modo texto VGA.
+- **Sistema de build com GNU Make**: imagem FAT16 gerada automaticamente, alvo QEMU e modo silencioso.
 
   ---
 
