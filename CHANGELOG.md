@@ -2,6 +2,11 @@
 
 Todas as mudanças notáveis do Gummy são documentadas aqui. As entradas seguem as tags do Git em ordem cronológica reversa (da mais nova para a mais velha).
 
+## v0.20.2 - 2026-11-02
+
+- Melhorado heap_print() no kernel
+- Adicionado va_* em types.h
+
 ## v0.20.1 - 2026-11-02
 
 - **Verificação do 386+ corrigida**: Ao verificar que a CPU era 286 ele tentava continuar executando. Agora corrigi colocando jmp halt

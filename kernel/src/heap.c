@@ -195,19 +195,30 @@ void heap_free(void *ptr) {
 // Imprime o estado atual do heap (para fins de debug)
 void heap_print(void) {
 	if (!heap_start) {
-		terminal_print_string("Heap nao inicializado\r\n");
+		debug_log_string("HEAP", "Heap nao inicializado\r\n");
 		return;
 	}
 
-	heap_block_t *b = heap_start;
+	uint32_t blocks = 0, used_bytes = 0, free_bytes = 0, largest_free = 0;
 
-	while (b) {
-		terminal_print_hex64((uint64_t)(uintptr_t)b);
-		terminal_print_string("\r\n    Tam: ");
-		terminal_print_hex64((uint64_t)b->size);
-		terminal_print_string("\r\n    Uso: ");
-		terminal_print_hex8(b->used);
-		terminal_print_string("\r\n");
-		b = b->next;
+	for (heap_block_t *b = heap_start; b; b = b->next) {
+		blocks++;
+		if (b->used)
+			used_bytes += b->size;
+		else {
+			free_bytes += b->size;
+			if (b->size > largest_free)
+				largest_free = b->size;
+		}
 	}
+
+	debug_log_string("HEAP", "blocos=0x");
+	debug_log_hex32(blocks);
+	debug_print_string(" usado=0x");
+	debug_log_hex32(used_bytes);
+	debug_print_string(" livre=0x");
+	debug_log_hex32(free_bytes);
+	debug_print_string(" maior_livre=0x");
+	debug_log_hex32(largest_free);
+	debug_print_string("\r\n");
 }

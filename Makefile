@@ -2,7 +2,7 @@
 # Created by Matheus Leme Da Silva
 
 ARCH     := i686
-VERSION  := 0.20.1
+VERSION  := 0.20.2
 NAME     := Gummy
 
 PROJ     := $(CURDIR)
