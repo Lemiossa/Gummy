@@ -7,20 +7,20 @@ SECTIONS
 	. = 0xC0010000;
 	__kernel_start = .;
 
-	.text : {
+	.text ALIGN(4096) : {
 		*(.text*)
 	}
 
-	.rodata : {
+	.rodata ALIGN(4096) : {
 		*(.rodata*)
 	}
 
-	.data : {
+	.data ALIGN(4096) : {
 		*(.data*)
 	}
 
 	__bss_start = .;
-	.bss : {
+	.bss ALIGN(4096) : {
 		*(COMMON)
 		*(.bss*)
 	}

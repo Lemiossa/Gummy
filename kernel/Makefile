@@ -27,7 +27,7 @@ CFLAGS   := -std=c11 -Wall -Wextra \
 ifeq ($(DEBUG), 1)
 	CFLAGS += -O0 -g
 else
-	CFLAGS += -O1
+	CFLAGS += -O2
 endif
 CPPFLAGS := -I$(PROJ)/include -I$(CURDIR)/include \
 			-I$(CURDIR)/include/arch/$(ARCH) \

@@ -2,7 +2,7 @@
 # Created by Matheus Leme Da Silva
 
 ARCH     := i686
-VERSION  := 0.20.2
+VERSION  := 0.21.0
 NAME     := Gummy
 
 PROJ     := $(CURDIR)
@@ -41,7 +41,9 @@ endef
 
 QEMUFLAGS := \
 	-drive file=$(IMAGE),format=raw,if=ide,media=disk \
-	-machine pc -vga std -display gtk
+	-audiodev pipewire,id=audio0 \
+	-machine pc,pcspk-audiodev=audio0 \
+	-vga std -display gtk
 
 export PROJ
 export NAME

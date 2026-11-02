@@ -20,13 +20,11 @@ uint16_t timer_frequency = 0;
 uint32_t ms_per_tick = 0;
 
 extern process_t idle_process;
-extern thread_t *current_thread;
 extern queue_t ready_queue;
 extern queue_t blocked_queue;
 extern queue_t zombie_queue;
 extern queue_t sleep_queue;
 extern uint32_t current_pid;
-extern process_t *first_process;
 
 // troca o contexto da CPU
 void switch_context(thread_t *new) {
@@ -50,8 +48,10 @@ void switch_context(thread_t *new) {
 	if (new != &idle_process.threads[0])
 		tss_set_sp0(new->stack0 + KERNEL_STACK_SIZE, 0x10);
 
-	write_cr3(new->process->cr3);
+	if (new->process != current_process)
+		write_cr3(new->process->cr3);
 
+	current_process = new->process;
 	current_thread->state = THREAD_RUNNING;
 
 	restore_context(current_thread->sp0);
@@ -73,6 +73,10 @@ void schedule(interrupt_context_t *ctx) {
 	thread_t *new_thread = (thread_t *)CONTAINER_OF(n, thread_t, node);
 	if (new_thread == current_thread)
 		return;
+
+	if (new_thread->process->state == PROCESS_DYING)
+		return; // Mais tempo de execução pra tarefa atual até que um processo
+				// normal seja encontrado
 
 	switch_context(new_thread);
 }
@@ -132,6 +136,7 @@ int sched_init(uint16_t frequency) {
 	idle_process.prev = NULL;
 	idle_process.next = NULL;
 	idle_process.dad = NULL;
+	current_process = &idle_process;
 	first_process = &idle_process;
 
 	debug_log_string("SCHED", "Processo idle criado com PID 0x");

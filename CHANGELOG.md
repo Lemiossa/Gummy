@@ -2,6 +2,12 @@
 
 Todas as mudanças notáveis do Gummy são documentadas aqui. As entradas seguem as tags do Git em ordem cronológica reversa (da mais nova para a mais velha).
 
+## v0.21.0 - 2026-11-02
+
+- Processos de usuário podem morrer ao causar exceções
+- Adicionado '-O2' nas CFLAGS do kernel
+- Seções no link.ld alinhadas agora
+
 ## v0.20.2 - 2026-11-02
 
 - Melhorado heap_print() no kernel

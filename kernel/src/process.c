@@ -2,6 +2,7 @@
  * process.c
  * Criado por Matheus Leme da Silva
  * */
+#include "syscall.h"
 #include <debug.h>
 #include <heap.h>
 #include <io.h>
@@ -17,16 +18,17 @@ process_t idle_process;
 uint32_t current_pid = 0;
 process_t *first_process = NULL;
 extern thread_t *current_thread;
+process_t *current_process;
 
 // Procura um processo pelo PID.
 // Retorna o ponteiro para ele, nulo se erro.
-process_t *get_process(uint32_t pid) {
+process_t *sched_get_process(uint32_t pid) {
 	process_t *process = first_process;
-	do {
+	while (process) {
 		if (process->pid == pid)
 			return process;
 		process = process->next;
-	} while (process->next);
+	}
 	return NULL;
 }
 
@@ -69,7 +71,8 @@ process_t *sched_create_process(void) {
 	queue_init(&proc->mailbox.waiters);
 
 	proc->next = first_process;
-	first_process->prev = proc;
+	if (first_process)
+		first_process->prev = proc;
 	first_process = proc;
 
 	return proc;
@@ -90,6 +93,15 @@ void sched_destroy_process(process_t *proc) {
 		return;
 	}
 
+	// Reparentar os filhos
+	process_t *p = first_process;
+	while (p) {
+		if (p->dad == proc) {
+			p->dad = proc->dad;
+		}
+		p = p->next;
+	}
+
 	for (uint8_t i = 0; i < THREAD_PER_PROCESS; i++)
 		sched_destroy_thread(&proc->threads[i]);
 
@@ -104,9 +116,31 @@ void sched_destroy_process(process_t *proc) {
 	if (proc->next)
 		proc->next->prev = proc->prev;
 
+	if (first_process == proc)
+		first_process = proc->next;
+
 	heap_free(proc);
 
 	debug_log_string("SCHED", "Processo destruido\r\n");
+}
+
+// Mata o processo atual com segurança
+void sched_destroy_current_process(void) {
+	process_t *proc = sched_get_current_process();
+	if (!proc)
+		return;
+
+	uintptr_t flags = read_flags();
+	disable_interrupts();
+
+	for (int i = 0; i < THREAD_PER_PROCESS; i++)
+		queue_remove(&proc->threads[i]
+						  .node); // Remove a thread de qualquer fila que esteja
+
+	proc->state = PROCESS_DYING;
+
+	write_flags(flags);
+	sys_yield(); // int $0x81 -> troca de thread instantaneamente
 }
 
 // Retorna o PID da thread rodando atualmente
@@ -119,8 +153,8 @@ uint32_t sched_get_current_pid(void) {
 
 // Retorna o PPID da thread rodando atualmente
 uint32_t sched_get_current_ppid(void) {
-	if (!current_thread || !current_thread->process || 
-			!current_thread->process->dad)
+	if (!current_thread || !current_thread->process ||
+		!current_thread->process->dad)
 		return 0;
 
 	return current_thread->process->dad->pid;

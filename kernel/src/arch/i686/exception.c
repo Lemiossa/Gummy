@@ -3,8 +3,9 @@
  * Criado por Matheus Leme da Silva
  * */
 #include <debug.h>
-#include <io.h>
 #include <idt.h>
+#include <io.h>
+#include <sched.h>
 #include <terminal.h>
 #include <types.h>
 
@@ -45,6 +46,7 @@ static const char *exception_names[32] = {
 
 // Trata excecoes
 static void exception_handler(interrupt_context_t *ctx) {
+	int from_user = (ctx->cs & 3) == 3;
 	debug_log_string("CPU EXCEPTION", "*** EXCECAO DE CPU ***\r\n");
 
 	debug_log_string("CPU EXCEPTION", "Excecao: ");
@@ -57,8 +59,7 @@ static void exception_handler(interrupt_context_t *ctx) {
 	debug_log_hex32(ctx->eip);
 	debug_print_string("\r\n");
 
-	if (ctx->int_num == 14) // Page fault
-	{
+	if (ctx->int_num == 14) { // Page fault
 		uint32_t cr2 = read_cr2();
 		debug_log_string("CPU EXCEPTION", "CR2: 0x");
 		debug_log_hex32(cr2);
@@ -66,6 +67,10 @@ static void exception_handler(interrupt_context_t *ctx) {
 	}
 
 	debug_dump_code((uintptr_t)ctx->eip, 16);
+	if (from_user) {
+		sched_destroy_current_process();
+		return;
+	}
 
 	debug_log_string("CPU EXCEPTION", "Sistema parado.\r\n");
 

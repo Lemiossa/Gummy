@@ -11,6 +11,7 @@
 #include <io.h>
 #include <ipc.h>
 #include <pic.h>
+#include <pit.h>
 #include <pmm.h>
 #include <queue.h>
 #include <ring_buffer.h>
@@ -22,12 +23,36 @@
 #include <vmm.h>
 
 // Thread de debug do heap
-// Imprime um dump do heap a cada 15 segundos
+// Imprime um dump do heap a cada 30 segundos
 void heap_debug_thread(void) {
 	while (1) {
 		heap_print();
-		sys_sleep(15000);
+		sys_sleep(30000);
 	}
+	sys_exit(0);
+}
+
+// Reaper de processos
+// Mata todo e qualquer processo em estado dying
+void reaper_thread(void) {
+	while (1) {
+		for (process_t *p = first_process; p;) {
+			process_t *next = p->next;
+			if (p->state == PROCESS_DYING)
+				sched_destroy_process(p);
+			p = next;
+		}
+		sys_sleep(5000);
+	}
+	sys_exit(0);
+}
+
+// Processo de teste, executa uma divisão por zero forcada
+void test_process(void) {
+	volatile int a = 1;
+	volatile int b = 0;
+	volatile int c = a / b;
+	(void)c;
 	sys_exit(0);
 }
 
@@ -52,6 +77,8 @@ void kmain(void) {
 	enable_interrupts();
 
 	sys_nthread(heap_debug_thread);
+	sys_nprocess(test_process, 512);
+	sys_nthread(reaper_thread);
 
 	for (;;)
 		halt_cpu();

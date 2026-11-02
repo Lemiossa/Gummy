@@ -2,15 +2,15 @@
  * ipc.c
  * Criado por Matheus Leme da Silva
  * */
+#include <debug.h>
 #include <idt.h>
 #include <io.h>
-#include <queue.h>
 #include <ipc.h>
+#include <queue.h>
 #include <sched.h>
 #include <string.h>
 #include <syscall.h>
 #include <types.h>
-#include <debug.h>
 
 extern void schedule(interrupt_context_t *ctx);
 
@@ -21,8 +21,11 @@ int ipc_send(uint32_t pid, uint32_t type, const void *data, uint32_t size) {
 	if (!data || !size || size > IPC_MSG_MAX)
 		return 1;
 
-	process_t *p = get_process(pid);
+	process_t *p = sched_get_process(pid);
 	if (!p)
+		return 1;
+
+	if (p->state == PROCESS_DYING)
 		return 1;
 
 	ipc_message_t msg;
@@ -30,7 +33,6 @@ int ipc_send(uint32_t pid, uint32_t type, const void *data, uint32_t size) {
 	msg.size = size;
 	msg.sender_pid = sched_get_current_pid();
 	msg.type = type;
-
 
 	if (ring_buffer_push(&p->mailbox.ring_buffer, &msg))
 		return 1;
@@ -41,6 +43,7 @@ int ipc_send(uint32_t pid, uint32_t type, const void *data, uint32_t size) {
 	queue_node_t *n = queue_pop(&p->mailbox.waiters);
 	if (!n)
 		return 1;
+
 	thread_t *t = (thread_t *)CONTAINER_OF(n, thread_t, node);
 	sched_ready(t);
 

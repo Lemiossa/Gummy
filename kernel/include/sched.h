@@ -17,12 +17,17 @@ typedef struct process process_t;
 
 typedef enum {
 	THREAD_RUNNING = 0,
-	THREAD_READY = 1,
-	THREAD_BLOCKED = 2,
-	THREAD_ZOMBIE = 3,
-	THREAD_SLEEPING =4,
-	THREAD_FREE = 5
+	THREAD_READY,
+	THREAD_BLOCKED,
+	THREAD_ZOMBIE,
+	THREAD_SLEEPING,
+	THREAD_FREE,
 } thread_state_t;
+
+typedef enum {
+	PROCESS_NORMAL = 0,
+	PROCESS_DYING,
+} process_state_t;
 
 struct thread {
 	queue_node_t node;
@@ -41,6 +46,7 @@ struct process {
 	process_t *next;
 	process_t *dad;
 	uintptr_t cr3;
+	process_state_t state;
 	uint32_t pid;
 	uint8_t num_threads;
 };
@@ -74,8 +80,8 @@ void sched_thread_sleep(interrupt_context_t *ctx, uint32_t wake_tick);
 process_t *sched_create_process(void);
 // destroi um processo e suas threads
 void sched_destroy_process(process_t *proc);
-// destroi um processo e suas threads
-void sched_destroy_process(process_t *proc);
+// Mata o processo atual com segurança
+void sched_destroy_current_process(void);
 // Retorna o PID da thread rodando atualmente
 uint32_t sched_get_current_pid(void);
 // Retorna o PPID da thread rodando atualmente
@@ -84,7 +90,7 @@ uint32_t sched_get_current_ppid(void);
 process_t *sched_get_current_process(void);
 // Procura um processo pelo PID.
 // Retorna o ponteiro para ele, nulo se erro.
-process_t *get_process(uint32_t pid);
+process_t *sched_get_process(uint32_t pid);
 
 // Main ===
 
@@ -95,6 +101,10 @@ int sched_init(uint16_t frequency);
 uint32_t sched_get_ticks(void);
 // Retorna o número de milisegundos por tick
 uint32_t sched_get_ms_per_tick(void);
+
+extern thread_t *current_thread;
+extern process_t *current_process;
+extern process_t *first_process;
 
 #define KERNEL_STACK_SIZE (KERNEL_STACK_PAGES * PAGE_SIZE)
 #define USER_STACK_SIZE (USER_STACK_PAGES * PAGE_SIZE)
