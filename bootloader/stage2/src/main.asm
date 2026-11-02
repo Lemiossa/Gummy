@@ -61,6 +61,7 @@ check_386:
     ;; 286
     mov si, inccpu_error_message 
     call console_print_string
+    jmp halt
 cpu 386
 main:
     call disk_init
@@ -77,10 +78,10 @@ main:
     mov edx, 0x10000
     call read_file
 
-    ;; Carregar initrd
-    mov si, initrd_file
-    mov edx, 0x30000
-    call read_file
+    ;; Carregar init
+    ;; mov si, init_file
+    ;; mov edx, 0x30000
+    ;; call read_file
 
     jmp exit_real_mode
 
@@ -121,37 +122,6 @@ zero_entry:
     pop cx
     pop ax
     pop di
-    ret
-
-;; Retorna o tamanho de um arquivo
-;; ds:si: Filename, no formato FAT
-;; retorna:
-;; eax: tamanho do arquivo em bytes
-;; PARA O SISTEMA SE NÃO CONSEGUIR CARREGAR
-get_file_size:
-    push bx
-    push si
-
-    call zero_entry
-
-    ;; Encontra o arquivo
-    call fat_find_in_root_dir
-    jc .error
-    ;; EAX = indice do diretorio raiz
-    ;; Le a entrada
-    mov di, entry
-    call fat_read_root_dir
-    jc .error
-
-    mov eax, dword[entry+fat_entry.file_size]
-.end:
-    jmp .ret
-.error:
-    stc
-.ret:
-    pop si
-    pop bx
-    jc fat_error
     ret
 
 ;; Carrega um arquivo do diretorio raiz
@@ -231,6 +201,6 @@ halted_message:             db `Sistema parado! Reinicie.\r\n`, 0
 config_invalid_size_message:db `Arquivo de config com tamanho errado, deve ser >0 e <=512\r\n`, 0
 fat_error_message:          db `Erro de FAT!\r\n`, 0
 kernel_file:                db `KERNEL  SYS`
-initrd_file:                db `INITRD     `
+init_file:                  db `INIT    SYS`
 
 %include "32bit.asm"

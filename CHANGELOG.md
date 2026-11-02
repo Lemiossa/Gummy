@@ -2,6 +2,11 @@
 
 Todas as mudanças notáveis do Gummy são documentadas aqui. As entradas seguem as tags do Git em ordem cronológica reversa (da mais nova para a mais velha).
 
+## v0.20.1 - 2026-11-02
+
+- **Verificação do 386+ corrigida**: Ao verificar que a CPU era 286 ele tentava continuar executando. Agora corrigi colocando jmp halt
+- Init removido do carregamento do bootloader
+
 ## v0.20.0 - 2026-11-01
 
 - **Bootloader melhor**: Agora bootloader verificar se a CPU é 386+, varios bugs corrigidos e agora usa registradores de 32 bits para cálculos.

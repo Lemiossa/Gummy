@@ -44,7 +44,7 @@ _32bit_entry:
     or eax, 0x80000001
     mov cr0, eax
 
-    jmp 0xC010000
+    jmp 0xC0010000
     cli
     hlt
 

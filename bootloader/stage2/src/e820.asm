@@ -26,6 +26,7 @@ e820_init:
     mov word[es:0x500], 0
     xor ebx, ebx
 .loop:
+    mov dword [es:di+20], 1
     mov eax, 0xE820
     mov edx, 0x534D4150
     mov ecx, 24

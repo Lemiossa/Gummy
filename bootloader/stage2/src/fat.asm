@@ -427,11 +427,11 @@ fat_find_in_root_dir:
     inc eax
     dec ebx
     jnz .find_loop
+.error:
+    stc
 .end:
     clc
     jmp .ret
-.error:
-    stc
 .ret:
     pop es
     pop ds
