@@ -2,6 +2,10 @@
 
 Todas as mudanças notáveis do Gummy são documentadas aqui. As entradas seguem as tags do Git em ordem cronológica reversa (da mais nova para a mais velha).
 
+## v0.22.0 - 2026-11-03
+
+- Alguns arquivos .c e .h formatados
+
 ## v0.22.0 - 2026-11-02
 
 - Adicionado itoa em string.c e string.h

@@ -42,19 +42,19 @@ typedef __builtin_va_list va_list;
 #define va_arg(ap, type) __builtin_va_arg(ap, type)
 #define va_copy(d, s) __builtin_va_copy(d, s)
 
-#define UINT8_MAX   0xFF
-#define UINT16_MAX  0xFFFF
-#define UINT32_MAX  0xFFFFFFFF
-#define UINT64_MAX  0xFFFFFFFFFFFFFFFF
+#define UINT8_MAX 0xFF
+#define UINT16_MAX 0xFFFF
+#define UINT32_MAX 0xFFFFFFFF
+#define UINT64_MAX 0xFFFFFFFFFFFFFFFF
 
-#define INT8_MAX    127
-#define INT16_MAX   32767
-#define INT32_MAX   2147483647
-#define INT64_MAX   9223372036854775807LL
+#define INT8_MAX 127
+#define INT16_MAX 32767
+#define INT32_MAX 2147483647
+#define INT64_MAX 9223372036854775807LL
 
-#define INT8_MIN    (-128)
-#define INT16_MIN   (-32768)
-#define INT32_MIN   (-2147483647 - 1)
-#define INT64_MIN   (-9223372036854775807LL - 1)
+#define INT8_MIN (-128)
+#define INT16_MIN (-32768)
+#define INT32_MIN (-2147483647 - 1)
+#define INT64_MIN (-9223372036854775807LL - 1)
 
 #endif // TYPES_H

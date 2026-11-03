@@ -119,8 +119,7 @@ thread_t *sched_create_thread(uintptr_t loc, process_t *proc) {
 		return NULL;
 	}
 
-	printk("Criando thread no processo PID %u, entry=%p\r\n", proc->pid,
-		   loc);
+	printk("Criando thread no processo PID %u, entry=%p\r\n", proc->pid, loc);
 
 	if (proc->num_threads >= THREAD_PER_PROCESS) {
 		printk("Falha ao criar thread: limite de threads atingido\r\n");
