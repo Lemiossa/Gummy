@@ -70,7 +70,7 @@ void kmain(void) {
 	vmm_init();
 	heap_init();
 	if (sched_init(100)) {
-		debug_log_string("KMAIN", "Falha ao inicializar o escalonador!\r\n");
+		printk("Falha ao inicializar o escalonador!\r\n");
 		goto halt;
 	}
 	syscall_init();
@@ -83,7 +83,7 @@ void kmain(void) {
 	for (;;)
 		halt_cpu();
 halt:
-	debug_log_string("KMAIN", "Sistema parado\r\n");
+	printk("Sistema parado\r\n");
 	disable_interrupts();
 	halt_cpu();
 }

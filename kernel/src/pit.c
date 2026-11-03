@@ -15,13 +15,8 @@ void pit_set_frequency(uint16_t channel, uint16_t frequency, uint8_t mode) {
 	if (channel > 2 || frequency == 0)
 		return;
 
-	debug_log_string("PIT", "Definindo PIT[0x");
-	debug_log_hex16(channel);
-	debug_print_string("]: Freq=0x");
-	debug_log_hex16(frequency);
-	debug_print_string(", Modo=0x");
-	debug_log_hex8(mode);
-	debug_print_string("\r\n");
+	printk("Definindo PIT[%hu]: freq=%u hz, modo=0x%02hhX\r\n", channel,
+		   frequency, mode);
 
 	uint32_t divisor = (uint32_t)PIT_BASE_FREQUENCY / frequency;
 

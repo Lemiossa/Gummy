@@ -5,10 +5,8 @@
 #include <syscall.h>
 #include <types.h>
 
-void proc(void)
-{
-	while (1)
-	{
+void proc(void) {
+	while (1) {
 		sys_sleep(1000);
 	}
 	sys_exit(0);

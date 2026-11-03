@@ -76,7 +76,7 @@ static inline uint32_t get_physical_address(uintptr_t virt) {
 int vmm_map(uintptr_t virt, uintptr_t phys, uint32_t flags) {
 	uint32_t *pde = get_pde(virt);
 	if (!(*pde & VMM_FLAGS_PRESENT)) {
-		debug_log_string("VMM", "Criando uma nova tabela de paginas.\r\n");
+		printk("Criando uma nova tabela de paginas.\r\n");
 
 		// Aloca uma nova tabela de paginas
 		uintptr_t pt_phys = pmm_alloc_page();
@@ -166,7 +166,7 @@ void *vmm_alloc_pages_region(uint32_t n, uint32_t flags, uintptr_t region_start,
 			goto found;
 	}
 
-	debug_log_string("VMM", "Nenhuma regiao adequada encontrada.\r\n");
+	printk("Nenhuma regiao adequada encontrada.\r\n");
 	return NULL; // Nenhuma regiao adequada encontrada
 
 found:
@@ -174,7 +174,7 @@ found:
 		 page += PAGE_SIZE) {
 		uintptr_t phys = pmm_alloc_page();
 		if (phys == 0) {
-			debug_log_string("VMM", "Falha ao alocar pagina fisica.\r\n");
+			printk("Falha ao alocar pagina fisica.\r\n");
 			// Desfaz se a alocacao falhar
 			for (uintptr_t rollback_page = first_page; rollback_page < page;
 				 rollback_page += PAGE_SIZE)
@@ -183,7 +183,7 @@ found:
 		}
 
 		if (vmm_map(page, phys, flags) != 0) {
-			debug_log_string("VMM", "Falha ao mapear phys -> virt.\r\n");
+			printk("Falha ao mapear phys -> virt.\r\n");
 			// Desfaz se o mapeamento falhar
 			pmm_free_page(phys);
 			for (uintptr_t rollback_page = first_page; rollback_page < page;
@@ -193,9 +193,7 @@ found:
 		}
 	}
 
-	debug_log_string("VMM", "Alocadas 0x");
-	debug_log_hex32(n);
-	debug_print_string(" paginas.\r\n");
+	printk("Alocadas %u paginas.\r\n", n);
 
 	return (void *)
 		first_page; // Retorna o primeiro endereco virtual das paginas alocadas
@@ -408,9 +406,7 @@ void vmm_init(void) {
 	uint32_t *pde = get_pde(0);
 	*pde = 0;
 
-	debug_log_string("VMM", "CR3 do kernel: 0x");
-	debug_log_hex32(kernel_cr3);
-	debug_print_string("\r\n");
+	printk("CR3 do kernel: 0x%08X\r\n", kernel_cr3);
 
 	for (uint32_t addr = 0; addr < 0x100000; addr += PAGE_SIZE)
 		invlpg(addr);

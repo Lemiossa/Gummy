@@ -42,18 +42,18 @@ process_t *sched_get_current_process(void) {
 // cria um novo processo
 // retorna um ponteiro para o processo
 process_t *sched_create_process(void) {
-	debug_log_string("SCHED", "Criando processo...\r\n");
+	printk("Criando processo...\r\n");
 
 	process_t *proc = (process_t *)heap_alloc(sizeof(process_t));
 	if (!proc) {
-		debug_log_string("SCHED", "Falha ao alocar memoria para processo\r\n");
+		printk("Falha ao alocar memoria para processo\r\n");
 		return NULL;
 	}
 	memset(proc, 0, sizeof(*proc));
 
 	proc->cr3 = vmm_clone();
 	if (!proc->cr3) {
-		debug_log_string("SCHED", "Falha ao clonar tabela de paginas\r\n");
+		printk("Falha ao clonar tabela de paginas\r\n");
 		heap_free(proc);
 		return NULL;
 	}
@@ -62,9 +62,7 @@ process_t *sched_create_process(void) {
 	proc->pid = current_pid++;
 	proc->dad = current_thread->process;
 
-	debug_log_string("SCHED", "Processo criado com PID 0x");
-	debug_log_hex32(proc->pid);
-	debug_print_string("\r\n");
+	printk("Processo criado com PID %u\r\n", proc->pid);
 
 	ring_buffer_init(&proc->mailbox.ring_buffer, (void *)proc->mailbox.data,
 					 sizeof(ipc_message_t), IPC_QUEUE_SIZE);
@@ -83,13 +81,10 @@ void sched_destroy_process(process_t *proc) {
 	if (!proc)
 		return;
 
-	debug_log_string("SCHED", "Destruindo processo PID 0x");
-	debug_log_hex32(proc->pid);
-	debug_print_string("\r\n");
+	printk("Destruindo processo PID %u\r\n", proc->pid);
 
 	if (read_cr3() == proc->cr3) {
-		debug_log_string("SCHED",
-						 "Nao e possivel destruir processo em execucao\r\n");
+		printk("Nao e possivel destruir processo em execucao\r\n");
 		return;
 	}
 
@@ -121,7 +116,7 @@ void sched_destroy_process(process_t *proc) {
 
 	heap_free(proc);
 
-	debug_log_string("SCHED", "Processo destruido\r\n");
+	printk("Processo destruido\r\n");
 }
 
 // Mata o processo atual com segurança

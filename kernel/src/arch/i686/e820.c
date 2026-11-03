@@ -17,15 +17,7 @@ void E820_init(void) {
 	E820_entries = (e820_entry_t *)(E820_ADDRESS + 2);
 	for (uint16_t i = 0; i < E820_entry_count; i++) {
 		e820_entry_t entry = E820_entries[i];
-
-		debug_log_string("E820", "Entrada 0x");
-		debug_log_hex16(i);
-		debug_print_string(": base: 0x");
-		debug_log_hex64(entry.base);
-		debug_print_string(", length: 0x");
-		debug_log_hex64(entry.length);
-		debug_print_string(", type: 0x");
-		debug_log_hex32(entry.type);
-		debug_print_string("\r\n");
+		printk("e820[%hu]: 0x%016llX-0x%016llX: %u\r\n", i, entry.base,
+			   (uint64_t)(entry.base + entry.length), entry.type);
 	}
 }

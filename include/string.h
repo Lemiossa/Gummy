@@ -6,5 +6,18 @@
 void memcpy(void *dst, const void *src, size_t n);
 // Preenche n bytes com o valor c em dst
 void memset(void *dst, int c, size_t n);
+// Transforma um número em sua representação ascii com uma base desejada
+// Por segurança, o buffer de saída deve ter 66 bytes de tamanho. 64 de números,
+// 65 pra um possível sinal e 66 para caso tudo seja usado e ele precise de um
+// null terminator ou seja:
+//   out: deve ter 66 bytes
+//   base: deve ser de 2 a 16
+//   num: deve ser absoluto
+//   signal: deve indicar se tem '-' ou não
+//   upper: se !0, caracteres serão em maiúsculo
+//   zero_pad: zeros acrescentados no
+// Retorna o número de caracteres escritos
+int itoa(char *out, uint64_t base, uint64_t num, int signal, int upper,
+		 uint32_t zero_pad);
 
 #endif // STRING_H

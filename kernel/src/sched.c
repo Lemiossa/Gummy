@@ -29,16 +29,15 @@ extern uint32_t current_pid;
 // troca o contexto da CPU
 void switch_context(thread_t *new) {
 	if (!current_thread || !new) {
-		debug_log_string("SCHED",
-						 "switch_context: current_thread ou new nulo\r\n");
+		printk("switch_context: current_thread ou new nulo\r\n");
 		return;
 	}
 
 	// falha critica
 	if (!new->process) {
-		debug_log_string("SCHED", "switch_context: falha ao trocar o contexto: "
-								  "new->process == null;\r\n");
-		debug_log_string("SCHED", "switch_context: sistema parado\r\n");
+		printk("switch_context: falha ao trocar o contexto: "
+			   "new->process == null;\r\n");
+		printk("switch_context: sistema parado\r\n");
 		disable_interrupts();
 		halt_cpu();
 	}
@@ -107,16 +106,13 @@ uint32_t sched_get_ms_per_tick(void) { return ms_per_tick; }
 // inicializa o escalonador com a frequencia informada em hz
 // retorna !0 se ocorrer um erro
 int sched_init(uint16_t frequency) {
-	debug_log_string("SCHED", "Inicializando escalonador...\r\n");
+	printk("Inicializando escalonador...\r\n");
 
 	if (frequency <= 18)
 		frequency = 100;
 
 	timer_frequency = frequency;
 	ms_per_tick = 1000 / timer_frequency;
-	debug_log_string("SCHED", "Frequencia do timer: 0x");
-	debug_log_hex16(frequency);
-	debug_print_string(" Hz\r\n");
 
 	idt_set_handler(32, timer_handler);
 	pit_set_frequency(0, timer_frequency, PIT_SQUARE_WAVE_GENERATOR);
@@ -139,10 +135,8 @@ int sched_init(uint16_t frequency) {
 	current_process = &idle_process;
 	first_process = &idle_process;
 
-	debug_log_string("SCHED", "Processo idle criado com PID 0x");
-	debug_log_hex32(idle_process.pid);
-	debug_print_string("\r\n");
-	debug_log_string("SCHED", "Escalonador inicializado\r\n");
+	printk("Processo idle criado com PID %u\r\n", idle_process.pid);
+	printk("Escalonador inicializado\r\n");
 
 	idt_set_handler(0x81, schedule);
 	idt_set_dpl(0x81, 3);

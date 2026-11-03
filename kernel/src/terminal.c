@@ -72,28 +72,3 @@ void terminal_init(void) {
 	vga_update_cursor(cursor_x, cursor_y);
 	initialized = 1;
 }
-
-// Imprime um byte em hexadecimal
-void terminal_print_hex8(uint8_t b) {
-	char str[3];
-	BYTE_TO_HEX(b, str);
-	terminal_print_string(str);
-}
-
-// Imprime uma word em hexadecimal
-void terminal_print_hex16(uint16_t w) {
-	terminal_print_hex8((w >> 8) & 0xFF);
-	terminal_print_hex8(w & 0xFF);
-}
-
-// Imprime uma dword em hexadecimal
-void terminal_print_hex32(uint32_t dw) {
-	terminal_print_hex16((dw >> 16) & 0xFFFF);
-	terminal_print_hex16(dw & 0xFFFF);
-}
-
-// Imprime uma qword em hexadecimal
-void terminal_print_hex64(uint64_t qw) {
-	terminal_print_hex32((qw >> 32) & 0xFFFFFFFF);
-	terminal_print_hex32(qw & 0xFFFFFFFF);
-}

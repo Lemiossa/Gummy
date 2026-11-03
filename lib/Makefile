@@ -62,7 +62,9 @@ endif
 SRC := \
 		$(SRCDIR)/string.c \
 		$(SRCDIR)/queue.c \
-		$(SRCDIR)/ring_buffer.c 
+		$(SRCDIR)/ring_buffer.c \
+		$(SRCDIR)/lock.c \
+		$(SRCDIR)/vsnprintf.c 
 
 SRC_C      := $(filter %.c,$(SRC))
 SRC_ASM    := $(filter %.asm,$(SRC))

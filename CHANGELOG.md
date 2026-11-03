@@ -2,6 +2,13 @@
 
 Todas as mudanças notáveis do Gummy são documentadas aqui. As entradas seguem as tags do Git em ordem cronológica reversa (da mais nova para a mais velha).
 
+## v0.22.0 - 2026-11-02
+
+- Adicionado itoa em string.c e string.h
+- Adicionado vsnprintf no vsnprintf.c e vsnprintf.h
+- Adicionado printk no debug.c e debug.h, substitui todos os logs por printk, simplificados
+- Adicionado spinlocks em lock.c e lock.h
+
 ## v0.21.0 - 2026-11-02
 
 - Processos de usuário podem morrer ao causar exceções

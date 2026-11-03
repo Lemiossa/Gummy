@@ -47,23 +47,14 @@ static const char *exception_names[32] = {
 // Trata excecoes
 static void exception_handler(interrupt_context_t *ctx) {
 	int from_user = (ctx->cs & 3) == 3;
-	debug_log_string("CPU EXCEPTION", "*** EXCECAO DE CPU ***\r\n");
 
-	debug_log_string("CPU EXCEPTION", "Excecao: ");
-	debug_print_string(exception_names[ctx->int_num]);
-	debug_print_string("\r\n");
-	debug_log_string("CPU EXCEPTION", "INT: 0x");
-	debug_log_hex32(ctx->int_num);
-	debug_print_string("\r\n");
-	debug_log_string("CPU EXCEPTION", "EIP: 0x");
-	debug_log_hex32(ctx->eip);
-	debug_print_string("\r\n");
+	printk("%s!\r\n", exception_names[ctx->int_num]);
+	printk("    INT: %u\r\n", ctx->int_num);
+	printk("    EIP: 0x%08X\r\n", ctx->eip);
 
 	if (ctx->int_num == 14) { // Page fault
 		uint32_t cr2 = read_cr2();
-		debug_log_string("CPU EXCEPTION", "CR2: 0x");
-		debug_log_hex32(cr2);
-		debug_print_string("\r\n");
+		printk("    CR2: 0x%08X\r\n", cr2);
 	}
 
 	debug_dump_code((uintptr_t)ctx->eip, 16);
@@ -72,7 +63,7 @@ static void exception_handler(interrupt_context_t *ctx) {
 		return;
 	}
 
-	debug_log_string("CPU EXCEPTION", "Sistema parado.\r\n");
+	printk("Sistema parado!\r\n");
 
 	for (;;) {
 		disable_interrupts();

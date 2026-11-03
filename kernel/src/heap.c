@@ -24,8 +24,7 @@ void heap_init(void) {
 	uintptr_t region_end =
 		HEAP_VIRTUAL_ADDRESS + HEAP_INITIAL_PAGES * PAGE_SIZE;
 	if ((uintptr_t)region_end >= 0xFFC00000) {
-		debug_log_string(
-			"HEAP", "Falha na inicializacao: region_end excede 0xFFC00000\r\n");
+		printk("Falha na inicializacao: region_end excede 0xFFC00000\r\n");
 		return;
 	}
 
@@ -33,17 +32,12 @@ void heap_init(void) {
 		HEAP_INITIAL_PAGES, VMM_FLAGS_RW | VMM_FLAGS_PRESENT, region_start,
 		region_end);
 	if (!heap_start) {
-		debug_log_string(
-			"HEAP",
-			"Falha na inicializacao: vmm_alloc_pages retornou NULL\r\n");
+		printk("Falha na inicializacao: vmm_alloc_pages retornou NULL\r\n");
 		return;
 	}
 
-	debug_log_string("HEAP", "vaddr: 0x");
-	debug_log_hex64((uint64_t)HEAP_VIRTUAL_ADDRESS);
-	debug_print_string(", paginas iniciais: 0x");
-	debug_log_hex32((uint32_t)HEAP_INITIAL_PAGES);
-	debug_print_string("\r\n");
+	printk("vaddr: 0x%016llX, paginas iniciais: 0x%08X\r\n",
+		   (uint64_t)HEAP_VIRTUAL_ADDRESS, (uint32_t)HEAP_INITIAL_PAGES);
 
 	size_t region_size = HEAP_INITIAL_PAGES * PAGE_SIZE;
 	heap_start->size = region_size - sizeof(heap_block_t);
@@ -77,11 +71,8 @@ void *heap_expand(size_t n) {
 	new_block->next = NULL;
 	b->next = new_block;
 
-	debug_log_string("HEAP", "Heap expandido em 0x");
-	debug_log_hex32((uint32_t)n);
-	debug_print_string(" paginas, novo bloco em 0x");
-	debug_log_hex64((uint64_t)(uintptr_t)new_block);
-	debug_print_string("\r\n");
+	printk("Heap expandido em %u paginas, novo bloco em 0x%016llX\r\n",
+		   (uint32_t)n, (uint64_t)(uintptr_t)new_block);
 
 	return new_block;
 }
@@ -142,9 +133,7 @@ void *heap_alloc(size_t size) {
 
 	size = ALIGN_UP(size, sizeof(uintptr_t));
 
-	debug_log_string("HEAP", "Alocando 0x");
-	debug_log_hex64((uint64_t)size);
-	debug_print_string(" bytes\r\n");
+	printk("Alocando %llu b\r\n", (uint64_t)size);
 
 	heap_block_t *b = heap_start;
 	while (b) {
@@ -185,9 +174,7 @@ void heap_free(void *ptr) {
 		b = b->next;
 	}
 
-	debug_log_string("HEAP", "Bloco liberado em 0x");
-	debug_log_hex64((uint64_t)(uintptr_t)b);
-	debug_print_string("\r\n");
+	printk("Bloco liberado em 0x%016llX\r\n", (uint64_t)(uintptr_t)b);
 
 	heap_merge_free_blocks(b);
 }
@@ -195,11 +182,11 @@ void heap_free(void *ptr) {
 // Imprime o estado atual do heap (para fins de debug)
 void heap_print(void) {
 	if (!heap_start) {
-		debug_log_string("HEAP", "Heap nao inicializado\r\n");
+		printk("Heap nao inicializado\r\n");
 		return;
 	}
 
-	uint32_t blocks = 0, used_bytes = 0, free_bytes = 0, largest_free = 0;
+	uint32_t blocks = 0, used_bytes = 0, free_bytes = 0;
 
 	for (heap_block_t *b = heap_start; b; b = b->next) {
 		blocks++;
@@ -207,18 +194,9 @@ void heap_print(void) {
 			used_bytes += b->size;
 		else {
 			free_bytes += b->size;
-			if (b->size > largest_free)
-				largest_free = b->size;
 		}
 	}
 
-	debug_log_string("HEAP", "blocos=0x");
-	debug_log_hex32(blocks);
-	debug_print_string(" usado=0x");
-	debug_log_hex32(used_bytes);
-	debug_print_string(" livre=0x");
-	debug_log_hex32(free_bytes);
-	debug_print_string(" maior_livre=0x");
-	debug_log_hex32(largest_free);
-	debug_print_string("\r\n");
+	printk("blocos=%u usado=%u b livre=%u b\r\n", blocks, used_bytes,
+		   free_bytes);
 }

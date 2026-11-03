@@ -85,13 +85,10 @@ void sched_destroy_thread(thread_t *thread) {
 	if (thread->state == THREAD_FREE || !thread->process)
 		return; // Ja esta livre
 
-	debug_log_string("SCHED", "Destruindo thread do processo PID 0x");
-	debug_log_hex32(thread->process->pid);
-	debug_print_string("\r\n");
+	printk("Destruindo thread do processo PID %u\r\n", thread->process->pid);
 
 	if (thread == current_thread) {
-		debug_log_string("SCHED",
-						 "Aviso: nao e possivel destruir thread atual\r\n");
+		printk("Aviso: nao e possivel destruir thread atual\r\n");
 		return;
 	}
 
@@ -110,7 +107,7 @@ void sched_destroy_thread(thread_t *thread) {
 	thread->state = THREAD_FREE;
 	write_flags(flags);
 
-	debug_log_string("SCHED", "Thread destruida\r\n");
+	printk("Thread destruida\r\n");
 }
 
 // cria uma thread
@@ -118,20 +115,15 @@ void sched_destroy_thread(thread_t *thread) {
 // loc precisa estar mapeado com USER em proc->cr3 antes da primeira execução
 thread_t *sched_create_thread(uintptr_t loc, process_t *proc) {
 	if (!proc || !loc) {
-		debug_log_string("SCHED",
-						 "sched_create_thread: parametros invalidos\r\n");
+		printk("sched_create_thread: parametros invalidos\r\n");
 		return NULL;
 	}
 
-	debug_log_string("SCHED", "Criando thread no processo PID 0x");
-	debug_log_hex32(proc->pid);
-	debug_print_string(", entry=0x");
-	debug_log_hex32((uint32_t)loc);
-	debug_print_string("\r\n");
+	printk("Criando thread no processo PID %u, entry=%p\r\n", proc->pid,
+		   loc);
 
 	if (proc->num_threads >= THREAD_PER_PROCESS) {
-		debug_log_string(
-			"SCHED", "Falha ao criar thread: limite de threads atingido\r\n");
+		printk("Falha ao criar thread: limite de threads atingido\r\n");
 		return NULL;
 	}
 
@@ -213,9 +205,7 @@ thread_t *sched_create_thread(uintptr_t loc, process_t *proc) {
 	proc->num_threads++;
 	write_flags(flags);
 
-	debug_log_string("SCHED", "Thread criada com sucesso (PID 0x");
-	debug_log_hex32(proc->pid);
-	debug_print_string(")\r\n");
+	printk("Thread criada com sucesso (PID %u)\r\n", proc->pid);
 
 	return t;
 }
@@ -223,8 +213,7 @@ thread_t *sched_create_thread(uintptr_t loc, process_t *proc) {
 // Sai da thread atual e seta o exit code dela
 void sched_exit_current_thread(interrupt_context_t *ctx, int32_t status) {
 	if (current_thread->process == &idle_process) {
-		debug_log_string("SCHED",
-						 "Tentativa de sair do idle interrompida.\r\n");
+		printk("Tentativa de sair do idle interrompida.\r\n");
 		return;
 	}
 

@@ -44,10 +44,10 @@ void syscall_handler(interrupt_context_t *ctx) {
 	case SYS_NPROCESS:
 		ret = sys_nprocess_impl(ctx);
 		break;
-	case SYS_SEND: 
+	case SYS_SEND:
 		ret = sys_send_impl(ctx);
 		break;
-	case SYS_RECEIVE: 
+	case SYS_RECEIVE:
 		ret = sys_receive_impl(ctx);
 		break;
 	default:
@@ -157,6 +157,5 @@ uint32_t sys_send_impl(interrupt_context_t *ctx) {
 }
 
 uint32_t sys_receive_impl(interrupt_context_t *ctx) {
-	return ipc_receive((uint32_t *)ctx->esi, (void *)ctx->edi,
-								  ctx->ebx);
+	return ipc_receive((uint32_t *)ctx->esi, (void *)ctx->edi, ctx->ebx);
 }
