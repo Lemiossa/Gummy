@@ -1,0 +1,149 @@
+#!/usr/bin/env python3
+import sys
+import os
+import stat
+import struct
+import shutil
+
+MAGIC = 0x47554D4D
+VERSION = 1
+
+TYPE_DIRECTORY = 1
+TYPE_FILE = 2
+
+HEADER_FORMAT = "<IIII"
+ENTRY_FORMAT = "<IIIII"
+
+HEADER_SIZE = struct.calcsize(HEADER_FORMAT)
+ENTRY_SIZE = struct.calcsize(ENTRY_FORMAT)
+
+
+def main():
+    if len(sys.argv) != 3:
+        print("Erro: Argumentos incorretos")
+        print(f"Uso: {sys.argv[0]} <pasta> <arquivo de saida>")
+        return 1
+
+    input_dir = os.path.abspath(sys.argv[1])
+    output_file = os.path.abspath(sys.argv[2])
+
+    if not os.path.isdir(input_dir):
+        print("Erro: Diretorio de entrada inexistente")
+        return 1
+
+    entries = []
+
+    # Coleta os arquivos e diretorios.
+    for root, dirs, files in os.walk(input_dir):
+        dirs.sort()
+        files.sort()
+
+        for dirname in dirs:
+            path = os.path.join(root, dirname)
+
+            if os.path.islink(path):
+                continue
+
+            virtual_path = "/" + os.path.relpath(
+                path, input_dir
+            ).replace(os.sep, "/")
+
+            st = os.stat(path)
+
+            entries.append({
+                "name": virtual_path.encode("utf-8") + b"\0",
+                "type": TYPE_DIRECTORY,
+                "permissions": stat.S_IMODE(st.st_mode),
+                "path": path,
+                "size": 0,
+                "offset": 0
+            })
+
+        for filename in files:
+            path = os.path.join(root, filename)
+
+            if os.path.islink(path) or not os.path.isfile(path):
+                continue
+
+            if path == output_file:
+                continue
+
+            virtual_path = "/" + os.path.relpath(
+                path, input_dir
+            ).replace(os.sep, "/")
+
+            st = os.stat(path)
+
+            entries.append({
+                "name": virtual_path.encode("utf-8") + b"\0",
+                "type": TYPE_FILE,
+                "permissions": stat.S_IMODE(st.st_mode),
+                "path": path,
+                "size": st.st_size,
+                "offset": 0
+            })
+
+    # Calcula o tamanho da tabela.
+    table_size = 0
+
+    for entry in entries:
+        record_size = ENTRY_SIZE + len(entry["name"])
+        table_size += record_size
+
+    entry_count = len(entries)
+    data_offset = HEADER_SIZE + table_size
+
+    # Calcula os offsets dos dados.
+    current_offset = data_offset
+
+    for entry in entries:
+        if entry["type"] == TYPE_FILE:
+            entry["offset"] = current_offset
+            current_offset += entry["size"]
+
+    # Gera o arquivo.
+    with open(output_file, "wb") as output:
+        header = struct.pack(
+            HEADER_FORMAT,
+            MAGIC,
+            VERSION,
+            entry_count,
+            data_offset
+        )
+
+        output.write(header)
+
+        # Escreve a tabela de entradas.
+        for entry in entries:
+            name = entry["name"]
+
+            record = struct.pack(
+                ENTRY_FORMAT,
+                entry["type"],
+                entry["permissions"],
+                len(name),
+                entry["offset"],
+                entry["size"]
+            )
+
+            output.write(record)
+            output.write(name)
+
+        # Escreve os dados dos arquivos.
+        for entry in entries:
+            if entry["type"] != TYPE_FILE:
+                continue
+
+            with open(entry["path"], "rb") as source:
+                shutil.copyfileobj(source, output)
+
+    print(f"Entradas: {entry_count}")
+    print(f"Dados: {data_offset} bytes ate o inicio")
+    print(f"Initrd: {current_offset} bytes")
+    print(f"Saida: {output_file}")
+
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

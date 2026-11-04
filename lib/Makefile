@@ -31,8 +31,6 @@ else
 endif
 CPPFLAGS := -I$(PROJ)/include \
 			-DNAME=\"$(NAME)\" -DVERSION=\"$(VERSION)\"
-LDFLAGS  := -T $(LINKER_FILE) -static -nostdlib -Wl,--gc-sections
-LDLIBS   := -lgcc
 ARFLAGS  := rcs
 
 # Cores
@@ -63,7 +61,7 @@ SRC := \
 		$(SRCDIR)/string.c \
 		$(SRCDIR)/queue.c \
 		$(SRCDIR)/ring_buffer.c \
-		$(SRCDIR)/lock.c \
+		$(SRCDIR)/spinlock.c \
 		$(SRCDIR)/vsnprintf.c 
 
 SRC_C      := $(filter %.c,$(SRC))

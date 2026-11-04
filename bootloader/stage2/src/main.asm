@@ -4,7 +4,8 @@ org 0x7e00
 bits 16
 cpu 8086
 
-%define CONFIG_LOC 0x1000
+%define INITRD_LOC 0x50000
+%define KERNEL_LOC 0x10000
 
 start:
     cli
@@ -75,13 +76,13 @@ main:
 
     ;; Carregar kernel
     mov si, kernel_file
-    mov edx, 0x10000
+    mov edx, KERNEL_LOC
     call read_file
 
-    ;; Carregar init
-    ;; mov si, init_file
-    ;; mov edx, 0x30000
-    ;; call read_file
+    ;; Carregar initrd
+    mov si, initrd_file
+    mov edx, INITRD_LOC
+    call read_file
 
     jmp exit_real_mode
 
@@ -147,7 +148,7 @@ read_file:
     call fat_read_root_dir
     jc .fail
 
-    ;; Le o arquivo do kernel
+    ;; Le o arquivo
     mov si, entry
     mov ebx, edx
     shr edx, 4
@@ -201,6 +202,6 @@ halted_message:             db `Sistema parado! Reinicie.\r\n`, 0
 config_invalid_size_message:db `Arquivo de config com tamanho errado, deve ser >0 e <=512\r\n`, 0
 fat_error_message:          db `Erro de FAT!\r\n`, 0
 kernel_file:                db `KERNEL  SYS`
-init_file:                  db `INIT    SYS`
+initrd_file:                db `INITRD     `
 
 %include "32bit.asm"

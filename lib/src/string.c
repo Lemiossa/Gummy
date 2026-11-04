@@ -29,6 +29,23 @@ void memset(void *dst, int c, size_t n) {
 		p[i] = b;
 }
 
+// Compara n bytes de duas regiões da memória
+// Retorna a diferença
+int memcmp(const void *s1, const void *s2, size_t n) {
+	const unsigned char *a = s1;
+	const unsigned char *b = s2;
+
+	while (n--) {
+		if (*a != *b)
+			return *a - *b;
+
+		a++;
+		b++;
+	}
+
+	return 0;
+}
+
 const char CHARS[] = "0123456789ABCDEF";
 const char chars[] = "0123456789abcdef";
 
@@ -87,4 +104,40 @@ int itoa(char *out, uint64_t base, uint64_t num, int signal, int upper,
 	out[pos] = '\0';
 
 	return pos;
+}
+
+// Retorna o tamanho de uma string
+size_t strlen(const char *str) {
+	size_t len = 0;
+
+	while (str[len])
+		len++;
+
+	return len;
+}
+
+// Compara as duas strings até o fim da primeira
+// Retorna a diferença
+int strcmp(const char *s1, const char *s2) {
+	while (*s1 && (*s1 == *s2)) {
+		s1++;
+		s2++;
+	}
+
+	return (unsigned char)*s1 - (unsigned char)*s2;
+}
+
+// Compara n bytes de duas strings
+// Retorna a diferença
+int strncmp(const char *s1, const char *s2, size_t n) {
+	while (n && *s1 && (*s1 == *s2)) {
+		s1++;
+		s2++;
+		n--;
+	}
+
+	if (!n)
+		return 0;
+
+	return (unsigned char)*s1 - (unsigned char)*s2;
 }

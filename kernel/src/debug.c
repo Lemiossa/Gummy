@@ -2,7 +2,9 @@
  * debug.c
  * Criado por Matheus Leme da Silva
  * */
+#include <io.h>
 #include <serial.h>
+#include <spinlock.h>
 #include <terminal.h>
 #include <utils.h>
 #include <vsnprintf.h>
@@ -16,11 +18,18 @@ void debug_init(void) {
 			"Falha ao inicializar a porta serial de debug\r\n");
 }
 
+spinlock_t debug_lock = SPINLOCK_INIT;
+
 // Imprime uma string no debug
 void debug_print_string(const char *s) {
+	uintptr_t flags = read_flags();
+	disable_interrupts();
+	spinlock(&debug_lock);
 	terminal_print_string(s);
 	while (*s)
 		write_serial(DEBUG_SERIAL_PORT, *s++);
+	spinunlock(&debug_lock);
+	write_flags(flags);
 }
 
 // Imprime uma string formatada no terminal e no serial

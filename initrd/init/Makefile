@@ -4,7 +4,7 @@
 ARCH        ?= i686
 NAME        ?= Gummy
 VERSION     ?= dev
-PROJ        ?= $(CURDIR)/..
+PROJ        ?= $(CURDIR)/../..
 BUILDDIR    := $(CURDIR)/build
 BINDIR      := $(BUILDDIR)/bin
 OBJDIR      := $(BUILDDIR)/obj

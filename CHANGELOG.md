@@ -2,6 +2,13 @@
 
 Todas as mudanças notáveis do Gummy são documentadas aqui. As entradas seguem as tags do Git em ordem cronológica reversa (da mais nova para a mais velha).
 
+## v0.23.0 - 2026-11-04
+
+- **Initrd**: Agora bootloader carrega o initrd em /INITRD, o kernel parsea e lê init.sys dentro dele
+- Removido teste de exceção de divisão por zero
+- Renomeado lock* pra spinlock*
+- Adicionado memcmp, strlen, strcmp e strncmp no string.c e string.h
+
 ## v0.22.1 - 2026-11-03
 
 - Alguns arquivos .c e .h formatados
