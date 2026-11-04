@@ -101,6 +101,7 @@ clean:
 	@$(MAKE) --no-print-directory -C bootloader clean TARGET_BIN=$(BOOTLOADER)
 	@$(MAKE) --no-print-directory -C kernel     clean TARGET_BIN=$(KERNEL)
 	@$(MAKE) --no-print-directory -C initrd     clean TARGET=$(INITRD)
+	@$(MAKE) --no-print-directory -C lib        clean TARGET=$(GLOBAL_LIB)
 	$(call echo_cmd,CLEAN,$(BUILDDIR))
 	@rm -rf $(BUILDDIR)
 
