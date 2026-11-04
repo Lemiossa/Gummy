@@ -62,7 +62,8 @@ SRC := \
 		$(SRCDIR)/queue.c \
 		$(SRCDIR)/ring_buffer.c \
 		$(SRCDIR)/spinlock.c \
-		$(SRCDIR)/vsnprintf.c 
+		$(SRCDIR)/vsnprintf.c \
+		$(SRCDIR)/initrd.c 
 
 SRC_C      := $(filter %.c,$(SRC))
 SRC_ASM    := $(filter %.asm,$(SRC))

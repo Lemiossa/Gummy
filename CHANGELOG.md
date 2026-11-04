@@ -4,6 +4,10 @@ Todas as mudanças notáveis do Gummy são documentadas aqui. As entradas seguem
 
 ## v0.23.0 - 2026-11-04
 
+- Movido funções genéricas de initrd para a biblioteca padrão do gummy(initrd.c e initrd.h)
+
+## v0.23.0 - 2026-11-04
+
 - **Initrd**: Agora bootloader carrega o initrd em /INITRD, o kernel parsea e lê init.sys dentro dele
 - Removido teste de exceção de divisão por zero
 - Renomeado lock* pra spinlock*
