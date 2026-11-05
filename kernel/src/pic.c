@@ -40,9 +40,6 @@ void pic_remap(void) {
 
 	outb(PIC1_DATA, 0xFF);
 	outb(PIC2_DATA, 0xFF);
-
-	printk("PIC remapeado para 0x%02X-0x%02X\r\n", PIC_VECTOR_START,
-		   PIC_VECTOR_START + 8);
 }
 
 // Envia o fim de interrupcao (EOI) para o PIC
@@ -54,8 +51,6 @@ void pic_send_eoi(uint8_t irq) {
 
 // Define a mascara da IRQ
 void pic_irq_set_mask(uint8_t irq) {
-	printk("Definindo mascara da IRQ %u\r\n", irq);
-
 	if (irq < 8)
 		outb(PIC1_DATA, inb(PIC1_DATA) | (1 << irq));
 	else
@@ -64,8 +59,6 @@ void pic_irq_set_mask(uint8_t irq) {
 
 // Limpa a mascara da IRQ
 void pic_irq_clear_mask(uint8_t irq) {
-	printk("Limpando mascara da IRQ %u\r\n", irq);
-
 	if (irq < 8)
 		outb(PIC1_DATA, inb(PIC1_DATA) & ~(1 << irq));
 	else

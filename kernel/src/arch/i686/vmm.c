@@ -76,8 +76,6 @@ static inline uint32_t get_physical_address(uintptr_t virt) {
 int vmm_map(uintptr_t virt, uintptr_t phys, uint32_t flags) {
 	uint32_t *pde = get_pde(virt);
 	if (!(*pde & VMM_FLAGS_PRESENT)) {
-		printk("Criando uma nova tabela de paginas.\r\n");
-
 		// Aloca uma nova tabela de paginas
 		uintptr_t pt_phys = pmm_alloc_page();
 		if (!pt_phys)
@@ -166,7 +164,6 @@ void *vmm_alloc_pages_region(uint32_t n, uint32_t flags, uintptr_t region_start,
 			goto found;
 	}
 
-	printk("Nenhuma regiao adequada encontrada.\r\n");
 	return NULL; // Nenhuma regiao adequada encontrada
 
 found:
@@ -192,8 +189,6 @@ found:
 			return NULL;
 		}
 	}
-
-	printk("Alocadas %u paginas.\r\n", n);
 
 	return (void *)
 		first_page; // Retorna o primeiro endereco virtual das paginas alocadas

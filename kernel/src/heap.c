@@ -36,9 +36,6 @@ void heap_init(void) {
 		return;
 	}
 
-	printk("vaddr: 0x%016llX, paginas iniciais: 0x%08X\r\n",
-		   (uint64_t)HEAP_VIRTUAL_ADDRESS, (uint32_t)HEAP_INITIAL_PAGES);
-
 	size_t region_size = HEAP_INITIAL_PAGES * PAGE_SIZE;
 	heap_start->size = region_size - sizeof(heap_block_t);
 	heap_start->used = 0;
@@ -133,8 +130,6 @@ void *heap_alloc(size_t size) {
 
 	size = ALIGN_UP(size, sizeof(uintptr_t));
 
-	printk("Alocando %llu b\r\n", (uint64_t)size);
-
 	heap_block_t *b = heap_start;
 	while (b) {
 		if (!b->used && b->size >= size) {
@@ -173,8 +168,6 @@ void heap_free(void *ptr) {
 		}
 		b = b->next;
 	}
-
-	printk("Bloco liberado em 0x%016llX\r\n", (uint64_t)(uintptr_t)b);
 
 	heap_merge_free_blocks(b);
 }

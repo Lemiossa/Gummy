@@ -38,7 +38,5 @@ void gdt_init(void) {
 	gdt_set_entry(3, 0x00000000, 0xFFFFF, 0b11111010, 0b1100);	   // UCODE32
 	gdt_set_entry(4, 0x00000000, 0xFFFFF, 0b11110010, 0b1100);	   // UDATA32
 
-	printk("GDT: Size: 0x%04hX, Off: 0x%08X\r\n", gdtr.size, gdtr.offset);
-
 	gdt_flush(&gdtr);
 }

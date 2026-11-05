@@ -74,7 +74,5 @@ void idt_init(void) {
 	idt_set_entry(3, isr_table[3], 0x08, IDT_TRAP_GATE);
 	idt_set_entry(4, isr_table[4], 0x08, IDT_TRAP_GATE);
 
-	printk("IDT: Size: 0x%04hX, Off: 0x%08X\r\n", idtr.size, idtr.offset);
-
 	load_idt(&idtr);
 }
