@@ -10,7 +10,9 @@
 #include <pit.h>
 #include <pmm.h>
 #include <queue.h>
-#include <sched.h>
+#include <sched/process.h>
+#include <sched/sched.h>
+#include <sched/thread.h>
 #include <tss.h>
 #include <types.h>
 #include <vmm.h>
@@ -19,13 +21,6 @@ volatile uint32_t ticks = 0;
 uint16_t timer_frequency = 0;
 uint32_t ms_per_tick = 0;
 
-extern process_t idle_process;
-extern queue_t ready_queue;
-extern queue_t blocked_queue;
-extern queue_t zombie_queue;
-extern queue_t sleep_queue;
-extern uint32_t current_pid;
-
 // troca o contexto da CPU
 void switch_context(thread_t *new) {
 	if (!current_thread || !new) {
@@ -33,8 +28,10 @@ void switch_context(thread_t *new) {
 		return;
 	}
 
+	process_t *proc = sched_get_process(new->pid);
+
 	// falha critica
-	if (!new->process) {
+	if (!proc) {
 		printk("switch_context: falha ao trocar o contexto: "
 			   "new->process == null;\r\n");
 		printk("switch_context: sistema parado\r\n");
@@ -47,10 +44,8 @@ void switch_context(thread_t *new) {
 	if (new != &idle_process.threads[0])
 		tss_set_sp0(new->stack0 + KERNEL_STACK_SIZE, 0x10);
 
-	if (new->process != current_process)
-		write_cr3(new->process->cr3);
+	write_cr3(proc->cr3);
 
-	current_process = new->process;
 	current_thread->state = THREAD_RUNNING;
 
 	restore_context(current_thread->sp0);
@@ -68,16 +63,22 @@ void schedule(interrupt_context_t *ctx) {
 	if (current_thread->state == THREAD_RUNNING)
 		queue_push(&ready_queue, &current_thread->node);
 
-	queue_node_t *n = queue_pop(&ready_queue);
-	thread_t *new_thread = (thread_t *)CONTAINER_OF(n, thread_t, node);
-	if (new_thread == current_thread)
-		return;
+	while (1) {
+		queue_node_t *n = queue_pop(&ready_queue);
+		thread_t *new_thread = (thread_t *)CONTAINER_OF(n, thread_t, node);
+		if (new_thread == current_thread)
+			return;
 
-	if (new_thread->process->state == PROCESS_DYING)
-		return; // Mais tempo de execução pra tarefa atual até que um processo
-				// normal seja encontrado
+		process_t *proc = sched_get_process(new_thread->pid);
+		if (!proc)
+			return;
 
-	switch_context(new_thread);
+		if (proc->state == PROCESS_DYING)
+			return; // Mais tempo de execução pra tarefa atual até que um
+					// processo normal seja encontrado
+
+		switch_context(new_thread);
+	}
 }
 
 // Rotina do timer
@@ -119,20 +120,17 @@ int sched_init(uint16_t frequency) {
 
 	idle_process.pid = current_pid++;
 	idle_process.cr3 = kernel_cr3;
-	idle_process.num_threads = 1;
 
 	queue_init(&ready_queue);
-	queue_init(&blocked_queue);
 	queue_init(&zombie_queue);
 	queue_init(&sleep_queue);
 
 	current_thread = &idle_process.threads[0];
-	current_thread->process = &idle_process;
+	current_thread->pid = idle_process.pid;
 
 	idle_process.prev = NULL;
 	idle_process.next = NULL;
-	idle_process.dad = NULL;
-	current_process = &idle_process;
+	idle_process.parent = NULL;
 	first_process = &idle_process;
 
 	printk("Processo idle criado com PID %u\r\n", idle_process.pid);

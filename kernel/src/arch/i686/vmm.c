@@ -393,6 +393,20 @@ int vmm_free_pages_in(uintptr_t cr3, uint32_t n, void *virt) {
 	return 0;
 }
 
+// Copia n bytes de um cr3 para outro com segurança
+// Retorna !0 se houver erro
+int vmm_copy(uintptr_t from_cr3, uintptr_t from_vaddr, uintptr_t to_cr3,
+		uintptr_t to_vaddr, uint32_t n) {
+	if (n == 0)
+		return 1;
+
+	flags_t flags = read_flags();
+	disable_interrupts();
+	
+	write_flags(flags);
+	return 0;
+}
+
 // Inicializa o gerenciador de memoria virtual
 void vmm_init(void) {
 	kernel_cr3 = read_cr3();

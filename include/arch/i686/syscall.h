@@ -11,11 +11,16 @@ enum {
 	SYS_SLEEP,
 	SYS_SEND,
 	SYS_RECEIVE,
+	SYS_MAP,
+	SYS_UNMAP,
 };
 
 #ifdef KERNEL
 void syscall_init(void);
 #endif
+
+#define IPC_QUEUE_SIZE 16
+#define IPC_MSG_MAX 64
 
 #define SYSCALL_INLINE static inline __attribute__((always_inline))
 
@@ -91,6 +96,28 @@ SYSCALL_INLINE int sys_receive(uint32_t *sender_pid, void *buffer,
 		: "memory");
 
 	return ret;
+}
+
+// Syscall de map
+SYSCALL_INLINE int sys_map(uintptr_t phys, uintptr_t virt, uint32_t pages,
+						   uint32_t flags) {
+	int ret;
+
+	__asm__ volatile("int $0x80"
+					 : "=a"(ret)
+					 : "a"(SYS_MAP), "S"(phys), "D"(virt), "b"(pages),
+					   "d"(flags)
+					 : "memory");
+
+	return ret;
+}
+
+// Syscall do unmap
+SYSCALL_INLINE void sys_unmap(uintptr_t virt, uint32_t pages) {
+	__asm__ volatile("int $0x80"
+					 :
+					 : "a"(SYS_UNMAP), "D"(virt), "b"(pages)
+					 : "memory");
 }
 
 #endif // SYSCALL_H

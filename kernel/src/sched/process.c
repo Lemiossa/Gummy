@@ -2,15 +2,18 @@
  * process.c
  * Criado por Matheus Leme da Silva
  * */
-#include "syscall.h"
+#include "sched/cap.h"
 #include <debug.h>
 #include <heap.h>
 #include <io.h>
 #include <ipc.h>
+#include <pmm.h>
 #include <queue.h>
 #include <ring_buffer.h>
-#include <sched.h>
+#include <sched/process.h>
+#include <sched/thread.h>
 #include <string.h>
+#include <syscall.h>
 #include <types.h>
 #include <vmm.h>
 
@@ -18,11 +21,13 @@ process_t idle_process;
 uint32_t current_pid = 0;
 process_t *first_process = NULL;
 extern thread_t *current_thread;
-process_t *current_process;
 
 // Procura um processo pelo PID.
 // Retorna o ponteiro para ele, nulo se erro.
-process_t *sched_get_process(uint32_t pid) {
+process_t *sched_get_process(pid_t pid) {
+	if (pid < 0)
+		return NULL;
+
 	process_t *process = first_process;
 	while (process) {
 		if (process->pid == pid)
@@ -34,9 +39,9 @@ process_t *sched_get_process(uint32_t pid) {
 
 // Retorna o ponteiro pro processo atual rodando
 process_t *sched_get_current_process(void) {
-	if (!current_thread || !current_thread->process)
+	if (!current_thread || current_thread->pid < 0)
 		return NULL;
-	return current_thread->process;
+	return sched_get_process(current_thread->pid);
 }
 
 // cria um novo processo
@@ -58,11 +63,11 @@ process_t *sched_create_process(void) {
 		return NULL;
 	}
 
-	proc->num_threads = 0;
 	proc->pid = current_pid++;
-	proc->dad = current_thread->process;
+	proc->parent = sched_get_current_process();
 
-	printk("Processo criado com PID %u\r\n", proc->pid);
+	for (int i = 0; i < THREAD_PER_PROCESS; i++)
+		proc->threads[i].state = THREAD_FREE;
 
 	ring_buffer_init(&proc->mailbox.ring_buffer, (void *)proc->mailbox.data,
 					 sizeof(ipc_message_t), IPC_QUEUE_SIZE);
@@ -72,6 +77,8 @@ process_t *sched_create_process(void) {
 	if (first_process)
 		first_process->prev = proc;
 	first_process = proc;
+
+	printk("Processo criado com PID %u\r\n", proc->pid);
 
 	return proc;
 }
@@ -91,8 +98,8 @@ void sched_destroy_process(process_t *proc) {
 	// Reparentar os filhos
 	process_t *p = first_process;
 	while (p) {
-		if (p->dad == proc) {
-			p->dad = proc->dad;
+		if (p->parent == proc) {
+			p->parent = proc->parent;
 		}
 		p = p->next;
 	}
@@ -125,7 +132,7 @@ void sched_destroy_current_process(void) {
 	if (!proc)
 		return;
 
-	uintptr_t flags = read_flags();
+	flags_t flags = read_flags();
 	disable_interrupts();
 
 	for (int i = 0; i < THREAD_PER_PROCESS; i++)
@@ -139,18 +146,21 @@ void sched_destroy_current_process(void) {
 }
 
 // Retorna o PID da thread rodando atualmente
-uint32_t sched_get_current_pid(void) {
-	if (!current_thread || !current_thread->process)
-		return 0;
+pid_t sched_get_current_pid(void) {
+	if (!current_thread)
+		return -1;
 
-	return current_thread->process->pid;
+	return current_thread->pid;
 }
 
 // Retorna o PPID da thread rodando atualmente
-uint32_t sched_get_current_ppid(void) {
-	if (!current_thread || !current_thread->process ||
-		!current_thread->process->dad)
+pid_t sched_get_current_ppid(void) {
+	if (!current_thread)
 		return 0;
 
-	return current_thread->process->dad->pid;
+	process_t *cur_proc = sched_get_current_process();
+	if (!cur_proc || !cur_proc->parent)
+		return -1;
+
+	return cur_proc->parent->pid;
 }

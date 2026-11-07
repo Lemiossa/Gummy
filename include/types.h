@@ -10,15 +10,19 @@ typedef int int32_t;
 typedef unsigned long long uint64_t;
 typedef long long int64_t;
 
+typedef int32_t pid_t;
+
 typedef uint32_t size_t;
 typedef int32_t ssize_t;
 
 #if defined(__x86_64__) || defined(__aarch64__)
 typedef unsigned long long uintptr_t;
 typedef long long intptr_t;
+typedef unsigned long long flags_t;
 #elif defined(__i386__) || defined(__arm__)
 typedef unsigned int uintptr_t;
 typedef int intptr_t;
+typedef unsigned int flags_t;
 #else
 #error "Arquitetura nao suportada"
 #endif

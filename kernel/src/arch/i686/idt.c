@@ -52,7 +52,7 @@ void idt_set_dpl(uint16_t index, uint8_t dpl) {
 	if (index >= IDT_ENTRIES)
 		return;
 
-	uintptr_t flags = read_flags();
+	flags_t flags = read_flags();
 	disable_interrupts();
 
 	dpl = dpl & 3;

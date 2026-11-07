@@ -7,17 +7,17 @@
 #include <idt.h>
 #include <io.h>
 #include <queue.h>
-#include <sched.h>
+#include <sched/process.h>
+#include <sched/sched.h>
+#include <sched/thread.h>
 #include <string.h>
 #include <types.h>
 #include <vmm.h>
 
-extern process_t idle_process;
 extern void schedule(interrupt_context_t *ctx);
 
 thread_t *current_thread = NULL;
 queue_t ready_queue;
-queue_t blocked_queue;
 queue_t zombie_queue;
 queue_t sleep_queue;
 
@@ -29,24 +29,11 @@ void sched_ready(thread_t *thread) {
 	if (!thread)
 		return;
 
-	uintptr_t flags = read_flags();
+	flags_t flags = read_flags();
 	disable_interrupts();
 	queue_remove(&thread->node);
 	queue_push(&ready_queue, &thread->node);
 	thread->state = THREAD_READY;
-	write_flags(flags);
-}
-
-// seta uma thread como blocked
-void sched_blocked(thread_t *thread) {
-	if (!thread)
-		return;
-
-	uintptr_t flags = read_flags();
-	disable_interrupts();
-	queue_remove(&thread->node);
-	queue_push(&blocked_queue, &thread->node);
-	thread->state = THREAD_BLOCKED;
 	write_flags(flags);
 }
 
@@ -55,7 +42,7 @@ void sched_zombie(thread_t *thread) {
 	if (!thread)
 		return;
 
-	uintptr_t flags = read_flags();
+	flags_t flags = read_flags();
 	disable_interrupts();
 	queue_remove(&thread->node);
 	queue_push(&zombie_queue, &thread->node);
@@ -68,7 +55,7 @@ void sched_sleep(thread_t *thread) {
 	if (!thread)
 		return;
 
-	uintptr_t flags = read_flags();
+	flags_t flags = read_flags();
 	disable_interrupts();
 	queue_remove(&thread->node);
 	queue_push(&sleep_queue, &thread->node);
@@ -82,28 +69,31 @@ void sched_destroy_thread(thread_t *thread) {
 	if (!thread)
 		return;
 
-	if (thread->state == THREAD_FREE || !thread->process)
+	if (thread->state == THREAD_FREE)
 		return; // Ja esta livre
 
-	printk("Destruindo thread do processo PID %u\r\n", thread->process->pid);
+	process_t *proc = sched_get_process(thread->pid);
+	if (!proc)
+		return;
 
 	if (thread == current_thread) {
 		printk("Aviso: nao e possivel destruir thread atual\r\n");
 		return;
 	}
 
-	uintptr_t flags = read_flags();
+	printk("Destruindo thread do processo PID %u\r\n", proc->pid);
+
+	flags_t flags = read_flags();
 	disable_interrupts();
 
 	if (thread->stack)
-		vmm_free_pages_in(thread->process->cr3, USER_STACK_PAGES,
-						  (void *)thread->stack);
+		vmm_free_pages_in(proc->cr3, USER_STACK_PAGES, (void *)thread->stack);
 
 	if (thread->stack0)
 		heap_free((void *)thread->stack0);
 
 	queue_remove(&thread->node);
-	thread->process->num_threads--;
+	proc->num_threads--;
 	thread->state = THREAD_FREE;
 	write_flags(flags);
 
@@ -113,11 +103,13 @@ void sched_destroy_thread(thread_t *thread) {
 // cria uma thread
 // retorna o ponteiro pra thread(não aloca)
 // loc precisa estar mapeado com USER em proc->cr3 antes da primeira execução
-thread_t *sched_create_thread(uintptr_t loc, process_t *proc) {
-	if (!proc || !loc) {
-		printk("sched_create_thread: parametros invalidos\r\n");
+thread_t *sched_create_thread(uintptr_t loc, pid_t pid) {
+	if (!loc || pid < 0)
 		return NULL;
-	}
+
+	process_t *proc = sched_get_process(pid);
+	if (!proc)
+		return NULL;
 
 	printk("Criando thread no processo PID %u, entry=%p\r\n", proc->pid, loc);
 
@@ -128,7 +120,7 @@ thread_t *sched_create_thread(uintptr_t loc, process_t *proc) {
 
 	int thread_idx = -1;
 	for (int i = 0; i < THREAD_PER_PROCESS; i++) {
-		if (!proc->threads[i].process) {
+		if (proc->threads[i].state == THREAD_FREE) {
 			thread_idx = i;
 			break;
 		}
@@ -159,7 +151,7 @@ thread_t *sched_create_thread(uintptr_t loc, process_t *proc) {
 	uintptr_t sp0 = (stack0 + KERNEL_STACK_SIZE) - sizeof(interrupt_context_t);
 	memset((void *)stack0, 0, KERNEL_STACK_SIZE);
 
-	uintptr_t flags = read_flags();
+	flags_t flags = read_flags();
 	disable_interrupts();
 
 	interrupt_context_t *ctx = (interrupt_context_t *)sp0;
@@ -193,7 +185,7 @@ thread_t *sched_create_thread(uintptr_t loc, process_t *proc) {
 	ctx->error_code = 0;
 	ctx->int_num = 0;
 
-	t->process = proc;
+	t->pid = proc->pid;
 	if (proc != &idle_process) {
 		t->sp = sp;
 		t->stack = stack;
@@ -211,12 +203,12 @@ thread_t *sched_create_thread(uintptr_t loc, process_t *proc) {
 
 // Sai da thread atual e seta o exit code dela
 void sched_exit_current_thread(interrupt_context_t *ctx, int32_t status) {
-	if (current_thread->process == &idle_process) {
+	if (sched_get_current_process() == &idle_process) {
 		printk("Tentativa de sair do idle interrompida.\r\n");
 		return;
 	}
 
-	uintptr_t flags = read_flags();
+	flags_t flags = read_flags();
 	disable_interrupts();
 
 	thread_t *t = current_thread;
@@ -238,7 +230,7 @@ void sched_thread_sleep(interrupt_context_t *ctx, uint32_t wake_tick) {
 	if (current_thread == &idle_process.threads[0])
 		return;
 
-	uintptr_t flags = read_flags();
+	flags_t flags = read_flags();
 	disable_interrupts();
 
 	current_thread->wake_tick = wake_tick;

@@ -4,10 +4,8 @@
 #include <idt.h>
 #include <queue.h>
 #include <ring_buffer.h>
+#include <syscall.h>
 #include <types.h>
-
-#define IPC_QUEUE_SIZE 16
-#define IPC_MSG_MAX 64
 
 typedef struct ipc_message {
 	uint32_t sender_pid;

@@ -5,7 +5,7 @@
 #include <debug.h>
 #include <idt.h>
 #include <io.h>
-#include <sched.h>
+#include <sched/process.h>
 #include <terminal.h>
 #include <types.h>
 

@@ -34,10 +34,12 @@ int initrd_check(const initrd_t *initrd);
 // Retorna uma entrada específica no initrd
 const initrd_entry_t *initrd_get_entry(const initrd_t *initrd, size_t n);
 // Procura uma entrada específica no initrd pelo nome
-const initrd_entry_t *initrd_find_entry(const initrd_t *initrd, const char *path);
+const initrd_entry_t *initrd_find_entry(const initrd_t *initrd,
+										const char *path);
 // Retorna o tamanho do conteúdo de uma entrada no initrd
 size_t initrd_get_len(const initrd_entry_t *entry);
 // Retorna um ponteiro para o conteúdo de uma entrada no initrd
-const void *initrd_get_data(const initrd_t *initrd, const initrd_entry_t *entry);
+const void *initrd_get_data(const initrd_t *initrd,
+							const initrd_entry_t *entry);
 
 #endif // INITRD_H

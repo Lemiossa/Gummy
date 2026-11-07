@@ -25,7 +25,7 @@ endef
 .PHONY: all clean FORCE
 all: $(TARGET)
 
-$(TARGET): $(INIT)
+$(TARGET): $(INIT) FORCE
 	@mkdir -p $(dir $@)
 	@chmod +x $(INITRDMAKER)
 	$(call echo_cmd,MK-INITRD,$@)
@@ -38,7 +38,7 @@ clean:
 $(INITRD_ROOT): FORCE
 	@mkdir -p $@
 
-$(INIT): $(INITRD_ROOT)
+$(INIT): $(INITRD_ROOT) 
 	@$(MAKE) -C $(CURDIR)/init TARGET_BIN=$@
 
 init: $(INIT)

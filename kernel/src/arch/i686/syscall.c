@@ -2,15 +2,22 @@
  * syscall.c
  * Criado por Matheus Leme da Silva
  * */
+#include <debug.h>
 #include <heap.h>
 #include <idt.h>
 #include <io.h>
 #include <ipc.h>
-#include <sched.h>
+#include <pmm.h>
+#include <sched/process.h>
+#include <sched/sched.h>
+#include <sched/thread.h>
 #include <string.h>
 #include <syscall.h>
 #include <types.h>
 #include <vmm.h>
+
+#define USER_IMAGE_BASE 0x400000u
+#define USER_IMAGE_MAX (16u * 1024u * 1024u)
 
 extern void schedule(interrupt_context_t *ctx);
 
@@ -22,6 +29,8 @@ uint32_t sys_nthread_impl(interrupt_context_t *ctx);
 uint32_t sys_nprocess_impl(interrupt_context_t *ctx);
 uint32_t sys_send_impl(interrupt_context_t *ctx);
 uint32_t sys_receive_impl(interrupt_context_t *ctx);
+uint32_t sys_map_impl(interrupt_context_t *ctx);
+uint32_t sys_unmap_impl(interrupt_context_t *ctx);
 
 void syscall_handler(interrupt_context_t *ctx) {
 	uint32_t ret = 0;
@@ -69,7 +78,18 @@ uint32_t sys_nprocess_impl(interrupt_context_t *ctx) {
 	const void *entry = (void *)ctx->ebx;
 	uint32_t n = ctx->ecx;
 
-	if (!entry || n == 0)
+	int from_user = (ctx->cs & 3) == 3;
+
+	if (!entry || n == 0 || (from_user && n > USER_IMAGE_MAX))
+		return 0;
+
+	if (from_user &&
+		((uintptr_t)entry < 0x400000 ||
+		 (uintptr_t)entry >=
+			 0xC0000000)) // CRÍTICO: Impedir CÓPIA DA MEMÓRIA DO KERNEL
+		return 0;
+
+	if ((uintptr_t)entry + n < (uintptr_t)entry) // Overflow!
 		return 0;
 
 	void *data = heap_alloc(n);
@@ -94,15 +114,16 @@ uint32_t sys_nprocess_impl(interrupt_context_t *ctx) {
 		return 0;
 	}
 
-	thread_t *t = sched_create_thread(0x400000, p);
+	thread_t *t = sched_create_thread(0x400000, p->pid);
 	if (!t) {
+		printk("Falha ao criar thread\r\n");
 		vmm_free_pages_in(p->cr3, pages, (void *)0x400000);
 		heap_free(data);
 		sched_destroy_process(p);
 		return 0;
 	}
 
-	uintptr_t flags = read_flags();
+	flags_t flags = read_flags();
 	disable_interrupts();
 
 	uintptr_t old_cr3 = read_cr3();
@@ -142,20 +163,39 @@ uint32_t sys_sleep_impl(interrupt_context_t *ctx) {
 }
 
 uint32_t sys_nthread_impl(interrupt_context_t *ctx) {
-	process_t *current_process = sched_get_current_process();
-	if (!current_process)
+	pid_t pid = sched_get_current_pid();
+	if (pid < 0)
 		return (uint32_t)-1;
 	uintptr_t entry = (uintptr_t)ctx->ebx;
-	thread_t *t = sched_create_thread(entry, current_process);
+	thread_t *t = sched_create_thread(entry, pid);
 	if (!t)
 		return (uint32_t)-1;
 	sched_ready(t);
 	return 0;
 }
+
 uint32_t sys_send_impl(interrupt_context_t *ctx) {
 	return (uint32_t)ipc_send(ctx->ebx, ctx->ecx, (void *)ctx->esi, ctx->edx);
 }
 
 uint32_t sys_receive_impl(interrupt_context_t *ctx) {
 	return ipc_receive((uint32_t *)ctx->esi, (void *)ctx->edi, ctx->ebx);
+}
+
+uint32_t sys_map_impl(interrupt_context_t *ctx) {
+	// sys_map(phys, virt, pages, flags)
+	// esi=phys
+	// edi=virt
+	// ebx=pages
+	// edx=flags
+	(void)ctx;
+	return 0;
+}
+
+uint32_t sys_unmap_impl(interrupt_context_t *ctx) {
+	// sys_unmap(virt, pages)
+	// edi=virt
+	// ebx=pages
+	(void)ctx;
+	return 0;
 }

@@ -79,9 +79,9 @@ SRC  := \
 			$(SRCDIR)/debug.c \
 			$(SRCDIR)/heap.c \
 			$(SRCDIR)/pit.c \
-			$(SRCDIR)/sched.c \
-			$(SRCDIR)/thread.c \
-			$(SRCDIR)/process.c \
+			$(SRCDIR)/sched/sched.c \
+			$(SRCDIR)/sched/thread.c \
+			$(SRCDIR)/sched/process.c \
 			$(SRCDIR)/ipc.c \
 			$(SRCDIR)/pic.c \
 			$(SRCDIR)/vga.c \

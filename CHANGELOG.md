@@ -2,6 +2,14 @@
 
 Todas as mudanças notáveis do Gummy são documentadas aqui. As entradas seguem as tags do Git em ordem cronológica reversa (da mais nova para a mais velha).
 
+## v0.23.3 - 2026-11-07
+
+- Reformulação no escalonador(sched.h -> sched.h, thread.h, process.h)
+- Resolvido parcialmente vulnerabilidade em nprocess envolvendo memória do kernel(não limitava apenas ao espaço de usuário)
+- Criado tipo flags_t para flags de CPU
+- Começando a fazer vmm_copy(...)
+- Começando a fazer syscalls como sys_map(...) e sys_unmap(...)
+
 ## v0.23.2 - 2026-11-05
 
 - Logs limpos

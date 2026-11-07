@@ -22,7 +22,7 @@ spinlock_t debug_lock = SPINLOCK_INIT;
 
 // Imprime uma string no debug
 void debug_print_string(const char *s) {
-	uintptr_t flags = read_flags();
+	flags_t flags = read_flags();
 	disable_interrupts();
 	spinlock(&debug_lock);
 	terminal_print_string(s);

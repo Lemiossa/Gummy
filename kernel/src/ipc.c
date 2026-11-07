@@ -7,7 +7,8 @@
 #include <io.h>
 #include <ipc.h>
 #include <queue.h>
-#include <sched.h>
+#include <sched/process.h>
+#include <sched/sched.h>
 #include <string.h>
 #include <syscall.h>
 #include <types.h>
@@ -64,7 +65,7 @@ int ipc_receive(uint32_t *sender_pid, void *buffer, uint32_t size) {
 	if (ring_buffer_empty(&p->mailbox.ring_buffer)) {
 		thread_t *t = sched_get_current_thread();
 
-		uintptr_t flags = read_flags();
+		flags_t flags = read_flags();
 		disable_interrupts();
 		t->state = THREAD_BLOCKED;
 		queue_remove(&t->node);
