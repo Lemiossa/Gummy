@@ -44,8 +44,6 @@ void reaper_thread(void) {
 	sys_exit(0);
 }
 
-// Spawner de processos
-
 
 const char *initpath = "/init.sys";
 uintptr_t initrd_loc = 0xC0050000;

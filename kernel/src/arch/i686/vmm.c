@@ -63,7 +63,7 @@ static inline uint32_t *get_pte(uintptr_t virt) {
 }
 
 // Obtem o endereco fisico de um endereco
-static inline uint32_t get_physical_address(uintptr_t virt) {
+static inline uintptr_t get_physical_address(uintptr_t virt) {
 	uint32_t *pte = get_pte(virt);
 	if (!pte || !(*pte & VMM_FLAGS_PRESENT))
 		return 0; // Entrada da tabela de paginas nao presente
@@ -390,20 +390,6 @@ int vmm_free_pages_in(uintptr_t cr3, uint32_t n, void *virt) {
 	if (old_cr3 != cr3)
 		write_cr3(old_cr3);
 	write_flags(cpu_flags);
-	return 0;
-}
-
-// Copia n bytes de um cr3 para outro com segurança
-// Retorna !0 se houver erro
-int vmm_copy(uintptr_t from_cr3, uintptr_t from_vaddr, uintptr_t to_cr3,
-		uintptr_t to_vaddr, uint32_t n) {
-	if (n == 0)
-		return 1;
-
-	flags_t flags = read_flags();
-	disable_interrupts();
-	
-	write_flags(flags);
 	return 0;
 }
 
