@@ -104,6 +104,21 @@ uint32_t sched_get_ticks(void) { return ticks; }
 // Retorna o número de milisegundos por tick
 uint32_t sched_get_ms_per_tick(void) { return ms_per_tick; }
 
+// Reaper de processos
+// Mata todo e qualquer processo em estado dying
+void reaper_thread(void) {
+	while (1) {
+		for (process_t *p = first_process; p;) {
+			process_t *next = p->next;
+			if (p->state == PROCESS_DYING)
+				sched_destroy_process(p);
+			p = next;
+		}
+		sys_sleep(5000);
+	}
+	sys_exit(0);
+}
+
 // inicializa o escalonador com a frequencia informada em hz
 // retorna !0 se ocorrer um erro
 int sched_init(uint16_t frequency) {
@@ -138,6 +153,8 @@ int sched_init(uint16_t frequency) {
 
 	idt_set_handler(0x81, schedule);
 	idt_set_dpl(0x81, 3);
+
+	sys_nthread(reaper_thread);
 
 	return 0;
 }

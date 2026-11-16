@@ -29,22 +29,6 @@
 #include <pit.h>
 #include <syscall.h>
 
-// Reaper de processos
-// Mata todo e qualquer processo em estado dying
-void reaper_thread(void) {
-	while (1) {
-		for (process_t *p = first_process; p;) {
-			process_t *next = p->next;
-			if (p->state == PROCESS_DYING)
-				sched_destroy_process(p);
-			p = next;
-		}
-		sys_sleep(5000);
-	}
-	sys_exit(0);
-}
-
-
 const char *initpath = "/init.sys";
 uintptr_t initrd_loc = 0xC0050000;
 
@@ -67,8 +51,6 @@ void kmain(void) {
 	}
 	syscall_init();
 	enable_interrupts();
-
-	sys_nthread(reaper_thread);
 
 	initrd_t initrd;
 	initrd_create(&initrd, (void *)initrd_loc);
