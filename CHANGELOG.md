@@ -2,6 +2,11 @@
 
 Todas as mudanças notáveis do Gummy são documentadas aqui. As entradas seguem as tags do Git em ordem cronológica reversa (da mais nova para a mais velha).
 
+## v0.24.1 - 2026-11-21
+
+- Adicionadas as macros `SIZE_MAX` e `SSIZE_MAX` em `types.h`.
+- `size_t`/`ssize_t` passam a ser definidos por arquitetura (64 bits em x86_64/ARM64, 32 bits em i386/ARM), acompanhando `uintptr_t`/`intptr_t`.
+
 ## v0.24.0 - 2026-11-16
 
 - Começando a fazer o VFS

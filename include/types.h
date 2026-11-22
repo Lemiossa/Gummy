@@ -12,17 +12,39 @@ typedef long long int64_t;
 
 typedef int32_t pid_t;
 
-typedef uint32_t size_t;
-typedef int32_t ssize_t;
+#define UINT8_MAX 0xFF
+#define UINT16_MAX 0xFFFF
+#define UINT32_MAX 0xFFFFFFFF
+#define UINT64_MAX 0xFFFFFFFFFFFFFFFF
+
+#define INT8_MAX 127
+#define INT16_MAX 32767
+#define INT32_MAX 2147483647
+#define INT64_MAX 9223372036854775807LL
+
+#define INT8_MIN (-128)
+#define INT16_MIN (-32768)
+#define INT32_MIN (-2147483647 - 1)
+#define INT64_MIN (-9223372036854775807LL - 1)
 
 #if defined(__x86_64__) || defined(__aarch64__)
-typedef unsigned long long uintptr_t;
-typedef long long intptr_t;
-typedef unsigned long long flags_t;
+typedef uint64_t uintptr_t;
+typedef int64_t intptr_t;
+typedef int64_t flags_t;
+
+typedef uint64_t size_t;
+typedef int64_t ssize_t;
+#define SIZE_MAX UINT64_MAX
+#define SSIZE_MAX INT64_MAX
 #elif defined(__i386__) || defined(__arm__)
-typedef unsigned int uintptr_t;
-typedef int intptr_t;
-typedef unsigned int flags_t;
+typedef uint32_t uintptr_t;
+typedef int32_t intptr_t;
+typedef uint32_t flags_t;
+
+typedef uint32_t size_t;
+typedef int32_t ssize_t;
+#define SIZE_MAX UINT32_MAX
+#define SSIZE_MAX INT32_MAX
 #else
 #error "Arquitetura nao suportada"
 #endif
@@ -45,20 +67,5 @@ typedef __builtin_va_list va_list;
 #define va_end(ap) __builtin_va_end(ap)
 #define va_arg(ap, type) __builtin_va_arg(ap, type)
 #define va_copy(d, s) __builtin_va_copy(d, s)
-
-#define UINT8_MAX 0xFF
-#define UINT16_MAX 0xFFFF
-#define UINT32_MAX 0xFFFFFFFF
-#define UINT64_MAX 0xFFFFFFFFFFFFFFFF
-
-#define INT8_MAX 127
-#define INT16_MAX 32767
-#define INT32_MAX 2147483647
-#define INT64_MAX 9223372036854775807LL
-
-#define INT8_MIN (-128)
-#define INT16_MIN (-32768)
-#define INT32_MIN (-2147483647 - 1)
-#define INT64_MIN (-9223372036854775807LL - 1)
 
 #endif // TYPES_H
