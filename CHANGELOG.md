@@ -2,6 +2,14 @@
 
 Todas as mudanças notáveis do Gummy são documentadas aqui. As entradas seguem as tags do Git em ordem cronológica reversa (da mais nova para a mais velha).
 
+## v0.25.0 - 2026-11-22
+
+- **VFS reformulado**: `file_t` substituído por `handle_t` (arquivo ou diretório), com `stat_t` para metadados e `ops_t` reunindo as operações de cada filesystem em `fs_t`.
+- Novas funções: `vfs_mount()`, `vfs_read()`, `vfs_write()`, `vfs_create()` e `vfs_close()`; `vfs_open()` agora exige o prefixo do volume (`vol:/caminho`).
+- `vfs_registry_fs()` rejeita nomes duplicados; adicionados os erros `VFS_ERR_NAME_USED`, `VFS_ERR_NOT_ENOUGH_SPACE`, `VFS_ERR_VOL_NOT_FOUND` e `VFS_ERR_FS_NOT_FOUND`.
+- Biblioteca padrão: adicionados `strchr()` e `strcpy()`.
+- **RAMFS**: estruturas iniciais e esqueleto de `open`/`close` em `kmain.c` (em andamento).
+
 ## v0.24.1 - 2026-11-21
 
 - Adicionadas as macros `SIZE_MAX` e `SSIZE_MAX` em `types.h`.

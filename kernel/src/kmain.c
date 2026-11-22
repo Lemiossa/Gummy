@@ -29,8 +29,65 @@
 #include <pit.h>
 #include <syscall.h>
 
+#include <vfs.h>
+
 const char *initpath = "/init.sys";
 uintptr_t initrd_loc = 0xC0050000;
+
+// RAMFS
+typedef enum ramfs_node_type {
+	RAMFS_FILE,
+	RAMFS_DIR
+} ramfs_node_type_t;
+
+typedef struct ramfs_node {
+	char *name;
+	size_t name_len;
+	ramfs_node_type_t type;
+	void *data;
+	size_t data_len;
+	struct ramfs_node *parent;
+	struct ramfs_node *children;
+	struct ramfs_node *next;
+} ramfs_node_t;
+
+typedef struct ramfs {
+	ramfs_node_t *root;
+} ramfs_t;
+
+// Close do ramfs
+int ramfs_close(void *ctx, handle_t *h) {
+	if (!ctx || !h) return -VFS_ERR_INVALID;
+	heap_free(h); // Arquivo se mantem, só o handle que não
+	return VFS_ERR_OK;
+}
+
+// Open do ramfs
+// Só aceita PATH começando com / 
+int ramfs_open(void *ctx, const char *path, handle_t **h) {
+	if (!ctx || !path || !h) return -VFS_ERR_INVALID;
+	// fd0:/boot/config
+	
+}
+
+// inicializa ramfs
+// retorna 0 se sucesso
+int ramfs_init(void) {
+	fs_t *fs = heap_alloc(sizeof(*fs));
+	if (!fs) return 1;
+
+	ops_t *ops = heap_alloc(sizeof(*ops));
+	if (!ops) {
+		heap_free(fs);
+		return 1;
+	}
+
+	memcpy(fs->name, "ramfs", 5);
+	fs->ops->close = ramfs_close;
+	fs->ops->open = ramfs_open;
+
+	return 0;
+}
 
 void kmain(void) {
 	disable_interrupts();

@@ -30,5 +30,10 @@ int strcmp(const char *s1, const char *s2);
 // Compara n bytes de duas strings
 // Retorna a diferença
 int strncmp(const char *s1, const char *s2, size_t n);
+// Encontra a primeira ocorrência de caractere em uma string
+// Retorna um ponteiro para ela
+char *strchr(const char *str, int ch);
+// Copia uma string até \0 incluindo o \0
+void strcpy(char *dst, const char *src);
 
 #endif // STRING_H

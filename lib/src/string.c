@@ -141,3 +141,23 @@ int strncmp(const char *s1, const char *s2, size_t n) {
 
 	return (unsigned char)*s1 - (unsigned char)*s2;
 }
+
+// Encontra a primeira ocorrência de caractere em uma string
+// Retorna um ponteiro para ela
+char *strchr(const char *str, int ch) {
+	if (!str)
+		return NULL;
+	const char *p = str;
+	while (*p && *p != ch)
+		p++;
+	if (*p != ch)
+		return NULL;
+	return (char *)p;
+}
+
+// Copia uma string até \0 incluindo o \0
+void strcpy(char *dst, const char *src) {
+	if (!dst || !src) return;
+	while (*src) *dst = *src++;
+	*dst = 0;
+}
