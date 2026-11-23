@@ -34,12 +34,14 @@ typedef struct stat stat_t;
 // VFS
 struct handle {
 	void *ctx;
+	size_t offset;
 	const vol_t *vol;
 };
 
 struct stat {
-	size_t offset;
 	size_t size;
+	const char *name;
+	size_t name_len;
 };
 
 struct ops {
@@ -58,7 +60,7 @@ struct ops {
 	ssize_t (*read)(void *ctx, handle_t *h, void *dst,
 					size_t n); // Deve retornar um código de erro negativo ou o
 							   // número de bytes positivo
-	ssize_t (*write)(void *ctx, handle_t *h, void *src,
+	ssize_t (*write)(void *ctx, handle_t *h, const void *src,
 					 size_t n); // Deve retornar um código de erro negativo ou o
 								// número de bytes positivo
 	int (*stat)(void *ctx,
@@ -101,8 +103,10 @@ handle_t *vfs_open(const char *path, int *err);
 // Lê um arquivo/diretório
 ssize_t vfs_read(handle_t *h, void *dst, size_t n);
 // Escreve um arquivo
-ssize_t vfs_write(handle_t *h, void *src, size_t n);
+ssize_t vfs_write(handle_t *h, const void *src, size_t n);
 // Cria um arquivo
 int vfs_create(const char *path);
+// Fecha um arquivo
+int vfs_close(handle_t *h);
 
 #endif // VFS_H

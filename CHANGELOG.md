@@ -2,6 +2,13 @@
 
 Todas as mudanças notáveis do Gummy são documentadas aqui. As entradas seguem as tags do Git em ordem cronológica reversa (da mais nova para a mais velha).
 
+## v0.26.1 - 2026-11-22
+
+- **VFS**: corrigido `vfs_open()`, que não preenchia o nome do volume antes de procurá-lo; o nome agora é copiado com `strncpy()`.
+- `handle_t` passa a guardar o `offset`; `stat_t` perde esse campo e ganha `name`/`name_len`.
+- `vfs_write()` e a callback `ops.write` recebem `const void *src`.
+- `vfs_close()` passa a ser declarada em `vfs.h`.
+
 ## v0.26.0 - 2026-11-22
 
 - Adicionado strncpy no string.c e string.h

@@ -3,6 +3,7 @@
  * Criado por Matheus Leme da Silva
  * */
 #include <stddef.h>
+#include <stdint.h>
 #include <string.h>
 #include <vfs.h>
 
@@ -129,7 +130,7 @@ handle_t *vfs_open(const char *path, int *err) {
 	}
 
 	const char *p = path;
-	char name[VFS_VOLUME_NAME_LEN];
+	char name[VFS_VOLUME_NAME_LEN] = {0};
 	char *colon = strchr(path, ':');
 	if (!colon) {
 		if (err) *err = -VFS_ERR_INVALID;
@@ -141,9 +142,9 @@ handle_t *vfs_open(const char *path, int *err) {
 		if (err) *err = -VFS_ERR_INVALID;
 		return NULL;
 	}
+	strncpy(name,  p, volname_len);
 
-
-	p++; // p == index(':') + 1
+	p = (const char *)(uintptr_t)(colon + 1);
 	if (*p == 0) {
 		if (err)
 			*err = -VFS_ERR_INVALID;
@@ -178,7 +179,7 @@ ssize_t vfs_read(handle_t *h, void *dst, size_t n) {
 }
 
 // Escreve um arquivo
-ssize_t vfs_write(handle_t *h, void *src, size_t n) {
+ssize_t vfs_write(handle_t *h, const void *src, size_t n) {
 	if (!h || !src || n == 0)
 		return -VFS_ERR_INVALID;
 	return h->vol->fs->ops->write(h->vol->ctx, h, src, n);
