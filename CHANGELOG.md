@@ -2,6 +2,10 @@
 
 Todas as mudanças notáveis do Gummy são documentadas aqui. As entradas seguem as tags do Git em ordem cronológica reversa (da mais nova para a mais velha).
 
+## v0.26.0 - 2026-11-22
+
+- Adicionado strncpy no string.c e string.h
+
 ## v0.25.0 - 2026-11-22
 
 - **VFS reformulado**: `file_t` substituído por `handle_t` (arquivo ou diretório), com `stat_t` para metadados e `ops_t` reunindo as operações de cada filesystem em `fs_t`.

@@ -35,5 +35,8 @@ int strncmp(const char *s1, const char *s2, size_t n);
 char *strchr(const char *str, int ch);
 // Copia uma string até \0 incluindo o \0
 void strcpy(char *dst, const char *src);
+// Copia uma string até \0 ou chegar em n 
+// Caso src acabe antes de dst, ele escreve o resto de dst com \0
+void strncpy(char *dst, const char *src, size_t n);
 
 #endif // STRING_H

@@ -161,3 +161,15 @@ void strcpy(char *dst, const char *src) {
 	while (*src) *dst = *src++;
 	*dst = 0;
 }
+
+// Copia uma string até \0 ou chegar em n 
+// Caso src acabe antes de dst, ele escreve o resto de dst com \0
+void strncpy(char *dst, const char *src, size_t n) {
+	if (!dst || !src || n == 0) return;
+	for (size_t i = 0; i < n; i++) {
+		if (src[i]) 
+				dst[i] = src[i];
+		else
+			dst[i] = 0;
+	}
+}
