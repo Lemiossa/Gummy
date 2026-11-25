@@ -65,9 +65,9 @@ int ramfs_close(void *ctx, handle_t *h) {
 // Open do ramfs
 // Só aceita PATH começando com / 
 int ramfs_open(void *ctx, const char *path, handle_t **h) {
-	if (!ctx || !path || !h) return -VFS_ERR_INVALID;
-	// fd0:/boot/config
-	
+	if (!ctx || !path || !h || path[0] != '/') return -VFS_ERR_INVALID;
+	// /boot/config
+	const char *p = (const char *)(uintptr_t)(path + 1);
 }
 
 // inicializa ramfs

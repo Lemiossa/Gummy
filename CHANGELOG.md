@@ -2,6 +2,11 @@
 
 Todas as mudanças notáveis do Gummy são documentadas aqui. As entradas seguem as tags do Git em ordem cronológica reversa (da mais nova para a mais velha).
 
+## v0.26.2 - 2026-11-25
+
+- em ramfs_open, p = path + 1;
+- VFS marcado no TODO
+
 ## v0.26.1 - 2026-11-22
 
 - **VFS**: corrigido `vfs_open()`, que não preenchia o nome do volume antes de procurá-lo; o nome agora é copiado com `strncpy()`.
