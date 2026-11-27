@@ -1,6 +1,6 @@
 # Estado atual, pendências e histórico
 
-> Este documento consolida o que **funciona**, o que está **incompleto** e os **problemas conhecidos** do código em `master` (v0.26.2 + alterações locais em `kmain.c`/`TODO.md`). A referência oficial de versões é o [`CHANGELOG.md`](../CHANGELOG.md).
+> Este documento consolida o que **funciona**, o que está **incompleto** e os **problemas conhecidos** do código em `master` (v0.27.0). A referência oficial de versões é o [`CHANGELOG.md`](../CHANGELOG.md).
 
 ## Matriz de status
 
@@ -16,7 +16,7 @@
 | Syscalls | ⚠️ parcial | 8 de 10 despachadas; sem validação de usuário |
 | IPC | ⚠️ parcial | mailbox funcional; sem travamento e sem filtro de tipo |
 | Initrd + `init` | ✅ funcional | `/init.sys` → PID 1, `SYS_EXIT(42)` |
-| VFS | 🚧 em construção | camada de despacho; nenhum FS montado |
+| VFS | 🚧 em construção | camada de despacho com validação de callbacks e API de `stat`/`unmount`; nenhum FS montado |
 | RAMFS | 🚧 esqueleto | em `kmain.c`, nunca inicializado |
 | Saída VGA/serial | ✅ funcional | mensagens duplicadas, cor fixa |
 
@@ -27,6 +27,10 @@
 - [ ] `copy_from_user` e `copy_to_user`
 - [ ] `is_in_user_range`
 - [x] VFS básico (camada de despacho; sem filesystem funcional)
+- [x] Colocar `handle_type_t type` em `stat_t`
+- [ ] Fazer `vfs_check_fs()` não rejeitar filesystems sem todas as operações
+
+> O item do `vfs_check_fs()` segue marcado como pendente em [`TODO.md`](../TODO.md), embora a validação já tenha sido flexibilizada para aceitar `fs_t` com callbacks parciais.
 
 [`IDEAS.md`](../IDEAS.md) registra uma ideia para **spawn de processos**: uma thread do kernel criaria processos em uma lista. Hoje o spawn é feito por `sys_nprocess()` a partir do `kmain` (e, futuramente, por qualquer processo de usuário).
 
@@ -83,10 +87,10 @@
 | Race após o wake: mensagem pode ter sido consumida por outra thread | `ipc.c` |
 | `ipc_receive()` descarta `type` e trunca silenciosamente mensagens grandes | `ipc.c` |
 | Apenas um waiter acordado por mensagem | `ipc.c` |
-| `vfs_check_fs()` desreferencia `fs->ops` sem checar e exige 8 callbacks | `vfs.c` |
+| `vfs_create()` valida `ops->write` em vez de `ops->create` | `vfs.c` |
+| `vfs_unmount()` não trunca o nome no `':'` e não libera o slot do volume | `vfs.c` |
 | `vfs_open()` não verifica `h` antes de `h->vol = vol` | `vfs.c` |
-| `vfs_open()` passa caminho sem prefixo; `vfs_create()` passa com prefixo | `vfs.c` |
-| Sem `vfs_stat()`/`vfs_unmount()` públicos nem syscalls de VFS | `vfs.h`, `vfs.c` |
+| Sem syscalls de VFS; `vfs_stat()`/`vfs_unmount()` só são chamáveis pelo kernel | `vfs.h`, `vfs.c` |
 | Nenhum FS registrado/montado; RAMFS inalcançável e incompleto | `kmain.c` |
 | `ramfs_init()` não atribui `fs->ops = ops`; `ramfs_open()` não retorna | `kmain.c` |
 
@@ -104,7 +108,7 @@
 
 ## Histórico de versões (resumo)
 
-O [`CHANGELOG.md`](../CHANGELOG.md) registra todas as versões de `v0.1.0` (27/07/2026) a `v0.26.2` (25/11/2026). Marcos principais:
+O [`CHANGELOG.md`](../CHANGELOG.md) registra todas as versões de `v0.1.0` (27/07/2026) a `v0.27.0` (27/11/2026). Marcos principais:
 
 | Versão | Data | Marco |
 |---|---|---|
@@ -118,7 +122,7 @@ O [`CHANGELOG.md`](../CHANGELOG.md) registra todas as versões de `v0.1.0` (27/0
 | v0.18.0–v0.19.0 | 31/10/2026 | estados de thread, sleep, syscalls, IPC mailbox |
 | v0.20.0–v0.21.0 | nov/2026 | checagem 386+, exceções em usuário, `-O2` |
 | v0.22.0–v0.23.3 | nov/2026 | `printk`, spinlocks, initrd, reestruturação do escalonador |
-| v0.24.0–v0.26.2 | nov/2026 | VFS: registro, mount, handles, correções e RAMFS em andamento |
+| v0.24.0–v0.27.0 | nov/2026 | VFS: registro, mount, handles, validação de callbacks, `stat`/`unmount` e RAMFS em andamento |
 
 ## Convenções para contribuição
 
@@ -126,6 +130,7 @@ O [`CHANGELOG.md`](../CHANGELOG.md) registra todas as versões de `v0.1.0` (27/0
 - Estilo K&R (chaves na mesma linha), indentação com tabs, includes ordenados alfabeticamente (v0.16.0).
 - Ao adicionar um arquivo-fonte a uma lista `SRC`, atualizar também o `compile_commands.json` manual ([build.md](build.md#suporte-a-editores)).
 - Ao alterar o comportamento do kernel, atualizar o `CHANGELOG.md` e esta documentação.
+- Alterações em componentes críticos devem registrar a justificativa técnica exigida por [`RULES.md`](../RULES.md); exemplo em [vfs.md](vfs.md#justificativa-das-alterações-no-vfs).
 
 ## Ver também
 
