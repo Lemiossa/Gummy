@@ -75,7 +75,7 @@ sequenceDiagram
     S->>I: frame sintético: eip=0x400000, CPL 3
     I->>I: main() retorna 42
     I->>S: int 0x80 (SYS_EXIT, ebx=42)
-    K->>K: for(;;) halt_cpu()
+    K->>K: halt_cpu() em loop infinito
 ```
 
 ## Estado após a inicialização
