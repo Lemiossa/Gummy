@@ -2,9 +2,8 @@
  * vfs.c
  * Criado por Matheus Leme da Silva
  * */
-#include <stddef.h>
-#include <stdint.h>
 #include <string.h>
+#include <types.h>
 #include <vfs.h>
 
 fs_t filesystems[VFS_FILESYSTEMS] = {0};

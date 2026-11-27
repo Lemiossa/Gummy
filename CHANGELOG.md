@@ -2,6 +2,10 @@
 
 Todas as mudanças notáveis do Sedge são documentadas aqui. As entradas seguem as tags do Git em ordem cronológica reversa (da mais nova para a mais velha).
 
+## v0.27.1 - 2026-11-27
+
+- Removido includes de à stdint e stddef do vfs.c
+
 ## v0.27.0 - 2026-11-27
 
 - **VFS**: `stat_t` ganha o campo `type` (`handle_type_t`) e passa a haver `vfs_stat()` e `vfs_unmount()` como pontos de entrada públicos.

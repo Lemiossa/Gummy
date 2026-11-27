@@ -2,7 +2,7 @@
 # Created by Matheus Leme Da Silva
 
 ARCH     := i686
-VERSION  := 0.27.0
+VERSION  := 0.27.1
 NAME     := Sedge
 
 PROJ     := $(CURDIR)
