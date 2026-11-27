@@ -19,14 +19,14 @@ Sedge é um **sistema operacional hobby** para x86 (i686), escrito em C11 e NASM
 
 ```mermaid
 flowchart TD
-   bios[BIOS] --> s1[Stage 1 @ 0x7C00\n62 setores via INT 13h CHS]
-    s1 --> s2[Stage 2 @ 0x7E00\nCPU 386+, EDD, FAT12]
-    s2 --> load[Carrega KERNEL.SYS @ 0x10000\ne INITRD @ 0x50000]
-    load --> e820[Coleta E820 @ 0x500]
-    e820 --> pm[Modo protegido + paginação\nPD[768] → higher-half]
-    pm --> k[Kernel _start @ 0xC0010000\nkmain]
-    k --> init[initrd → /init.sys → PID 1 em 0x400000]
-    init --> idle[kmain: hlt loop\nreaper acorda a cada 5 s]
+    bios["BIOS"] --> s1["Stage 1 @ 0x7C00<br/>62 setores via INT 13h CHS"]
+    s1 --> s2["Stage 2 @ 0x7E00<br/>CPU 386+, EDD, FAT12"]
+    s2 --> load["Carrega KERNEL.SYS @ 0x10000<br/>e INITRD @ 0x50000"]
+    load --> e820["Coleta E820 @ 0x500"]
+    e820 --> pm["Modo protegido + paginação<br/>PD[768] → higher-half"]
+    pm --> k["Kernel _start @ 0xC0010000<br/>kmain"]
+    k --> init["initrd → /init.sys → PID 1 em 0x400000"]
+    init --> idle["kmain: hlt loop<br/>reaper acorda a cada 5 s"]
 ```
 
 ## Mapa de memória

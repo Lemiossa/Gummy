@@ -9,11 +9,11 @@ O VFS do Sedge é uma camada fina que associa **nomes de volume** (`vol:/caminho
 
 ```mermaid
 flowchart TD
-    A[vfs_registry_fs\nfs_t com 8 callbacks] --> B[filesystems[16]]
-    C[vfs_mount vol, fs, source] -->|ops.mount source, &ctx| D[vol_t em volumes[64]]
-    E[vfs_open vol:/path] -->|find_vol → ops.open ctx, path| F[handle_t\nctx + offset + vol]
-    F --> G[vfs_read / vfs_write / vfs_close]
-    H[vfs_create vol:/path] -->|ops.create ctx, path| D
+    A["vfs_registry_fs<br/>fs_t com 8 callbacks"] --> B["filesystems[16]"]
+    C["vfs_mount(vol, fs, source)"] -->|"ops.mount(source, &amp;ctx)"| D["vol_t em volumes[64]"]
+    E["vfs_open(vol:/path)"] -->|"find_vol → ops.open(ctx, path)"| F["handle_t<br/>ctx + offset + vol"]
+    F --> G["vfs_read / vfs_write / vfs_close"]
+    H["vfs_create(vol:/path)"] -->|"ops.create(ctx, path)"| D
 ```
 
 ## Constantes

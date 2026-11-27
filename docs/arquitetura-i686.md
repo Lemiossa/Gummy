@@ -159,18 +159,18 @@ Os outros 220 vetores têm handler nulo; os stubs apenas descartam o quadro e fa
 
 ```mermaid
 flowchart TD
-    int[INT n / IRQ / exceção] --> cpu[CPU empilha SS:ESP, EFLAGS, CS:EIP\n(se mudança de CPL)]
-    cpu --> stub[isr_stub_N empilha error_code + int_num]
-    stub --> common[isr_common empilha GS..EAX\nsegmentos = 0x10]
-    common --> dispatch[interrupt_handler ctx]
-    dispatch --> h0[exception_handler 0..31]
-    dispatch --> h32[timer_handler 32]
-    dispatch --> h80[syscall_handler 0x80]
-    dispatch --> h81[schedule 0x81]
-    h0 --> restore[_restore_context: pop + iret]
+    evt["INT n / IRQ / exceção"] --> cpu["CPU empilha SS:ESP, EFLAGS, CS:EIP<br/>(se mudança de CPL)"]
+    cpu --> stub["isr_stub_N empilha error_code + int_num"]
+    stub --> common["isr_common empilha GS..EAX<br/>segmentos = 0x10"]
+    common --> dispatch["interrupt_handler ctx"]
+    dispatch --> h0["exception_handler 0..31"]
+    dispatch --> h32["timer_handler 32"]
+    dispatch --> h80["syscall_handler 0x80"]
+    dispatch --> h81["schedule 0x81"]
+    h0 --> restore["_restore_context: pop + iret"]
     h32 --> restore
     h80 --> restore
-    h81 --> switch[switch_context → restore_context]
+    h81 --> swctx["switch_context → restore_context"]
 ```
 
 ## Exceções

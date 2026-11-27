@@ -6,10 +6,10 @@
 
 ```mermaid
 flowchart LR
-    E820[Mapa E820 @ 0xC0000500] --> PMM[PMM\nbitmap 1 bit/página]
-    PMM -->|pmm_alloc_page| VMM[VMM\nPDE/PTE + CR3]
-    VMM -->|vmm_alloc_pages_region| HEAP[Heap 0xE0000000\nfirst-fit + split/coalesce]
-    VMM -->|vmm_clone| PROC[Processos: CR3 próprio\npáginas de usuário]
+    E820["Mapa E820 @ 0xC0000500"] --> PMM["PMM<br/>bitmap 1 bit/página"]
+    PMM -->|pmm_alloc_page| VMM["VMM<br/>PDE/PTE + CR3"]
+    VMM -->|vmm_alloc_pages_region| HEAP["Heap 0xE0000000<br/>first-fit + split/coalesce"]
+    VMM -->|vmm_clone| PROC["Processos: CR3 próprio<br/>páginas de usuário"]
     HEAP --> PROC
 ```
 

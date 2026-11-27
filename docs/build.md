@@ -42,16 +42,16 @@ DEBUG    ?= 1
 
 ```mermaid
 flowchart TD
-    make[make] --> bl[bootloader: nasm stage1 + stage2\ncat → bootloader.bin]
-    make --> lib[lib: gcc → global_lib.a]
-    make --> krn[kernel: gcc + nasm → ELF → objcopy → kernel.bin]
-    make --> ini[initrd/init: gcc + nasm → init.bin]
-    ini --> imgrd[make-initrd Python → build/bin/initrd]
-    bl --> img[imagem FAT12]
+    make["make"] --> bl["bootloader: nasm stage1 + stage2<br/>cat → bootloader.bin"]
+    make --> lib["lib: gcc → global_lib.a"]
+    make --> krn["kernel: gcc + nasm → ELF → objcopy → kernel.bin"]
+    make --> ini["initrd/init: gcc + nasm → init.bin"]
+    ini --> imgrd["make-initrd Python → build/bin/initrd"]
+    bl --> img["imagem FAT12"]
     lib --> krn
     krn --> img
     imgrd --> img
-    img --> out[Sedge_i686-0.26.2_debug.img]
+    img --> out["Sedge_i686-0.26.2_debug.img"]
 ```
 
 Cada subprojeto é invocado com `FORCE`, portanto recompila sempre. Os arquivos `.d` gerados por `-MD` são incluídos com `-include` (exceto no bootloader, cujo `INCLUDES` está quebrado — veja [limitações](#limitações-conhecidas)).

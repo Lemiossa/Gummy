@@ -11,7 +11,7 @@ flowchart LR
     A[init/src/main.c + entry.asm] -->|i686-elf-gcc / objcopy| B[init.bin]
     B -->|initrd/Makefile → build/root/init.sys| C[make-initrd Python]
     C -->|header + entradas + dados| D[build/initrd]
-    D -->|mcopy para a imagem FAT| E[/INITRD no disco]
+    D -->|mcopy para a imagem FAT| E["/INITRD no disco"]
     E -->|stage2 → 0x00050000| F[0xC0050000 no kernel]
     F -->|initrd_find_entry /init.sys| G[PID 1 em 0x400000]
 ```

@@ -9,9 +9,9 @@ O Sedge usa **mailboxes por processo** (não por thread) com um *ring buffer* de
 
 ```mermaid
 flowchart LR
-    A[Processo remetente\nipc_send] -->|ring_buffer_push| B[Mailbox do processo destino\n16 mensagens × 64 bytes]
-    B -->|ring_buffer_pop| C[Processo destinatário\nipc_receive]
-    B -.->|acorda 1 waiter| D[Fila waiters\nthreads bloqueadas]
+    A["Processo remetente<br/>ipc_send"] -->|ring_buffer_push| B["Mailbox do processo destino<br/>16 mensagens × 64 bytes"]
+    B -->|ring_buffer_pop| C["Processo destinatário<br/>ipc_receive"]
+    B -.->|acorda 1 waiter| D["Fila waiters<br/>threads bloqueadas"]
     D -->|sched_ready| C
 ```
 

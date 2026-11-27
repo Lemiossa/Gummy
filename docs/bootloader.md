@@ -14,12 +14,12 @@ O resultado é injetado em uma imagem FAT12 de 1,44 MiB preservando a BPB gerada
 
 ```mermaid
 flowchart TD
-    bios[BIOS carrega setor 0 @ 0x7C00] --> s1[Stage 1: 62 setores via INT 13h CHS\n→ 0x7E00]
-    s1 --> s2[Stage 2 @ 0x7E00\ncheca CPU, EDD, FAT]
-    s2 --> fat[FAT12: lê KERNEL.SYS @ 0x10000\ne INITRD @ 0x50000]
-    fat --> e820[INT 15h E820 @ 0x500]
-    e820 --> pm[A20, GDT, CR0.PE, paginação\nPD[0], PD[768], PD[1023]]
-    pm --> k[jmp 0xC0010000]
+    bios["BIOS carrega setor 0 @ 0x7C00"] --> s1["Stage 1: 62 setores via INT 13h CHS<br/>→ 0x7E00"]
+    s1 --> s2["Stage 2 @ 0x7E00<br/>checa CPU, EDD, FAT"]
+    s2 --> fat["FAT12: lê KERNEL.SYS @ 0x10000<br/>e INITRD @ 0x50000"]
+    fat --> e820["INT 15h E820 @ 0x500"]
+    e820 --> pm["A20, GDT, CR0.PE, paginação<br/>PD[0], PD[768], PD[1023]"]
+    pm --> k["jmp 0xC0010000"]
 ```
 
 ## Stage 1

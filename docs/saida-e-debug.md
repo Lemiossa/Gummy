@@ -8,10 +8,10 @@ Toda mensagem do kernel passa por `printk()`, que formata o texto em um buffer d
 
 ```mermaid
 flowchart LR
-    K[printk formato, ...] -->|vsnprintf| B[buffer 256 bytes]
-    B --> D[debug_print_string]
-    D -->|cli + spinlock| T[terminal_print_string\n80×25 @ 0xC00B8000]
-    D -->|byte a byte| S[write_serial COM1\n9600 8N1]
+    K["printk(formato, ...)"] -->|vsnprintf| B["buffer 256 bytes"]
+    B --> D["debug_print_string"]
+    D -->|cli + spinlock| T["terminal_print_string<br/>80×25 @ 0xC00B8000"]
+    D -->|byte a byte| S["write_serial COM1<br/>9600 8N1"]
 ```
 
 ## Debug

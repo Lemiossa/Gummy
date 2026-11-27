@@ -8,13 +8,13 @@ As interrupções do Sedge são roteadas pela IDT ([arquitetura-i686.md](arquite
 
 ```mermaid
 flowchart LR
-    PIT[PIT canal 0\n100 Hz] -->|IRQ0| PIC1[PIC mestre\nvetor 0x20]
-    PIC1 --> IDT[IDT[32]\ntimer_handler]
-    IDT --> T[ticks++\nEOI → PIC]
-    T --> W[acorda sleep_queue\nwake_tick <= ticks]
-    W --> S[schedule ctx\nround-robin]
-    U[int 0x80 / 0x81] --> IDT2[IDT com DPL 3]
-    IDT2 --> SYS[syscall_handler / schedule]
+    PIT["PIT canal 0<br/>100 Hz"] -->|IRQ0| PIC1["PIC mestre<br/>vetor 0x20"]
+    PIC1 --> IDT1["IDT[32]<br/>timer_handler"]
+    IDT1 --> T["ticks++<br/>EOI → PIC"]
+    T --> W["acorda sleep_queue<br/>wake_tick &lt;= ticks"]
+    W --> S["schedule ctx<br/>round-robin"]
+    U["int 0x80 / 0x81"] --> IDT2["IDT com DPL 3"]
+    IDT2 --> SYS["syscall_handler / schedule"]
 ```
 
 ## PIC
