@@ -1,6 +1,6 @@
 # Changelog
 
-Todas as mudanças notáveis do Gummy são documentadas aqui. As entradas seguem as tags do Git em ordem cronológica reversa (da mais nova para a mais velha).
+Todas as mudanças notáveis do Sedge são documentadas aqui. As entradas seguem as tags do Git em ordem cronológica reversa (da mais nova para a mais velha).
 
 ## v0.26.2 - 2026-11-25
 
@@ -52,7 +52,7 @@ Todas as mudanças notáveis do Gummy são documentadas aqui. As entradas seguem
 
 ## v0.23.1 - 2026-11-04
 
-- Movido funções genéricas de initrd para a biblioteca padrão do gummy(initrd.c e initrd.h)
+- Movido funções genéricas de initrd para a biblioteca padrão do sedge(initrd.c e initrd.h)
 
 ## v0.23.0 - 2026-11-04
 

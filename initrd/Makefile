@@ -2,7 +2,7 @@
 # Criado por Matheus Leme da Silva
 
 ARCH        ?= i686
-NAME        ?= Gummy
+NAME        ?= Sedge
 VERSION     ?= dev
 PROJ        ?= $(CURDIR)/..
 BUILDDIR    := $(CURDIR)/build

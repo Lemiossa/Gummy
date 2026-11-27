@@ -2,7 +2,7 @@
 # Created by Matheus Leme Da Silva
 
 PROJ     ?= $(CURDIR)/../..
-NAME     ?= Gummy
+NAME     ?= Sedge
 VERSION  ?= dev
 BUILDDIR := $(CURDIR)/build
 BINDIR   := $(BUILDDIR)/bin

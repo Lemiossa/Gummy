@@ -1,4 +1,4 @@
-# Gummy
+# Sedge
 
 Um sistema operacional hobby simples para a arquitetura x86.
 
@@ -26,7 +26,7 @@ Um sistema operacional hobby simples para a arquitetura x86.
 make
 ```
 
-Isso produz `build/images/Gummy-<version>.img`, em que a versão vem da variável
+Isso produz `build/images/Sedge-<version>.img`, em que a versão vem da variável
 `VERSION` no `Makefile` da raiz. Tanto o kernel quanto o bootloader recebem as
 macros `NAME` e `VERSION` em tempo de compilação.
 
