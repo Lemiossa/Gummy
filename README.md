@@ -2,6 +2,16 @@
 
 Um sistema operacional hobby simples para a arquitetura x86.
 
+## Documentação
+
+A documentação técnica completa está em [`docs/`](docs/README.md):
+
+- [Visão geral](docs/visao-geral.md) e [sequência de inicialização do kernel](docs/kernel.md)
+- [Bootloader](docs/bootloader.md), [build](docs/build.md) e [initrd](docs/initrd.md)
+- [Arquitetura i686](docs/arquitetura-i686.md), [interrupções](docs/interrupcoes.md), [memória](docs/memoria.md) e [escalonador](docs/escalonador.md)
+- [Syscalls](docs/syscalls.md), [IPC](docs/ipc.md), [VFS](docs/vfs.md) e [biblioteca comum](docs/biblioteca.md)
+- [Saída e debug](docs/saida-e-debug.md), [glossário](docs/glossario.md) e [estado atual](docs/estado-atual.md)
+
 ## Requisitos para compilar
 
 ### Obrigatório
