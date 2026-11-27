@@ -216,7 +216,7 @@ int vfs_create(const char *path) {
 	if (!vfs_check_fs(vol->fs))
 		return -VFS_ERR_INVALID;
 
-	return vol->fs->ops->create(vol->ctx, path);
+	return vol->fs->ops->create(vol->ctx, p);
 }
 
 // Fecha um arquivo

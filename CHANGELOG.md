@@ -2,6 +2,11 @@
 
 Todas as mudanças notáveis do Sedge são documentadas aqui. As entradas seguem as tags do Git em ordem cronológica reversa (da mais nova para a mais velha).
 
+## v0.26.3 - 2026-11-27 
+
+- Corrigido bug do prefix no vfs_create
+- Adicionado nova meta no TODO
+
 ## v0.26.2 - 2026-11-25
 
 - em ramfs_open, p = path + 1;
