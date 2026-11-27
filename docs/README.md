@@ -1,6 +1,6 @@
 # Documentação do Sedge
 
-Documentação técnica completa do sistema operacional **Sedge** (v0.26.2, i686). Os documentos descrevem o estado atual do código — inclusive partes incompletas e bugs conhecidos — e usam português, com nomes de funções/variáveis mantidos em inglês conforme a convenção do projeto.
+Documentação técnica completa do sistema operacional **Sedge** (v0.27.0, i686). Os documentos descrevem o estado atual do código — inclusive partes incompletas e bugs conhecidos — e usam português, com nomes de funções/variáveis mantidos em inglês conforme a convenção do projeto.
 
 ## Índice
 
@@ -73,7 +73,7 @@ Documentação técnica completa do sistema operacional **Sedge** (v0.26.2, i686
 ## Documentos de referência do repositório
 
 - [`README.md`](../README.md) — visão introdutória e instruções de compilação
-- [`CHANGELOG.md`](../CHANGELOG.md) — todas as versões, da v0.26.2 à v0.1.0
+- [`CHANGELOG.md`](../CHANGELOG.md) — todas as versões, da v0.27.0 à v0.1.0
 - [`TODO.md`](../TODO.md) — pendências
 - [`IDEAS.md`](../IDEAS.md) — ideias de evolução
 - [`LICENSE`](../LICENSE) — MIT

@@ -2,13 +2,13 @@
 
 ## O que é o Sedge
 
-Sedge é um **sistema operacional hobby** para x86 (i686), escrito em C11 e NASM, com bootloader próprio, kernel em *higher-half*, multitarefa preemptiva em nível de usuário, syscalls por `int 0x80`, IPC por mailboxes e um VFS em construção. A versão atual do `Makefile` é **0.26.2** (25/11/2026). O projeto é distribuído sob a [licença MIT](../LICENSE) e sua documentação e código são escritos em português desde 22/10/2026.
+Sedge é um **sistema operacional hobby** para x86 (i686), escrito em C11 e NASM, com bootloader próprio, kernel em *higher-half*, multitarefa preemptiva em nível de usuário, syscalls por `int 0x80`, IPC por mailboxes e um VFS em construção. A versão atual do `Makefile` é **0.27.0** (27/11/2026). O projeto é distribuído sob a [licença MIT](../LICENSE) e sua documentação e código são escritos em português desde 22/10/2026.
 
 | Característica | Valor |
 |---|---|
 | Arquitetura alvo | i686 (`-m32`), CPU 386+ |
 | Boot | BIOS, setor de boot próprio (sem Multiboot) |
-| Imagem | FAT12 de 1,44 MiB (`Sedge_i686-0.26.2_debug.img`) |
+| Imagem | FAT12 de 1,44 MiB (`Sedge_i686-0.27.0_debug.img`) |
 | Kernel | ELF32 convertido em binário, VMA `0xC0010000` |
 | Paginação | 4 KiB, diretório recursivo, offset `0xC0000000` |
 | Escalonamento | round-robin por tick de 10 ms (100 Hz) |

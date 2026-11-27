@@ -23,14 +23,14 @@ O guia de compilação do compilador cruzado (binutils 2.45, GCC 15.2.0, GDB 17.
 
 ```make
 ARCH     := i686
-VERSION  := 0.26.2
+VERSION  := 0.27.0
 NAME     := Sedge
 DEBUG    ?= 1
 ```
 
 | Variável | `DEBUG=1` (padrão) | `DEBUG!=1` |
 |---|---|---|
-| Imagem | `build/images/Sedge_i686-0.26.2_debug.img` | `build/images/Sedge_i686-0.26.2.img` |
+| Imagem | `build/images/Sedge_i686-0.27.0_debug.img` | `build/images/Sedge_i686-0.27.0.img` |
 | Bootloader | `build/bin/bootloader_debug.bin` | `build/bin/bootloader.bin` |
 | Kernel | `build/bin/kernel_debug.bin` (+ `.elf`) | `build/bin/kernel.bin` (+ `.elf`) |
 | Biblioteca | `build/lib/global_lib.a` | idem |
@@ -51,7 +51,7 @@ flowchart TD
     lib --> krn
     krn --> img
     imgrd --> img
-    img --> out["Sedge_i686-0.26.2_debug.img"]
+    img --> out["Sedge_i686-0.27.0_debug.img"]
 ```
 
 Cada subprojeto é invocado com `FORCE`, portanto recompila sempre. Os arquivos `.d` gerados por `-MD` são incluídos com `-include` (exceto no bootloader, cujo `INCLUDES` está quebrado — veja [limitações](#limitações-conhecidas)).
@@ -70,7 +70,7 @@ CFLAGS = -std=c11 -Wall -Wextra \
 
 | Componente | Flags extras |
 |---|---|
-| Kernel | `-m32`, `-DKERNEL`, `-DNAME=\"Sedge\"`, `-DVERSION=\"0.26.2\"`, includes de `include/`, `kernel/include/`, `kernel/include/arch/i686/`, `include/arch/i686/` |
+| Kernel | `-m32`, `-DKERNEL`, `-DNAME=\"Sedge\"`, `-DVERSION=\"0.27.0\"`, includes de `include/`, `kernel/include/`, `kernel/include/arch/i686/`, `include/arch/i686/` |
 | Lib | `-m32`, `-DNAME`, `-DVERSION`, include de `include/` |
 | Init | `-m32`, sem `-DKERNEL`, mesmas includes do kernel |
 | Bootloader | `nasm -f bin -I<srcdir> -DNAME=\"...\" -DVERSION=\"...\"` |
@@ -87,8 +87,8 @@ Ordem exata em `$(IMAGE)`:
 mkdir -p build/images build/imgroot
 cp build/bin/kernel_debug.bin build/imgroot/kernel.sys
 cp build/bin/initrd build/imgroot/initrd
-dd if=/dev/zero of=build/images/Sedge_i686-0.26.2_debug.img bs=1K count=1440 status=none
-mkfs.fat -F 12 -n SEDGE -R 64 build/images/Sedge_i686-0.26.2_debug.img
+dd if=/dev/zero of=build/images/Sedge_i686-0.27.0_debug.img bs=1K count=1440 status=none
+mkfs.fat -F 12 -n SEDGE -R 64 build/images/Sedge_i686-0.27.0_debug.img
 mcopy -i <imagem> -s build/imgroot/* ::
 dd if=build/bin/bootloader_debug.bin of=<imagem> bs=1 count=3 conv=notrunc
 dd if=build/bin/bootloader_debug.bin of=<imagem> bs=1 skip=62 seek=62 count=386 conv=notrunc

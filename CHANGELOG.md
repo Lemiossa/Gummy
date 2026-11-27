@@ -2,6 +2,13 @@
 
 Todas as mudanças notáveis do Sedge são documentadas aqui. As entradas seguem as tags do Git em ordem cronológica reversa (da mais nova para a mais velha).
 
+## v0.27.0 - 2026-11-27
+
+- **VFS**: `stat_t` ganha o campo `type` (`handle_type_t`) e passa a haver `vfs_stat()` e `vfs_unmount()` como pontos de entrada públicos.
+- Adicionado o erro `VFS_ERR_OPERATION_NOT_FOUND`; `vfs_check_fs()` agora valida apenas nome e `ops`, e cada operação verifica a callback correspondente antes de delegar.
+- `vfs_create()` passa o caminho sem o prefixo do volume, como `vfs_open()`.
+- Documentação do VFS e do estado atual atualizada, com justificativa técnica das alterações críticas conforme `RULES.md`.
+
 ## v0.26.3 - 2026-11-27 
 
 - Corrigido bug do prefix no vfs_create
