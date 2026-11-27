@@ -3,7 +3,7 @@
 
 ARCH     := i686
 VERSION  := 0.26.2
-NAME     := Gummy
+NAME     := Sedge
 
 PROJ     := $(CURDIR)
 BUILDDIR := $(PROJ)/build
