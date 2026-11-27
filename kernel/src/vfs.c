@@ -51,9 +51,7 @@ static inline int vfs_check_fs(const fs_t *fs) {
 		return 0;
 	if (fs->name[0] == 0)
 		return 0;
-	if (!fs->ops->mount || !fs->ops->unmount || !fs->ops->open ||
-		!fs->ops->read || !fs->ops->create || !fs->ops->write ||
-		!fs->ops->close || !fs->ops->stat)
+	if (!fs->ops)
 		return 0;
 
 	return 1;
@@ -93,6 +91,10 @@ int vfs_mount(const char *volname, const char *fsname, const void *source) {
 	fs_t *fs = vfs_find_fs(fsname);
 	if (!fs)
 		return -VFS_ERR_INVALID;
+	if (!vfs_check_fs(fs))
+		return -VFS_ERR_INVALID;
+	if (!fs->ops->mount)
+		return -VFS_ERR_OPERATION_NOT_FOUND;
 
 	char name[VFS_VOLUME_NAME_LEN];
 
@@ -159,6 +161,11 @@ handle_t *vfs_open(const char *path, int *err) {
 	}
 	if (!vfs_check_fs(vol->fs))
 		return NULL;
+	if (!vol->fs->ops->open) {
+		if (err)
+			*err = -VFS_ERR_OPERATION_NOT_FOUND;
+		return NULL;
+	}
 
 	handle_t *h = NULL;
 
@@ -175,6 +182,14 @@ handle_t *vfs_open(const char *path, int *err) {
 ssize_t vfs_read(handle_t *h, void *dst, size_t n) {
 	if (!h || !dst || n == 0)
 		return -VFS_ERR_INVALID;
+	if (!h->vol)
+		return -VFS_ERR_VOL_NOT_FOUND;
+	if (!h->vol->fs)
+		return -VFS_ERR_FS_NOT_FOUND;
+	if (!h->vol->fs->ops)
+		return -VFS_ERR_OPERATION_NOT_FOUND;
+	if (!h->vol->fs->ops->read)
+		return -VFS_ERR_OPERATION_NOT_FOUND;
 	return h->vol->fs->ops->read(h->vol->ctx, h, dst, n);
 }
 
@@ -182,6 +197,14 @@ ssize_t vfs_read(handle_t *h, void *dst, size_t n) {
 ssize_t vfs_write(handle_t *h, const void *src, size_t n) {
 	if (!h || !src || n == 0)
 		return -VFS_ERR_INVALID;
+	if (!h->vol)
+		return -VFS_ERR_VOL_NOT_FOUND;
+	if (!h->vol->fs)
+		return -VFS_ERR_FS_NOT_FOUND;
+	if (!h->vol->fs->ops)
+		return -VFS_ERR_OPERATION_NOT_FOUND;
+	if (!h->vol->fs->ops->write)
+		return -VFS_ERR_OPERATION_NOT_FOUND;
 	return h->vol->fs->ops->write(h->vol->ctx, h, src, n);
 }
 
@@ -216,11 +239,68 @@ int vfs_create(const char *path) {
 	if (!vfs_check_fs(vol->fs))
 		return -VFS_ERR_INVALID;
 
+	if (!vol)
+		return -VFS_ERR_VOL_NOT_FOUND;
+	if (!vol->fs)
+		return -VFS_ERR_FS_NOT_FOUND;
+	if (!vol->fs->ops)
+		return -VFS_ERR_OPERATION_NOT_FOUND;
+	if (!vol->fs->ops->write)
+		return -VFS_ERR_OPERATION_NOT_FOUND;
+
 	return vol->fs->ops->create(vol->ctx, p);
 }
 
 // Fecha um arquivo
 int vfs_close(handle_t *h) {
-	if (!h || !h->vol) return -VFS_ERR_INVALID;
+	if (!h)
+		return -VFS_ERR_INVALID;
+	if (!h->vol)
+		return -VFS_ERR_VOL_NOT_FOUND;
+	if (!h->vol->fs)
+		return -VFS_ERR_FS_NOT_FOUND;
+	if (!h->vol->fs->ops)
+		return -VFS_ERR_OPERATION_NOT_FOUND;
+	if (!h->vol->fs->ops->close)
+		return -VFS_ERR_OPERATION_NOT_FOUND;
 	return h->vol->fs->ops->close(h->vol->ctx, h);
+}
+
+// Pega stat de um arquivo
+int vfs_stat(handle_t *h, stat_t *out) {
+	if (!h || !out)
+		return -VFS_ERR_INVALID;
+	if (!h->vol)
+		return -VFS_ERR_VOL_NOT_FOUND;
+	if (!h->vol->fs)
+		return -VFS_ERR_FS_NOT_FOUND;
+	if (!h->vol->fs->ops)
+		return -VFS_ERR_OPERATION_NOT_FOUND;
+	if (!h->vol->fs->ops->stat)
+		return -VFS_ERR_OPERATION_NOT_FOUND;
+	return h->vol->fs->ops->stat(h->vol->ctx, h, out);
+}
+
+// Desmonta um volume
+int vfs_unmount(const char *volname) {
+	if (!volname || volname[0] == 0)
+		return -VFS_ERR_INVALID;
+
+	const char *colon = strchr(volname, ':');
+	const char *end = (colon ? colon : strchr(volname, '\0'));
+	size_t len = (size_t)((uintptr_t)end - (uintptr_t)volname);
+	if (len >= VFS_VOLUME_NAME_LEN)
+		return -VFS_ERR_INVALID;
+
+	char name[VFS_VOLUME_NAME_LEN];
+	strncpy(name, volname, VFS_VOLUME_NAME_LEN);
+	vol_t *vol = vfs_find_vol(name);
+	if (!vol)
+		return -VFS_ERR_VOL_NOT_FOUND;
+	if (!vol->fs)
+		return -VFS_ERR_FS_NOT_FOUND;
+	if (!vol->fs->ops || !vol->fs->ops->unmount)
+		return -VFS_ERR_OPERATION_NOT_FOUND;
+
+	return vol->fs->ops->unmount(vol->ctx);
 }

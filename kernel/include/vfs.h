@@ -18,6 +18,7 @@ enum {
 	VFS_ERR_NOT_ENOUGH_SPACE,
 	VFS_ERR_VOL_NOT_FOUND,
 	VFS_ERR_FS_NOT_FOUND,
+	VFS_ERR_OPERATION_NOT_FOUND,
 };
 
 typedef enum handle_type {
@@ -42,6 +43,7 @@ struct stat {
 	size_t size;
 	const char *name;
 	size_t name_len;
+	handle_type_t type;
 };
 
 struct ops {
@@ -96,7 +98,7 @@ vol_t *vfs_find_vol(const char *name);
 // Retorna o índice dele na lista, -1 em caso de erro
 int vfs_registry_fs(fs_t fs);
 
-// Monta um sistema de arquivos
+// Monta um volume
 int vfs_mount(const char *volname, const char *fsname, const void *source);
 // Abre um arquivo
 handle_t *vfs_open(const char *path, int *err);
@@ -108,5 +110,9 @@ ssize_t vfs_write(handle_t *h, const void *src, size_t n);
 int vfs_create(const char *path);
 // Fecha um arquivo
 int vfs_close(handle_t *h);
+// Pega stat de um arquivo
+int vfs_stat(handle_t *h, stat_t *out);
+// Desmonta um volume
+int vfs_unmount(const char *volname);
 
 #endif // VFS_H
