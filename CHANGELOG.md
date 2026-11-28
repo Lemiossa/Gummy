@@ -2,6 +2,10 @@
 
 Todas as mudanças notáveis do Sedge são documentadas aqui. As entradas seguem as tags do Git em ordem cronológica reversa (da mais nova para a mais velha).
 
+## v0.29.0 - 2026-11-27
+
+- Criado a função ring_buffer_size
+
 ## v0.28.0 - 2026-11-27
 
 - Criado a função ring_buffer_peek_idx

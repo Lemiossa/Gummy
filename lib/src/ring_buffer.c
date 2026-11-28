@@ -83,3 +83,9 @@ int ring_buffer_empty(const ring_buffer_t *r) {
 		return 1; // Trata como vazio
 	return r->count == 0;
 }
+
+// Retorna o tamanho do buffer
+size_t ring_buffer_size(const ring_buffer_t *r) {
+	if (!r) return 0;
+	return r->count;
+}

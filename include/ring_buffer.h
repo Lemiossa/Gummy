@@ -30,5 +30,7 @@ int ring_buffer_peek_idx(ring_buffer_t *r, void *out, size_t idx);
 int ring_buffer_full(const ring_buffer_t *r);
 // Retorna 1 se o buffer está vazio
 int ring_buffer_empty(const ring_buffer_t *r);
+// Retorna o tamanho do buffer
+size_t ring_buffer_size(const ring_buffer_t *r);
 
 #endif // RING_BUFFER_H
