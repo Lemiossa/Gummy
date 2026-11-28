@@ -2,6 +2,10 @@
 
 Todas as mudanças notáveis do Sedge são documentadas aqui. As entradas seguem as tags do Git em ordem cronológica reversa (da mais nova para a mais velha).
 
+## v0.28.0 - 2026-11-27
+
+- Criado a função ring_buffer_peek_idx
+
 ## v0.27.1 - 2026-11-27
 
 - Removido includes de à stdint e stddef do vfs.c

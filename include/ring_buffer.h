@@ -23,6 +23,9 @@ int ring_buffer_pop(ring_buffer_t *r, void *out);
 // Lê sem tirar do buffer
 // Retorna !0 se o buffer está vazio
 int ring_buffer_peek(ring_buffer_t *r, void *out);
+// Lê de um index sem tirar do buffer
+// Retorna !0 se o buffer está vazio
+int ring_buffer_peek_idx(ring_buffer_t *r, void *out, size_t idx);
 // Retorna 1 se o buffer está cheio
 int ring_buffer_full(const ring_buffer_t *r);
 // Retorna 1 se o buffer está vazio

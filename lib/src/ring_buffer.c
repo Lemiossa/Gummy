@@ -54,6 +54,22 @@ int ring_buffer_peek(ring_buffer_t *r, void *out) {
 	return 0;
 }
 
+// Lê de um index sem tirar do buffer
+// Retorna !0 se o buffer está vazio ou o índice é inválido
+int ring_buffer_peek_idx(ring_buffer_t *r, void *out, size_t idx) {
+	if (!r || !out)
+		return 1;
+	if (ring_buffer_empty(r))
+		return 1;
+	if (idx >= r->count)
+		return 1;
+
+	size_t pos = (r->head + idx) % r->capacity;
+
+	memcpy(out, r->buf + pos * r->elem_size, r->elem_size);
+	return 0;
+}
+
 // Retorna 1 se o buffer está cheio
 int ring_buffer_full(const ring_buffer_t *r) {
 	if (!r)
