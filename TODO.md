@@ -11,3 +11,6 @@
 - [ ] Adicionar verificação de 'h' nulo no vfs_open
 - [ ] Mudar verificação de ops->write para ops->create
 - [ ] Fazer vfs_unmount decrementar num_volumes, copiar só até ':' e tirar de volumes[]
+
+## Lib
+- [ ] Implementar ring_buffer_peek_idx
